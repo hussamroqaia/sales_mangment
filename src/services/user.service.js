@@ -2,11 +2,11 @@
  * user.service.js
  *
  * Pure service layer — only Axios calls, no state, no composables.
- * The Axios instance (src/plugins/axios.js) auto-attaches the Bearer token.
+ * The Axios instance (src/services/apiClient.js) auto-attaches the Bearer token.
  * Base URL is configured via VITE_API_BASE_URL in .env.
  */
 
-import apiClient from '@/plugins/axios'
+import apiClient from '@/services/apiClient'
 
 // ─── GET /users ───────────────────────────────────────────────────────────────
 /**

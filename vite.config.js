@@ -12,6 +12,14 @@ import MetaLayouts from 'vite-plugin-vue-meta-layouts'
 import vuetify from 'vite-plugin-vuetify'
 import svgLoader from 'vite-svg-loader'
 
+// ℹ️ The project path contains parentheses ("مجلد جديد (2)"), which are glob
+// pattern characters. unplugin-auto-import resolves relative `dirs` against the
+// project root WITHOUT escaping them, so its directory scan silently matches
+// nothing and auto-imports like `useCookie` break at runtime. We escape the
+// parentheses as character classes ("[(]") so fast-glob treats them literally.
+const projectRootDir = fileURLToPath(new URL('./', import.meta.url)).replace(/\\/g, '/')
+const globSafePath = rel => (projectRootDir + rel).replace(/[()]/g, ch => `[${ch}]`)
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -54,7 +62,12 @@ export default defineConfig({
 
     // Docs: https://github.com/antfu/unplugin-vue-components#unplugin-vue-components
     Components({
-      dirs: ['src/@core/components', 'src/views/demos', 'src/components'],
+      // ℹ️ globSafePath: see note above — same parentheses issue as AutoImport
+      dirs: [
+        globSafePath('src/@core/components'),
+        globSafePath('src/views/demos'),
+        globSafePath('src/components'),
+      ],
       dts: true,
       resolvers: [
         componentName => {
@@ -69,11 +82,11 @@ export default defineConfig({
     AutoImport({
       imports: ['vue', VueRouterAutoImports, '@vueuse/core', '@vueuse/math', 'vue-i18n', 'pinia'],
       dirs: [
-        './src/@core/utils',
-        './src/@core/composable/',
-        './src/composables/',
-        './src/utils/',
-        './src/plugins/*/composables/*',
+        globSafePath('src/@core/utils'),
+        globSafePath('src/@core/composable/'),
+        globSafePath('src/composables/'),
+        globSafePath('src/utils/'),
+        globSafePath('src/plugins/*/composables/*'),
       ],
       vueTemplate: true,
 
@@ -89,8 +102,9 @@ export default defineConfig({
     VueI18nPlugin({
       runtimeOnly: true,
       compositionOnly: true,
+      // ℹ️ globSafePath: see note above — same parentheses issue as AutoImport
       include: [
-        fileURLToPath(new URL('./src/plugins/i18n/locales/**', import.meta.url)),
+        globSafePath('src/plugins/i18n/locales/**'),
       ],
     }),
     svgLoader(),

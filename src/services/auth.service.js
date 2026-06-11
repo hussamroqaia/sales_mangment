@@ -5,11 +5,11 @@
  * All functions return the response data directly or throw on failure.
  * Consumed exclusively by the useAuth composable.
  *
- * Base URL is configured on the Axios instance (src/plugins/axios.js)
+ * Base URL is configured on the Axios instance (src/services/apiClient.js)
  * via import.meta.env.VITE_API_BASE_URL.
  */
 
-import apiClient from '@/plugins/axios'
+import apiClient from '@/services/apiClient'
 
 // ─── POST /auth/login ─────────────────────────────────────────────────────────
 /**
