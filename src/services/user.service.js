@@ -10,18 +10,38 @@ import apiClient from '@/services/apiClient'
 
 // ─── GET /users ───────────────────────────────────────────────────────────────
 /**
- * Fetch the full list of users.
- * @returns {Promise<Array<{ id, name, email, role, status, createdAt }>>}
+ * Fetch a server-side paginated, filtered, and sorted list of users.
+ *
+ * @param {Object} params
+ * @param {string}  [params.search]   - Free-text search
+ * @param {string}  [params.role]     - ADMIN | SALES_MANAGER | SALES_REP | WAREHOUSE_MANAGER
+ * @param {string}  [params.status]   - ACTIVE | INACTIVE | SUSPENDED
+ * @param {number}  [params.page=0]   - Zero-based page index
+ * @param {number}  [params.size=10]  - Page size
+ * @param {string}  [params.sortBy]   - Field name to sort by (e.g. "id")
+ * @param {string}  [params.sortDir]  - "asc" | "desc"
+ *
+ * @returns {Promise<{
+ *   users: { content: Array, page: number, size: number, totalElements: number, totalPages: number },
+ *   counts: { active: number, inactive: number, suspended: number, total: number }
+ * }>}
  */
-export const fetchUsers = async () => {
+export const fetchUsers = async (params = {}) => {
   try {
-    const response = await apiClient.get('/users')
+    // Strip undefined/null/empty values so the API doesn't receive blank query params
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v !== null && v !== undefined && v !== ''),
+    )
 
+    const response = await apiClient.get('/users', { params: cleanParams })
+
+    // Response shape: { success, data: { users: {...}, counts: {...} } }
     return response.data?.data ?? response.data
   } catch (error) {
     throw error
   }
 }
+
 
 // ─── GET /users/:id ───────────────────────────────────────────────────────────
 /**

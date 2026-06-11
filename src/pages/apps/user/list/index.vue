@@ -20,6 +20,7 @@ import {
 const {
   paginatedUsers,
   totalUsers,
+  counts,
   isListLoading,
   listError,
   searchQuery,
@@ -41,15 +42,15 @@ const {
 
 // ── Table Headers ─────────────────────────────────────────────────────────────
 const headers = [
-  { title: 'User', key: 'name', sortable: true },
-  { title: 'Role', key: 'role', sortable: true },
-  { title: 'Status', key: 'status', sortable: true },
-  { title: 'Created', key: 'createdAt', sortable: true },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'end' },
+  { title: 'User',    key: 'name',      sortable: true  },
+  { title: 'Role',    key: 'role',      sortable: true  },
+  { title: 'Status',  key: 'status',    sortable: true  },
+  { title: 'Created', key: 'createdAt', sortable: true  },
+  { title: 'Actions', key: 'actions',   sortable: false, align: 'end' },
 ]
 
 // ── Drawer & Dialog State ─────────────────────────────────────────────────────
-const isAddDrawerOpen = ref(false)
+const isAddDrawerOpen    = ref(false)
 const isDetailDialogOpen = ref(false)
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
@@ -78,9 +79,9 @@ const formatDate = dateStr => {
   if (!dateStr) return '—'
 
   return new Date(dateStr).toLocaleDateString('en-US', {
-    year: 'numeric',
+    year:  'numeric',
     month: 'short',
-    day: 'numeric',
+    day:   'numeric',
   })
 }
 
@@ -104,7 +105,7 @@ onMounted(fetchAllUsers)
                 Total Users
               </div>
               <h4 class="text-h4">
-                {{ totalUsers }}
+                {{ counts.total }}
               </h4>
             </div>
             <VAvatar
@@ -134,7 +135,7 @@ onMounted(fetchAllUsers)
                 Active
               </div>
               <h4 class="text-h4">
-                {{ paginatedUsers.filter(u => u.status === 'ACTIVE').length }}
+                {{ counts.active }}
               </h4>
             </div>
             <VAvatar
@@ -164,7 +165,7 @@ onMounted(fetchAllUsers)
                 Inactive
               </div>
               <h4 class="text-h4">
-                {{ paginatedUsers.filter(u => u.status === 'INACTIVE').length }}
+                {{ counts.inactive }}
               </h4>
             </div>
             <VAvatar
@@ -194,7 +195,7 @@ onMounted(fetchAllUsers)
                 Suspended
               </div>
               <h4 class="text-h4">
-                {{ paginatedUsers.filter(u => u.status === 'SUSPENDED').length }}
+                {{ counts.suspended }}
               </h4>
             </div>
             <VAvatar
@@ -265,7 +266,6 @@ onMounted(fetchAllUsers)
             { value: 10, title: '10' },
             { value: 25, title: '25' },
             { value: 50, title: '50' },
-            { value: -1, title: 'All' },
           ]"
           style="inline-size: 6.25rem;"
           @update:model-value="itemsPerPage = parseInt($event, 10)"
@@ -305,11 +305,19 @@ onMounted(fetchAllUsers)
         {{ listError }}
       </VAlert>
 
-      <!-- Data Table -->
-      <VDataTable
+      <!--
+        VDataTableServer: server-side pagination/sorting.
+        - :items-length  = total record count from the server
+        - @update:options fires when user changes page / sort inside the table
+        - We disable the built-in footer and render our own TablePagination below.
+      -->
+      <VDataTableServer
         :headers="headers"
         :items="paginatedUsers"
+        :items-length="totalUsers"
         :loading="isListLoading"
+        :page="page"
+        :items-per-page="itemsPerPage"
         item-value="id"
         class="text-no-wrap"
         hide-default-footer
@@ -464,7 +472,7 @@ onMounted(fetchAllUsers)
             :total-items="totalUsers"
           />
         </template>
-      </VDataTable>
+      </VDataTableServer>
     </VCard>
 
     <!-- ── Add New User Drawer ───────────────────────────────────────────────── -->

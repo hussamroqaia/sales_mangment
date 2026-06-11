@@ -2,15 +2,21 @@
  * useUsers.js
  *
  * Central composable for the User Management module.
- * Manages all state and business logic. UI components call ONLY this composable.
+ * All filtering, sorting, and pagination is handled SERVER-SIDE.
  *
- * Responsibilities:
- *  - User list state (loading, data, filters, pagination)
- *  - Single user detail state
- *  - Create user / update status / reset password operations
- *  - Snackbar feedback for all operations
+ * Architecture:
+ *   UI → useUsers (state + business logic) → user.service (pure Axios calls)
+ *
+ * Key design decisions:
+ *  - `page` is kept in 1-based internally (Vuetify convention) and converted
+ *    to 0-based before sending to the API.
+ *  - `counts` from the API powers the summary widgets independently of the
+ *    current page/filter view.
+ *  - Search is debounced (400 ms) to avoid hammering the API on every keystroke.
+ *  - Changing any filter or sort resets the page to 1 automatically.
  */
 
+import { watchDebounced } from '@vueuse/core'
 import {
   fetchUsers,
   fetchUserById,
@@ -21,40 +27,34 @@ import {
 
 // ─── Role / Status display helpers (shared across components) ─────────────────
 export const USER_ROLES = [
-  { title: 'Admin', value: 'ADMIN' },
-  { title: 'Sales Manager', value: 'SALES_MANAGER' },
-  { title: 'Sales Rep', value: 'SALES_REP' },
+  { title: 'Admin',             value: 'ADMIN'             },
+  { title: 'Sales Manager',     value: 'SALES_MANAGER'     },
+  { title: 'Sales Rep',         value: 'SALES_REP'         },
   { title: 'Warehouse Manager', value: 'WAREHOUSE_MANAGER' },
 ]
 
 export const USER_STATUSES = [
-  { title: 'Active', value: 'ACTIVE' },
-  { title: 'Inactive', value: 'INACTIVE' },
+  { title: 'Active',    value: 'ACTIVE'    },
+  { title: 'Inactive',  value: 'INACTIVE'  },
   { title: 'Suspended', value: 'SUSPENDED' },
 ]
 
 export const resolveRoleVariant = role => {
   const map = {
-    ADMIN:             { color: 'primary',  icon: 'tabler-crown'         },
-    SALES_MANAGER:     { color: 'info',     icon: 'tabler-chart-bar'     },
-    SALES_REP:         { color: 'success',  icon: 'tabler-user-dollar'   },
-    WAREHOUSE_MANAGER: { color: 'warning',  icon: 'tabler-building-warehouse' },
+    ADMIN:             { color: 'primary', icon: 'tabler-crown'                  },
+    SALES_MANAGER:     { color: 'info',    icon: 'tabler-chart-bar'              },
+    SALES_REP:         { color: 'success', icon: 'tabler-user-dollar'            },
+    WAREHOUSE_MANAGER: { color: 'warning', icon: 'tabler-building-warehouse'     },
   }
 
   return map[role?.toUpperCase()] ?? { color: 'secondary', icon: 'tabler-user' }
 }
 
-// Resolves the human-readable label for a role value (e.g. SALES_MANAGER → "Sales Manager")
-export const resolveRoleTitle = role => {
-  return USER_ROLES.find(r => r.value === role?.toUpperCase())?.title ?? role ?? '—'
-}
+export const resolveRoleTitle = role =>
+  USER_ROLES.find(r => r.value === role?.toUpperCase())?.title ?? role ?? '—'
 
 export const resolveStatusVariant = status => {
-  const map = {
-    ACTIVE: 'success',
-    INACTIVE: 'secondary',
-    SUSPENDED: 'error',
-  }
+  const map = { ACTIVE: 'success', INACTIVE: 'secondary', SUSPENDED: 'error' }
 
   return map[status?.toUpperCase()] ?? 'primary'
 }
@@ -62,78 +62,63 @@ export const resolveStatusVariant = status => {
 // ─── Composable ───────────────────────────────────────────────────────────────
 export const useUsers = () => {
   // ── List State ─────────────────────────────────────────────────────────────
-  const users = ref([])
-  const isListLoading = ref(false)
-  const listError = ref('')
+  /** Current page's user rows (from API response content array) */
+  const paginatedUsers = ref([])
+  const isListLoading   = ref(false)
+  const listError       = ref('')
 
-  // Client-side search & filter (the API returns the full list in one call)
-  const searchQuery = ref('')
-  const selectedRole = ref(null)
+  // ── Counts (from API — independent of page view) ───────────────────────────
+  const counts = ref({ active: 0, inactive: 0, suspended: 0, total: 0 })
+
+  // ── Filter / Search State ──────────────────────────────────────────────────
+  const searchQuery   = ref('')
+  const selectedRole   = ref(null)
   const selectedStatus = ref(null)
 
-  // Pagination
-  const page = ref(1)
+  // ── Pagination State ───────────────────────────────────────────────────────
+  /** 1-based page (Vuetify convention). Converted to 0-based when calling API. */
+  const page         = ref(1)
   const itemsPerPage = ref(10)
-  const sortBy = ref([])
+  /** totalElements returned by the server */
+  const totalUsers   = ref(0)
+
+  // ── Sorting State ──────────────────────────────────────────────────────────
+  const sortBy  = ref('id')
+  const sortDir = ref('asc')
 
   // ── Single User State ──────────────────────────────────────────────────────
-  const selectedUser = ref(null)
+  const selectedUser    = ref(null)
   const isDetailLoading = ref(false)
-  const detailError = ref('')
+  const detailError     = ref('')
 
   // ── Operation State ────────────────────────────────────────────────────────
   const isSubmitting = ref(false)
-  const snackbar = ref({
-    show: false,
-    message: '',
-    color: 'success',
-  })
+  const snackbar     = ref({ show: false, message: '', color: 'success' })
 
   const showSnackbar = (message, color = 'success') => {
     snackbar.value = { show: true, message, color }
   }
 
-  // ── Filtered + Paginated Users (computed from full list) ───────────────────
-  const filteredUsers = computed(() => {
-    let result = users.value
-
-    if (searchQuery.value) {
-      const q = searchQuery.value.toLowerCase()
-      result = result.filter(u =>
-        u.name?.toLowerCase().includes(q) ||
-        u.email?.toLowerCase().includes(q),
-      )
-    }
-
-    if (selectedRole.value) {
-      result = result.filter(u => u.role?.toUpperCase() === selectedRole.value)
-    }
-
-    if (selectedStatus.value) {
-      result = result.filter(u => u.status?.toUpperCase() === selectedStatus.value)
-    }
-
-    return result
-  })
-
-  const totalUsers = computed(() => filteredUsers.value.length)
-
-  const paginatedUsers = computed(() => {
-    if (itemsPerPage.value === -1) return filteredUsers.value
-    const start = (page.value - 1) * itemsPerPage.value
-
-    return filteredUsers.value.slice(start, start + itemsPerPage.value)
-  })
-
-  // ── fetchAllUsers() ────────────────────────────────────────────────────────
+  // ── fetchAllUsers() — calls API with current params ────────────────────────
   const fetchAllUsers = async () => {
     isListLoading.value = true
-    listError.value = ''
+    listError.value     = ''
 
     try {
-      const data = await fetchUsers()
+      const data = await fetchUsers({
+        search:  searchQuery.value   || undefined,
+        role:    selectedRole.value  || undefined,
+        status:  selectedStatus.value || undefined,
+        page:    page.value - 1,   // convert 1-based UI → 0-based API
+        size:    itemsPerPage.value,
+        sortBy:  sortBy.value,
+        sortDir: sortDir.value,
+      })
 
-      users.value = Array.isArray(data) ? data : []
+      // data = { users: { content, page, size, totalElements, totalPages }, counts }
+      paginatedUsers.value = data?.users?.content   ?? []
+      totalUsers.value     = data?.users?.totalElements ?? 0
+      counts.value         = data?.counts ?? { active: 0, inactive: 0, suspended: 0, total: 0 }
     } catch (error) {
       const message = error?.response?.data?.message
       listError.value = message || 'Failed to load users.'
@@ -143,15 +128,31 @@ export const useUsers = () => {
     }
   }
 
+  // ── Watchers — re-fetch on filter/sort/page/size change ───────────────────
+
+  // Debounce search so we don't fire on every keystroke
+  watchDebounced(searchQuery, () => {
+    page.value = 1
+    fetchAllUsers()
+  }, { debounce: 400 })
+
+  // Immediate refetch when filters change (reset to page 1)
+  watch([selectedRole, selectedStatus], () => {
+    page.value = 1
+    fetchAllUsers()
+  })
+
+  // Refetch when page or page size changes
+  watch([page, itemsPerPage], fetchAllUsers)
+
   // ── fetchUser(id) ──────────────────────────────────────────────────────────
   const fetchUser = async id => {
     isDetailLoading.value = true
-    detailError.value = ''
-    selectedUser.value = null
+    detailError.value     = ''
+    selectedUser.value    = null
 
     try {
       const data = await fetchUserById(id)
-
       selectedUser.value = data
     } catch (error) {
       const message = error?.response?.data?.message
@@ -163,24 +164,18 @@ export const useUsers = () => {
   }
 
   // ── createUser(payload) ────────────────────────────────────────────────────
-  /**
-   * @param {{ name: string, email: string, password: string, role: string }} payload
-   * @returns {Promise<{ success: boolean, error?: string }>}
-   */
   const createUser = async payload => {
     isSubmitting.value = true
-
     try {
-      const newUser = await createUserService(payload)
-
-      // Optimistically prepend new user to list
-      users.value = [newUser, ...users.value]
+      await createUserService(payload)
       showSnackbar('User created successfully.')
+      // Refetch first page to show the new user
+      page.value = 1
+      await fetchAllUsers()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-
       showSnackbar(message || 'Failed to create user.', 'error')
 
       return { success: false, error: message || 'Failed to create user.' }
@@ -190,32 +185,26 @@ export const useUsers = () => {
   }
 
   // ── changeUserStatus(id, status) ───────────────────────────────────────────
-  /**
-   * @param {number|string} id
-   * @param {'ACTIVE'|'INACTIVE'|'SUSPENDED'} status
-   * @returns {Promise<{ success: boolean, error?: string }>}
-   */
   const changeUserStatus = async (id, status) => {
     isSubmitting.value = true
-
     try {
       await updateUserStatusService(id, status)
 
-      // Update local list in-place — no refetch needed
-      const idx = users.value.findIndex(u => u.id === id)
-      if (idx !== -1) users.value[idx] = { ...users.value[idx], status }
+      // Optimistic local update — avoids a full refetch for inline row actions
+      const idx = paginatedUsers.value.findIndex(u => u.id === id)
+      if (idx !== -1) paginatedUsers.value[idx] = { ...paginatedUsers.value[idx], status }
 
-      // Update selected user if open
       if (selectedUser.value?.id === id) {
         selectedUser.value = { ...selectedUser.value, status }
       }
 
+      // Also refresh counts from the server since a status change affects them
+      await fetchAllUsers()
       showSnackbar('User status updated successfully.')
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-
       showSnackbar(message || 'Failed to update status.', 'error')
 
       return { success: false, error: message || 'Failed to update status.' }
@@ -225,14 +214,8 @@ export const useUsers = () => {
   }
 
   // ── resetPassword(id, newPassword) ─────────────────────────────────────────
-  /**
-   * @param {number|string} id
-   * @param {string} newPassword
-   * @returns {Promise<{ success: boolean, error?: string }>}
-   */
   const resetPassword = async (id, newPassword) => {
     isSubmitting.value = true
-
     try {
       await resetUserPasswordService(id, newPassword)
       showSnackbar('Password reset successfully.')
@@ -240,7 +223,6 @@ export const useUsers = () => {
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-
       showSnackbar(message || 'Failed to reset password.', 'error')
 
       return { success: false, error: message || 'Failed to reset password.' }
@@ -249,21 +231,32 @@ export const useUsers = () => {
     }
   }
 
-  // ── updateOptions (VDataTable callback) ────────────────────────────────────
+  // ── updateOptions (VDataTable @update:options callback) ───────────────────
+  /**
+   * Called by VDataTable when the user changes sort. We read the first sort
+   * entry and map it to our sortBy/sortDir refs, then re-fetch.
+   * @param {{ sortBy: Array<{key: string, order: string}> }} options
+   */
   const updateOptions = options => {
-    sortBy.value = options.sortBy ?? []
-    // Reset to page 1 on sort change
-    if (options.sortBy?.length) page.value = 1
+    const firstSort = options.sortBy?.[0]
+    if (firstSort) {
+      sortBy.value  = firstSort.key
+      sortDir.value = firstSort.order === 'desc' ? 'desc' : 'asc'
+    } else {
+      sortBy.value  = 'id'
+      sortDir.value = 'asc'
+    }
+    page.value = 1
+    fetchAllUsers()
   }
 
   return {
-    // List state
-    users,
-    filteredUsers,
+    // List
     paginatedUsers,
     totalUsers,
     isListLoading,
     listError,
+    counts,
 
     // Filters
     searchQuery,
@@ -273,7 +266,10 @@ export const useUsers = () => {
     // Pagination
     page,
     itemsPerPage,
+
+    // Sorting
     sortBy,
+    sortDir,
     updateOptions,
 
     // Single user
@@ -281,11 +277,9 @@ export const useUsers = () => {
     isDetailLoading,
     detailError,
 
-    // Operation state
+    // Operations
     isSubmitting,
     snackbar,
-
-    // Methods
     fetchAllUsers,
     fetchUser,
     createUser,
