@@ -21,4 +21,11 @@ export default [
     action: 'manage',
     subject: 'all',
   },
+  {
+    title: 'Territories',
+    icon: { icon: 'tabler-map-pins' },
+    to: 'apps-territory-list',
+    action: 'read',
+    subject: 'Auth',
+  },
 ]

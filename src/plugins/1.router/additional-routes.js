@@ -68,4 +68,13 @@ export const routes = [
     name: 'apps-ecommerce-dashboard',
     component: () => import('@/pages/dashboards/ecommerce.vue'),
   },
+  {
+    path: '/apps/territory/list',
+    name: 'apps-territory-list',
+    component: () => import('@/pages/apps/territory/list/index.vue'),
+    meta: {
+      action: 'read',
+      subject: 'Auth',
+    },
+  },
 ]

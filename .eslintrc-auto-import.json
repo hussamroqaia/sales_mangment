@@ -367,6 +367,7 @@
     "watchTriggerable": true,
     "watchWithFilter": true,
     "whenever": true,
-    "resolveRoleTitle": true
+    "resolveRoleTitle": true,
+    "useTerritories": true
   }
 }
