@@ -3,6 +3,7 @@ import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { CUSTOMER_CATEGORIES } from '@/composables/useCustomers'
+import { fetchTerritories } from '@/services/territory.service'
 
 const props = defineProps({
   isDrawerOpen: {
@@ -19,13 +20,6 @@ const props = defineProps({
   customer: {
     type: Object,
     default: null,
-  },
-  /**
-   * List of territories for the dropdown: [{ id, name }]
-   */
-  territories: {
-    type: Array,
-    default: () => [],
   },
 })
 
@@ -140,10 +134,77 @@ const onSubmit = () => {
   })
 }
 
-// ── Territory items for dropdown ───────────────────────────────────────────────
-const territoryItems = computed(() =>
-  props.territories.map(t => ({ title: t.name, value: t.id })),
-)
+// ── Territory autocomplete — server-side search + scroll pagination ───────────
+const territorySearch     = ref('')          // bound to the autocomplete search box
+const territoryItems      = ref([])          // currently loaded options
+const territoryPage       = ref(0)           // 0-based API page
+const territoryTotalPages = ref(1)           // from API response
+const isTerritoryLoading  = ref(false)
+let   _tSearchTimer       = null
+let   _tBlockScroll       = false   // blocks the sentinel after a reset so page 2 isn't auto-loaded
+
+/** Load one page of territories (appends to territoryItems) */
+const loadTerritoryPage = async (reset = false) => {
+  if (isTerritoryLoading.value) return
+  if (!reset && territoryPage.value >= territoryTotalPages.value) return
+
+  // On every reset, suppress the sentinel's automatic first fire (it becomes
+  // visible immediately when items render, but the user hasn't scrolled yet)
+  if (reset) {
+    _tBlockScroll = true
+    setTimeout(() => { _tBlockScroll = false }, 200)
+  }
+
+  isTerritoryLoading.value = true
+  try {
+    const pageIndex = reset ? 0 : territoryPage.value
+    const data = await fetchTerritories({
+      page:   pageIndex,
+      size:   20,
+      search: territorySearch.value || undefined,
+    })
+
+    const incoming = (data?.content ?? []).map(t => ({ title: t.name, value: t.id }))
+
+    if (reset) {
+      territoryItems.value = incoming
+      territoryPage.value  = 1
+    } else {
+      territoryItems.value = [...territoryItems.value, ...incoming]
+      territoryPage.value  = pageIndex + 1
+    }
+    territoryTotalPages.value = data?.totalPages ?? 1
+  } catch (e) {
+    console.warn('[CustomerFormDrawer] Territory load failed:', e)
+  } finally {
+    isTerritoryLoading.value = false
+  }
+}
+
+/** Debounced search — resets list and fetches from page 0 */
+const onTerritorySearch = val => {
+  territorySearch.value = val ?? ''
+  clearTimeout(_tSearchTimer)
+  _tSearchTimer = setTimeout(() => loadTerritoryPage(true), 350)
+}
+
+/**
+ * Load next page when sentinel scrolls into view.
+ * `isIntersecting` is the first arg Vuetify passes to v-intersect handlers.
+ * We also skip while _tBlockScroll is active to avoid an immediate page-2 load
+ * right after page-1 items render.
+ */
+const onTerritoryScrollEnd = (isIntersecting) => {
+  if (!isIntersecting || _tBlockScroll) return
+  if (territoryPage.value < territoryTotalPages.value) {
+    loadTerritoryPage(false)
+  }
+}
+
+/** Fetch first page the first time the dropdown is opened by the user */
+const onTerritoryMenuUpdate = isOpen => {
+  if (isOpen && territoryItems.value.length === 0) loadTerritoryPage(true)
+}
 </script>
 
 <template>
@@ -183,18 +244,64 @@ const territoryItems = computed(() =>
                 />
               </VCol>
 
-              <!-- ── Territory ─────────────────────────────────────────── -->
+              <!-- ── Territory ──────────────────────────────────────────── -->
               <VCol cols="12">
-                <AppSelect
+                <!--
+                  VAutocomplete with server-side search + scroll-to-load-more.
+                  - :items is the incrementally loaded page list
+                  - @update:search fires on every keystroke (debounced internally)
+                  - The invisible sentinel div at the bottom of the dropdown list
+                    triggers loading the next page via IntersectionObserver.
+                -->
+                <VAutocomplete
                   v-model="form.territoryId"
                   :rules="[requiredValidator]"
                   label="Territory"
-                  placeholder="Select Territory"
+                  placeholder="Search territories…"
                   :items="territoryItems"
                   item-title="title"
                   item-value="value"
+                  :loading="isTerritoryLoading"
                   :disabled="props.isSubmitting"
-                />
+                  no-filter
+                  clearable
+                  @update:search="onTerritorySearch"
+                  @update:menu="onTerritoryMenuUpdate"
+                >
+                  <!-- Append sentinel for infinite scroll -->
+                  <template #append-item>
+                    <div
+                      v-intersect="{
+                        handler: onTerritoryScrollEnd,
+                        options: { threshold: 0.5 },
+                      }"
+                      class="pa-2 text-center"
+                    >
+                      <VProgressCircular
+                        v-if="isTerritoryLoading"
+                        indeterminate
+                        size="20"
+                        width="2"
+                        color="primary"
+                      />
+                      <span
+                        v-else-if="territoryPage >= territoryTotalPages"
+                        class="text-caption text-disabled"
+                      >
+                        All territories loaded
+                      </span>
+                    </div>
+                  </template>
+
+                  <!-- Empty state -->
+                  <template #no-data>
+                    <VListItem>
+                      <VListItemTitle class="text-medium-emphasis">
+                        {{ isTerritoryLoading ? 'Loading…' : 'No territories found' }}
+                      </VListItemTitle>
+                    </VListItem>
+                  </template>
+                </VAutocomplete>
               </VCol>
 
               <!-- ── Category ──────────────────────────────────────────── -->

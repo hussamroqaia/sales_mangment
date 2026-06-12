@@ -13,8 +13,9 @@ import apiClient from '@/services/apiClient'
  * Fetch a server-side paginated list of territories.
  *
  * @param {Object} params
- * @param {number} [params.page=0]  - Zero-based page index
- * @param {number} [params.size=10] - Page size
+ * @param {number} [params.page=0]    - Zero-based page index
+ * @param {number} [params.size=10]   - Page size
+ * @param {string} [params.search=''] - Optional search/filter string
  *
  * @returns {Promise<{
  *   content: Array,
@@ -26,7 +27,11 @@ import apiClient from '@/services/apiClient'
  */
 export const fetchTerritories = async (params = {}) => {
   try {
-    const response = await apiClient.get('/territories', { params })
+    // Strip empty search so we don't send ?search= to the API when it's blank
+    const cleanParams = { ...params }
+    if (!cleanParams.search) delete cleanParams.search
+
+    const response = await apiClient.get('/territories', { params: cleanParams })
 
     // Response shape: { success, data: { content, page, size, totalElements, totalPages } }
     return response.data?.data ?? response.data

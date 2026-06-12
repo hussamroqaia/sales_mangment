@@ -26,6 +26,7 @@ import {
   resolveStatusVariant,
 } from '@/composables/useCustomers'
 import { useAuth } from '@/composables/useAuth'
+import { fetchTerritories } from '@/services/territory.service'
 
 // ── Auth ───────────────────────────────────────────────────────────────────────
 const { userData } = useAuth()
@@ -43,9 +44,6 @@ const {
   page,
   itemsPerPage,
   updateOptions,
-  territoriesList,
-  isTerritoriesLoading,
-  loadTerritories,
   editingCustomer,
   isDetailLoading,
   isSubmitting,
@@ -69,13 +67,81 @@ const headers = [
   { title: 'Actions',   key: 'actions',     sortable: false, align: 'end' },
 ]
 
-// ── Territory lookup map ───────────────────────────────────────────────────────
-const territoryMap = computed(() =>
-  Object.fromEntries(territoriesList.value.map(t => [t.id, t.name])),
-)
+// ── Territory filter autocomplete — server-side search + scroll pagination ───────────
+const filterTerritorySearch     = ref('')
+const filterTerritoryItems      = ref([])   // accumulated loaded options
+const filterTerritoryPage       = ref(0)    // 0-based API page
+const filterTerritoryTotalPages = ref(1)
+const isFilterTerritoryLoading  = ref(false)
+let   _filterTSearchTimer       = null
+let   _filterBlockScroll        = false   // suppresses sentinel's auto-fire after reset
 
-const territoryItems = computed(() =>
-  territoriesList.value.map(t => ({ title: t.name, value: t.id })),
+/** Load one page of territories for the filter dropdown (appends on scroll) */
+const loadFilterTerritoryPage = async (reset = false) => {
+  if (isFilterTerritoryLoading.value) return
+  if (!reset && filterTerritoryPage.value >= filterTerritoryTotalPages.value) return
+
+  // On reset, suppress the sentinel's immediate intersect event so only
+  // intentional scrolling triggers the next page
+  if (reset) {
+    _filterBlockScroll = true
+    setTimeout(() => { _filterBlockScroll = false }, 200)
+  }
+
+  isFilterTerritoryLoading.value = true
+  try {
+    const pageIndex = reset ? 0 : filterTerritoryPage.value
+    const data = await fetchTerritories({
+      page:   pageIndex,
+      size:   20,
+      search: filterTerritorySearch.value || undefined,
+    })
+
+    const incoming = (data?.content ?? []).map(t => ({ title: t.name, value: t.id }))
+
+    if (reset) {
+      filterTerritoryItems.value = incoming
+      filterTerritoryPage.value  = 1
+    } else {
+      filterTerritoryItems.value = [...filterTerritoryItems.value, ...incoming]
+      filterTerritoryPage.value  = pageIndex + 1
+    }
+    filterTerritoryTotalPages.value = data?.totalPages ?? 1
+  } catch (e) {
+    console.warn('[CustomerList] Territory filter load failed:', e)
+  } finally {
+    isFilterTerritoryLoading.value = false
+  }
+}
+
+/** Debounced search handler for the filter autocomplete */
+const onFilterTerritorySearch = val => {
+  filterTerritorySearch.value = val ?? ''
+  clearTimeout(_filterTSearchTimer)
+  _filterTSearchTimer = setTimeout(() => loadFilterTerritoryPage(true), 350)
+}
+
+/**
+ * Load next page when sentinel scrolls into view.
+ * `isIntersecting` is the first arg Vuetify passes to v-intersect handlers.
+ * Skip while _filterBlockScroll is active (right after a reset) to avoid
+ * immediately auto-loading page 2.
+ */
+const onFilterTerritoryScrollEnd = (isIntersecting) => {
+  if (!isIntersecting || _filterBlockScroll) return
+  if (filterTerritoryPage.value < filterTerritoryTotalPages.value) {
+    loadFilterTerritoryPage(false)
+  }
+}
+
+/** Fetch first page the first time the user opens the dropdown */
+const onFilterTerritoryMenuUpdate = isOpen => {
+  if (isOpen && filterTerritoryItems.value.length === 0) loadFilterTerritoryPage(true)
+}
+
+// ── Territory lookup map (for resolving names in table rows) ────────────────────
+const territoryMap = computed(() =>
+  Object.fromEntries(filterTerritoryItems.value.map(t => [t.value, t.title])),
 )
 
 // ── Drawer State ───────────────────────────────────────────────────────────────
@@ -143,11 +209,8 @@ const formatDate = dateStr => {
   })
 }
 
-// ── Init ───────────────────────────────────────────────────────────────────────
-onMounted(async () => {
-  await loadTerritories()
-  await fetchAllCustomers()
-})
+// ── Init ────────────────────────────────────────────────────────────────────────────
+onMounted(fetchAllCustomers)
 </script>
 
 <template>
@@ -199,16 +262,57 @@ onMounted(async () => {
             cols="12"
             sm="4"
           >
-            <AppSelect
+            <!--
+              VAutocomplete with server-side search + scroll-to-load-more.
+              Mirrors the same pattern used in CustomerFormDrawer.
+            -->
+            <VAutocomplete
               v-model="selectedTerritory"
               placeholder="Filter by Territory"
-              :items="territoryItems"
+              :items="filterTerritoryItems"
               item-title="title"
               item-value="value"
-              :loading="isTerritoriesLoading"
+              :loading="isFilterTerritoryLoading"
+              no-filter
               clearable
               clear-icon="tabler-x"
-            />
+              @update:search="onFilterTerritorySearch"
+              @update:menu="onFilterTerritoryMenuUpdate"
+            >
+              <!-- Sentinel for infinite scroll -->
+              <template #append-item>
+                <div
+                  v-intersect="{
+                    handler: onFilterTerritoryScrollEnd,
+                    options: { threshold: 0.5 },
+                  }"
+                  class="pa-2 text-center"
+                >
+                  <VProgressCircular
+                    v-if="isFilterTerritoryLoading"
+                    indeterminate
+                    size="20"
+                    width="2"
+                    color="primary"
+                  />
+                  <span
+                    v-else-if="filterTerritoryPage >= filterTerritoryTotalPages"
+                    class="text-caption text-disabled"
+                  >
+                    All territories loaded
+                  </span>
+                </div>
+              </template>
+
+              <!-- Empty state -->
+              <template #no-data>
+                <VListItem>
+                  <VListItemTitle class="text-medium-emphasis">
+                    {{ isFilterTerritoryLoading ? 'Loading…' : 'No territories found' }}
+                  </VListItemTitle>
+                </VListItem>
+              </template>
+            </VAutocomplete>
           </VCol>
 
           <!-- Status filter -->
@@ -495,7 +599,6 @@ onMounted(async () => {
       v-model:is-drawer-open="isDrawerOpen"
       :customer="editingCustomer"
       :is-submitting="isSubmitting"
-      :territories="territoriesList"
       @submit="onSubmit"
       @update:is-drawer-open="val => { if (!val) onDrawerClose() }"
     />

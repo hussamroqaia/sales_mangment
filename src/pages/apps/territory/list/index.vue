@@ -32,6 +32,7 @@ const {
   listError,
   page,
   itemsPerPage,
+  search,
   editingTerritory,
   isDetailLoading,
   isSubmitting,
@@ -191,6 +192,16 @@ onMounted(fetchAllTerritories)
 
         <VSpacer />
 
+        <!-- Search -->
+        <AppTextField
+          v-model="search"
+          placeholder="Search territories…"
+          prepend-inner-icon="tabler-search"
+          style="inline-size: 15rem;"
+          clearable
+          @click:clear="search = ''"
+        />
+
         <!-- Add Territory — Admin only -->
         <VBtn
           v-if="isAdmin"
@@ -243,11 +254,16 @@ onMounted(fetchAllTerritories)
               color="secondary"
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
-              No territories found.
-              <span v-if="isAdmin">Create your first territory to get started.</span>
+              <template v-if="search">
+                No territories match &ldquo;<strong>{{ search }}</strong>&rdquo;.
+              </template>
+              <template v-else>
+                No territories found.
+                <span v-if="isAdmin">Create your first territory to get started.</span>
+              </template>
             </p>
             <VBtn
-              v-if="isAdmin"
+              v-if="isAdmin && !search"
               prepend-icon="tabler-plus"
               size="small"
               @click="openCreate"

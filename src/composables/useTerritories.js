@@ -37,6 +37,20 @@ export const useTerritories = () => {
   /** totalElements returned by the server */
   const totalTerritories = ref(0)
 
+  // ── Search State ────────────────────────────────────────────────────────────
+  /** Raw search string bound to the text field */
+  const search        = ref('')
+  /** Debounced copy sent to the API — updates 400 ms after user stops typing */
+  const searchDebounced = ref('')
+  let _searchTimer = null
+  watch(search, val => {
+    clearTimeout(_searchTimer)
+    _searchTimer = setTimeout(() => {
+      searchDebounced.value = val
+      page.value = 1   // reset to first page on new search
+    }, 400)
+  })
+
   // ── Single Territory State (for edit) ──────────────────────────────────────
   const editingTerritory = ref(null)   // null → Create mode, object → Edit mode
   const isDetailLoading  = ref(false)
@@ -59,6 +73,7 @@ export const useTerritories = () => {
       const data = await fetchTerritories({
         page: page.value - 1,   // convert 1-based UI → 0-based API
         size: itemsPerPage.value,
+        search: searchDebounced.value,
       })
 
       // data = { content, page, size, totalElements, totalPages }
@@ -73,8 +88,8 @@ export const useTerritories = () => {
     }
   }
 
-  // ── Watchers — re-fetch on page/size change ─────────────────────────────────
-  watch([page, itemsPerPage], fetchAllTerritories)
+  // ── Watchers — re-fetch on page / size / search change ────────────────────
+  watch([page, itemsPerPage, searchDebounced], fetchAllTerritories)
 
   // ── fetchTerritory(id) ──────────────────────────────────────────────────────
   const fetchTerritory = async id => {
@@ -171,6 +186,9 @@ export const useTerritories = () => {
     totalTerritories,
     isListLoading,
     listError,
+
+    // Search
+    search,
 
     // Pagination
     page,
