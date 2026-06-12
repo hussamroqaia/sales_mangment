@@ -368,6 +368,9 @@
     "watchWithFilter": true,
     "whenever": true,
     "resolveRoleTitle": true,
-    "useTerritories": true
+    "useTerritories": true,
+    "CUSTOMER_CATEGORIES": true,
+    "CUSTOMER_STATUSES": true,
+    "useCustomers": true
   }
 }

@@ -28,4 +28,11 @@ export default [
     action: 'read',
     subject: 'Auth',
   },
+  {
+    title: 'Customers',
+    icon: { icon: 'tabler-users-group' },
+    to: 'apps-customer-list',
+    action: 'read',
+    subject: 'Auth',
+  },
 ]

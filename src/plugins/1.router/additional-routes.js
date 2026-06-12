@@ -77,4 +77,13 @@ export const routes = [
       subject: 'Auth',
     },
   },
+  {
+    path: '/apps/customer/list',
+    name: 'apps-customer-list',
+    component: () => import('@/pages/apps/customer/list/index.vue'),
+    meta: {
+      action: 'read',
+      subject: 'Auth',
+    },
+  },
 ]
