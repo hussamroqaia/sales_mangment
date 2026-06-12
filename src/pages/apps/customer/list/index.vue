@@ -27,6 +27,9 @@ import {
 } from '@/composables/useCustomers'
 import { useAuth } from '@/composables/useAuth'
 import { fetchTerritories } from '@/services/territory.service'
+import { fetchCustomerById } from '@/services/customer.service'
+import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet'
+import 'leaflet/dist/leaflet.css'
 
 // ── Auth ───────────────────────────────────────────────────────────────────────
 const { userData } = useAuth()
@@ -147,6 +150,25 @@ const territoryMap = computed(() =>
 // ── Drawer State ───────────────────────────────────────────────────────────────
 const isDrawerOpen = ref(false)
 
+// ── Customer Detail Dialog State ───────────────────────────────────────────────
+const isDetailDialogOpen = ref(false)
+const viewingCustomer    = ref(null)
+const isViewLoading      = ref(false)
+
+const openView = async customer => {
+  viewingCustomer.value    = null
+  isDetailDialogOpen.value = true
+  isViewLoading.value      = true
+  try {
+    viewingCustomer.value = await fetchCustomerById(customer.id)
+  } catch (e) {
+    console.error('[CustomerList] View failed:', e)
+    isDetailDialogOpen.value = false
+  } finally {
+    isViewLoading.value = false
+  }
+}
+
 // ── Delete Confirmation Dialog State ──────────────────────────────────────────
 const isDeleteDialogOpen = ref(false)
 const customerToDelete   = ref(null)
@@ -210,7 +232,20 @@ const formatDate = dateStr => {
 }
 
 // ── Init ────────────────────────────────────────────────────────────────────────────
-onMounted(fetchAllCustomers)
+onMounted(async () => {
+  // Fix Leaflet default marker icon paths broken by Vite's asset processing.
+  // Same fix used in CustomerFormDrawer.
+  const L = (await import('leaflet')).default
+
+  delete L.Icon.Default.prototype._getIconUrl
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
+    iconUrl:       new URL('leaflet/dist/images/marker-icon.png',    import.meta.url).href,
+    shadowUrl:     new URL('leaflet/dist/images/marker-shadow.png',  import.meta.url).href,
+  })
+
+  await fetchAllCustomers()
+})
 </script>
 
 <template>
@@ -508,6 +543,18 @@ onMounted(fetchAllCustomers)
         <!-- Actions column -->
         <template #item.actions="{ item }">
           <div class="d-flex justify-end gap-1">
+            <!-- View details — all roles -->
+            <VTooltip text="View Details">
+              <template #activator="{ props: tp }">
+                <IconBtn
+                  v-bind="tp"
+                  @click="openView(item)"
+                >
+                  <VIcon icon="tabler-eye" />
+                </IconBtn>
+              </template>
+            </VTooltip>
+
             <!-- Edit — Admin only -->
             <VTooltip
               v-if="isAdmin"
@@ -602,6 +649,248 @@ onMounted(fetchAllCustomers)
       @submit="onSubmit"
       @update:is-drawer-open="val => { if (!val) onDrawerClose() }"
     />
+
+    <!-- ── Customer Detail Dialog ──────────────────────────────────────── -->
+    <VDialog
+      v-model="isDetailDialogOpen"
+      max-width="560"
+      scrollable
+    >
+      <VCard>
+        <!-- Header -->
+        <VCardTitle class="d-flex align-center gap-2 pa-4">
+          <VAvatar
+            v-if="viewingCustomer"
+            size="36"
+            :color="resolveCategoryVariant(viewingCustomer.category).color"
+            variant="tonal"
+          >
+            <VIcon
+              :icon="resolveCategoryVariant(viewingCustomer.category).icon"
+              size="18"
+            />
+          </VAvatar>
+          <span>Customer Details</span>
+          <VSpacer />
+          <IconBtn @click="isDetailDialogOpen = false">
+            <VIcon icon="tabler-x" />
+          </IconBtn>
+        </VCardTitle>
+
+        <VDivider />
+
+        <VCardText class="pa-4">
+          <!-- Loading -->
+          <div
+            v-if="isViewLoading"
+            class="d-flex justify-center align-center py-8"
+          >
+            <VProgressCircular
+              indeterminate
+              color="primary"
+            />
+          </div>
+
+          <!-- Content -->
+          <VRow
+            v-else-if="viewingCustomer"
+            dense
+          >
+            <!-- Name -->
+            <VCol cols="12">
+              <p class="text-caption text-medium-emphasis mb-1">
+                Customer Name
+              </p>
+              <p class="text-body-1 font-weight-medium mb-0">
+                {{ viewingCustomer.name }}
+              </p>
+            </VCol>
+
+            <VCol cols="12">
+              <VDivider />
+            </VCol>
+
+            <!-- Status / Category -->
+            <VCol
+              cols="6"
+              sm="6"
+            >
+              <p class="text-caption text-medium-emphasis mb-1">
+                Status
+              </p>
+              <VChip
+                :color="resolveStatusVariant(viewingCustomer.status)"
+                size="small"
+                label
+                class="text-capitalize"
+              >
+                {{ viewingCustomer.status?.toLowerCase() }}
+              </VChip>
+            </VCol>
+
+            <VCol
+              cols="6"
+              sm="6"
+            >
+              <p class="text-caption text-medium-emphasis mb-1">
+                Category
+              </p>
+              <div class="d-flex align-center gap-1">
+                <VIcon
+                  :icon="resolveCategoryVariant(viewingCustomer.category).icon"
+                  :color="resolveCategoryVariant(viewingCustomer.category).color"
+                  size="18"
+                />
+                <span class="text-body-2 text-capitalize">
+                  {{ viewingCustomer.category?.toLowerCase() }}
+                </span>
+              </div>
+            </VCol>
+
+            <VCol cols="12">
+              <VDivider />
+            </VCol>
+
+            <!-- Territory -->
+            <VCol
+              cols="6"
+              sm="6"
+            >
+              <p class="text-caption text-medium-emphasis mb-1">
+                Territory
+              </p>
+              <VChip
+                v-if="territoryMap[viewingCustomer.territoryId]"
+                size="small"
+                color="info"
+                variant="tonal"
+                label
+              >
+                <VIcon
+                  start
+                  icon="tabler-map-pin"
+                  size="12"
+                />
+                {{ territoryMap[viewingCustomer.territoryId] }}
+              </VChip>
+              <span
+                v-else
+                class="text-medium-emphasis"
+              >—</span>
+            </VCol>
+
+            <!-- Phone -->
+            <VCol
+              cols="6"
+              sm="6"
+            >
+              <p class="text-caption text-medium-emphasis mb-1">
+                Phone
+              </p>
+              <p class="text-body-2 mb-0">
+                {{ viewingCustomer.phone || '—' }}
+              </p>
+            </VCol>
+
+            <VCol cols="12">
+              <VDivider />
+            </VCol>
+
+            <!-- Address -->
+            <VCol cols="12">
+              <p class="text-caption text-medium-emphasis mb-1">
+                Address
+              </p>
+              <p class="text-body-2 mb-0">
+                {{ viewingCustomer.address || '—' }}
+              </p>
+            </VCol>
+
+            <!-- Coordinates map -->
+            <VCol
+              v-if="viewingCustomer.latitude != null && viewingCustomer.longitude != null"
+              cols="12"
+            >
+              <p class="text-caption text-medium-emphasis mb-2">
+                <VIcon
+                  icon="tabler-map-pin"
+                  size="13"
+                  class="me-1"
+                />
+                Location
+                <span class="ms-2 font-weight-regular">
+                  ({{ viewingCustomer.latitude }}, {{ viewingCustomer.longitude }})
+                </span>
+              </p>
+              <div style="block-size: 220px; border-radius: 8px; overflow: hidden;">
+                <LMap
+                  data-allow-mismatch
+                  :zoom="13"
+                  :center="[viewingCustomer.latitude, viewingCustomer.longitude]"
+                  :use-global-leaflet="false"
+                  style="block-size: 100%; inline-size: 100%;"
+                >
+                  <LTileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution="&copy; OpenStreetMap contributors"
+                  />
+                  <LMarker :lat-lng="[viewingCustomer.latitude, viewingCustomer.longitude]" />
+                </LMap>
+              </div>
+            </VCol>
+
+            <VCol cols="12">
+              <VDivider />
+            </VCol>
+
+            <!-- Dates -->
+            <VCol
+              cols="6"
+              sm="6"
+            >
+              <p class="text-caption text-medium-emphasis mb-1">
+                Created
+              </p>
+              <p class="text-body-2 mb-0">
+                {{ formatDate(viewingCustomer.createdAt) }}
+              </p>
+            </VCol>
+
+            <VCol
+              cols="6"
+              sm="6"
+            >
+              <p class="text-caption text-medium-emphasis mb-1">
+                Last Updated
+              </p>
+              <p class="text-body-2 mb-0">
+                {{ formatDate(viewingCustomer.updatedAt) }}
+              </p>
+            </VCol>
+          </VRow>
+        </VCardText>
+
+        <VDivider />
+
+        <VCardActions class="pa-3 justify-end">
+          <VBtn
+            v-if="isAdmin && viewingCustomer"
+            prepend-icon="tabler-edit"
+            variant="tonal"
+            @click="isDetailDialogOpen = false; openEdit(viewingCustomer)"
+          >
+            Edit
+          </VBtn>
+          <VBtn
+            variant="tonal"
+            color="secondary"
+            @click="isDetailDialogOpen = false"
+          >
+            Close
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
     <!-- ── Delete Confirmation Dialog ───────────────────────────────────── -->
     <VDialog
