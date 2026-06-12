@@ -259,18 +259,24 @@ export const useCustomers = () => {
     }
   }
 
-  // ── updateOptions (VDataTable @update:options callback) ───────────────────
+  // ── updateOptions (VDataTableServer @update:options callback) ───────────
   const updateOptions = options => {
     const firstSort = options.sortBy?.[0]
-    if (firstSort) {
-      sortBy.value  = firstSort.key
-      sortDir.value = firstSort.order === 'desc' ? 'desc' : 'asc'
-    } else {
-      sortBy.value  = 'id'
-      sortDir.value = 'asc'
+    const newSortBy  = firstSort?.key   ?? 'id'
+    const newSortDir = firstSort?.order === 'desc' ? 'desc' : 'asc'
+
+    // Only reset to page 1 when the sort actually changes — NOT on every
+    // options emission (which would fight with TablePagination page clicks)
+    const sortChanged = newSortBy !== sortBy.value || newSortDir !== sortDir.value
+
+    sortBy.value  = newSortBy
+    sortDir.value = newSortDir
+
+    if (sortChanged) {
+      page.value = 1  // watcher will trigger fetchAllCustomers
     }
-    page.value = 1
-    fetchAllCustomers()
+    // If sort didn't change, the page watcher (or filter watcher) already
+    // handles the fetch — no need to call fetchAllCustomers() here
   }
 
   // ── clearEditing() — reset edit mode ──────────────────────────────────────
