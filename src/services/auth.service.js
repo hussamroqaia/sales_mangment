@@ -57,24 +57,26 @@ export const logoutUser = async () => {
   }
 }
 
-// ─── POST /auth/refresh ───────────────────────────────────────────────────────
+// ─── POST /auth/refresh ─────────────────────────────────────────────────────────────────────────────────
 /**
  * Exchange a valid refresh token for a new access token.
  * Called internally by the Axios response interceptor — NOT by the composable directly.
  *
- * @param {string} currentAccessToken  - The (possibly expired) access token
+ * The /auth/refresh endpoint reads the token from:
+ *   Authorization: Bearer <refreshToken>
+ *
  * @param {string} refreshTokenValue   - The valid refresh token
  * @returns {Promise<{ accessToken: string, refreshToken?: string }>}
  */
-export const refreshToken = async (currentAccessToken, refreshTokenValue) => {
+export const refreshToken = async (refreshTokenValue) => {
   try {
     const response = await apiClient.post(
       '/auth/refresh',
       {},
       {
         headers: {
-          Authorization: `Bearer ${currentAccessToken}`,
-          'X-Refresh-Token': refreshTokenValue,
+          // The backend expects the refreshToken as the Bearer token, not the accessToken
+          Authorization: `Bearer ${refreshTokenValue}`,
         },
         // Mark as a refresh call so the interceptor won't re-intercept a 401 here
         _isRefreshCall: true,

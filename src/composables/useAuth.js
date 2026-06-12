@@ -93,8 +93,15 @@ export const useAuth = () => {
   }
 
   // ── Computed: is authenticated ────────────────────────────────────────────
+  // A user is authenticated if they have an active session (access token) OR
+  // if their access token expired but the refresh token is still valid.
+  // The Axios interceptor handles the silent token exchange — we must not
+  // treat an expired access token as "logged out" while a refresh token exists.
   const isAuthenticated = computed(() => {
-    return !!(accessTokenCookie.value && userDataCookie.value)
+    const hasActiveSession = !!(accessTokenCookie.value && userDataCookie.value)
+    const canRefreshSession = !!(refreshTokenCookie.value && userDataCookie.value)
+
+    return hasActiveSession || canRefreshSession
   })
 
   const userData = computed(() => userDataCookie.value)

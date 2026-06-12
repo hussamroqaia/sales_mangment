@@ -51,6 +51,9 @@ apiClient.interceptors.request.use(
     const token = getCookie('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+      console.log(`[AXIOS] 📤 Request: ${config.method?.toUpperCase()} ${config.url} | accessToken: "${token.slice(0, 20)}..."`)
+    } else {
+      console.warn(`[AXIOS] ⚠️ Request: ${config.method?.toUpperCase()} ${config.url} | NO accessToken in cookie`)
     }
 
     return config
@@ -84,11 +87,15 @@ apiClient.interceptors.response.use(
 
     // Only handle 401 errors that haven't been retried yet
     if (error.response?.status !== 401 || originalRequest._retry) {
+      console.log(`[AXIOS] 📥 Response error: ${error.response?.status} for ${originalRequest?.url} (not a 401 or already retried — skipping refresh)`)
       return Promise.reject(error)
     }
 
+    console.warn(`[AXIOS] 🔑 401 received for: ${originalRequest?.url} — attempting token refresh...`)
+
     // Don't try to refresh if the failing request IS the refresh endpoint
     if (originalRequest.url?.includes(REFRESH_ENDPOINT)) {
+      console.error('[AXIOS] 🚫 Refresh endpoint itself returned 401 — calling forceLogout()')
       forceLogout()
 
       return Promise.reject(error)
@@ -96,6 +103,7 @@ apiClient.interceptors.response.use(
 
     // If a refresh is already in-flight, queue this request
     if (isRefreshing) {
+      console.log('[AXIOS] ⏳ Refresh already in progress — queuing request:', originalRequest?.url)
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject })
       }).then(token => {
@@ -112,33 +120,37 @@ apiClient.interceptors.response.use(
     const refreshTokenValue = getCookie('refreshToken')
 
     if (!refreshTokenValue) {
+      console.error('[AXIOS] 🚫 No refreshToken cookie found — calling forceLogout()')
       isRefreshing = false
       forceLogout()
 
       return Promise.reject(error)
     }
 
-    try {
-      // Call refresh endpoint — send current (expired) access token + refresh token
-      const currentAccessToken = getCookie('accessToken')
+    console.log(`[AXIOS] 🔄 Refresh token found: "${refreshTokenValue.slice(0, 20)}..." — calling ${REFRESH_ENDPOINT}`)
 
+    try {
+      // Call refresh endpoint — send the refreshToken as the Bearer Authorization header
+      // The backend's /auth/refresh endpoint reads the refresh token from Authorization: Bearer <refreshToken>
       const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}${REFRESH_ENDPOINT}`,
         {},
         {
           headers: {
-            Authorization: `Bearer ${currentAccessToken}`,
-            'X-Refresh-Token': refreshTokenValue,
+            Authorization: `Bearer ${refreshTokenValue}`,
           },
         },
       )
 
       const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data?.data || response.data
 
+      console.log(`[AXIOS] ✅ Token refresh SUCCESS — new accessToken: "${newAccessToken?.slice(0, 20)}..."`)
+
       // Persist new tokens
       setCookie('accessToken', newAccessToken, 15 * 60 * 1000) // 15 minutes
       if (newRefreshToken) {
         setCookie('refreshToken', newRefreshToken, SEVEN_DAYS_MS) // 7 days
+        console.log(`[AXIOS] 💾 New refreshToken saved: "${newRefreshToken.slice(0, 20)}..."`)
       }
 
       // Update default headers for future requests
@@ -149,9 +161,11 @@ apiClient.interceptors.response.use(
 
       // Retry the original failed request
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+      console.log(`[AXIOS] 🔁 Retrying original request: ${originalRequest?.url}`)
 
       return apiClient(originalRequest)
     } catch (refreshError) {
+      console.error('[AXIOS] ❌ Token refresh FAILED — calling forceLogout()', refreshError?.response?.data || refreshError.message)
       processQueue(refreshError, null)
       forceLogout()
 
