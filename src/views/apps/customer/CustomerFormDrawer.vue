@@ -25,7 +25,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:isDrawerOpen', 'submit'])
 
-const refForm = ref()
+const refForm      = ref()
+const refScrollbar = ref()   // PerfectScrollbar container — used to reset scroll position
 
 // ── Mode detection ─────────────────────────────────────────────────────────────
 const isEditMode    = computed(() => !!props.customer?.id)
@@ -104,17 +105,49 @@ const onMapClick = event => {
 }
 
 // ── Reset & close ──────────────────────────────────────────────────────────────
+
+/** Shared form-reset logic used by closeDrawer() and the isDrawerOpen watcher */
+const resetForm = () => {
+  form.value         = defaultForm()
+  markerLatLng.value = null
+  mapCenter.value    = [24.7136, 46.6753]
+  mapZoom.value      = 10
+  nextTick(() => {
+    refForm.value?.resetValidation()
+  })
+}
+
 const closeDrawer = () => {
   emit('update:isDrawerOpen', false)
   nextTick(() => {
     refForm.value?.reset()
-    refForm.value?.resetValidation()
-    form.value         = defaultForm()
-    markerLatLng.value = null
-    mapCenter.value    = [24.7136, 46.6753]
-    mapZoom.value      = 10
+    resetForm()
   })
 }
+
+/**
+ * When the drawer opens in CREATE mode (no customer prop), always reset the
+ * form — even if editingCustomer was already null so the customer-prop watcher
+ * didn't fire (e.g. right after a successful create).
+ */
+watch(
+  () => props.isDrawerOpen,
+  isOpen => {
+    if (isOpen && !props.customer) {
+      resetForm()
+      // Also clear the territory search so the dropdown shows all territories
+      territorySearch.value = ''
+    }
+    // Always scroll back to top when the drawer opens (create or edit)
+    if (isOpen) {
+      nextTick(() => {
+        if (refScrollbar.value?.$el) {
+          refScrollbar.value.$el.scrollTop = 0
+        }
+      })
+    }
+  },
+)
 
 // ── Submit ─────────────────────────────────────────────────────────────────────
 const onSubmit = () => {
@@ -225,7 +258,10 @@ const onTerritoryMenuUpdate = isOpen => {
 
     <VDivider />
 
-    <PerfectScrollbar :options="{ wheelPropagation: false }">
+    <PerfectScrollbar
+      ref="refScrollbar"
+      :options="{ wheelPropagation: false }"
+    >
       <VCard flat>
         <VCardText>
           <VForm

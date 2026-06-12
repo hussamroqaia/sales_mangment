@@ -22,7 +22,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:isDrawerOpen', 'submit'])
 
-const refForm = ref()
+const refForm      = ref()
+const refScrollbar = ref()   // PerfectScrollbar — used to reset scroll on open
 
 // Determine mode
 const isEditMode = computed(() => !!props.territory?.id)
@@ -46,14 +47,41 @@ watch(
 )
 
 // ── Reset & close ─────────────────────────────────────────────────────────────
+
+/** Shared reset logic — used by closeDrawer() and the isDrawerOpen watcher */
+const resetForm = () => {
+  form.value = { name: '', description: '' }
+  nextTick(() => {
+    refForm.value?.resetValidation()
+  })
+}
+
 const closeDrawer = () => {
   emit('update:isDrawerOpen', false)
   nextTick(() => {
     refForm.value?.reset()
-    refForm.value?.resetValidation()
-    form.value = { name: '', description: '' }
+    resetForm()
   })
 }
+
+/**
+ * When the drawer opens in CREATE mode (no territory prop), always reset —
+ * even when territory was already null so the territory-prop watcher didn't fire.
+ * Also scroll back to top on every open (create or edit).
+ */
+watch(
+  () => props.isDrawerOpen,
+  isOpen => {
+    if (isOpen && !props.territory) resetForm()
+    if (isOpen) {
+      nextTick(() => {
+        if (refScrollbar.value?.$el) {
+          refScrollbar.value.$el.scrollTop = 0
+        }
+      })
+    }
+  },
+)
 
 // ── Submit ────────────────────────────────────────────────────────────────────
 const onSubmit = () => {
@@ -87,7 +115,10 @@ const onSubmit = () => {
 
     <VDivider />
 
-    <PerfectScrollbar :options="{ wheelPropagation: false }">
+    <PerfectScrollbar
+      ref="refScrollbar"
+      :options="{ wheelPropagation: false }"
+    >
       <VCard flat>
         <VCardText>
           <VForm
