@@ -29,6 +29,8 @@ export default function () {
     serviceWorker: {
       url: workerUrl,
     },
+    // Silently bypass all requests that don't match a mock handler.
+    // This covers Vite module requests, external tile/geocoding URLs, etc.
     onUnhandledRequest: 'bypass',
   })
 }

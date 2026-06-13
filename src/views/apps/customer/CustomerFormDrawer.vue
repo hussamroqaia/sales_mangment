@@ -72,6 +72,60 @@ const _patchLeafletIcons = async () => {
 }
 onMounted(_patchLeafletIcons)
 
+// ── Map search (Nominatim geocoding) ───────────────────────────────────────────
+const mapSearchQuery   = ref('')
+const mapSearchResults = ref([])
+const isMapSearching   = ref(false)
+let   _mapSearchTimer  = null
+
+const searchLocation = async () => {
+  const q = mapSearchQuery.value.trim()
+  if (!q) { mapSearchResults.value = []; return }
+  isMapSearching.value = true
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5`,
+      { headers: { 'Accept-Language': 'en' } },
+    )
+    mapSearchResults.value = await res.json()
+  } catch {
+    mapSearchResults.value = []
+  } finally {
+    isMapSearching.value = false
+  }
+}
+
+const onMapSearchInput = () => {
+  clearTimeout(_mapSearchTimer)
+  _mapSearchTimer = setTimeout(searchLocation, 500)
+}
+
+const selectSearchResult = result => {
+  const lat = parseFloat(result.lat)
+  const lng = parseFloat(result.lon)
+  form.value.latitude  = parseFloat(lat.toFixed(6))
+  form.value.longitude = parseFloat(lng.toFixed(6))
+  markerLatLng.value   = [lat, lng]
+  mapCenter.value      = [lat, lng]
+  mapZoom.value        = 15
+  mapKey.value++
+  mapSearchQuery.value   = result.display_name
+  mapSearchResults.value = []
+}
+
+// ── Layer toggle ────────────────────────────────────────────────────────────
+const mapLayer = ref('satellite')   // 'satellite' | 'street'
+
+const tileUrl = computed(() =>
+  mapLayer.value === 'satellite'
+    ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+)
+
+const toggleMapLayer = () => {
+  mapLayer.value = mapLayer.value === 'satellite' ? 'street' : 'satellite'
+}
+
 // ── Populate form when prop changes (edit mode) ────────────────────────────────
 watch(
   () => props.customer,
@@ -394,8 +448,35 @@ const onTerritoryMenuUpdate = isOpen => {
                 <div class="text-body-2 font-weight-medium mb-1">
                   Location
                   <span class="text-caption text-medium-emphasis ms-1">
-                    (Click the map to pin coordinates)
+                    (Search or click the map to pin coordinates)
                   </span>
+                </div>
+
+                <!-- Map search box -->
+                <div class="mb-2" style="position: relative;">
+                  <AppTextField
+                    v-model="mapSearchQuery"
+                    placeholder="Search for a place…"
+                    prepend-inner-icon="tabler-search"
+                    :loading="isMapSearching"
+                    clearable
+                    hide-details
+                    @input="onMapSearchInput"
+                    @click:clear="mapSearchQuery = ''; mapSearchResults = []"
+                  />
+                  <!-- Results dropdown -->
+                  <VList
+                    v-if="mapSearchResults.length"
+                    elevation="4"
+                    style="position: absolute; z-index: 9999; inline-size: 100%; max-block-size: 200px; overflow-y: auto;"
+                  >
+                    <VListItem
+                      v-for="r in mapSearchResults"
+                      :key="r.place_id"
+                      :title="r.display_name"
+                      @click="selectSearchResult(r)"
+                    />
+                  </VList>
                 </div>
 
                 <!-- Lat / Lng display -->
@@ -425,10 +506,38 @@ const onTerritoryMenuUpdate = isOpen => {
                   </VBtn>
                 </div>
 
-                <!-- OpenStreetMap via vue-leaflet -->
+                <!-- ESRI satellite / OSM map via vue-leaflet -->
                 <div
-                  style="block-size: 260px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));"
+                  style="position: relative; block-size: 260px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));"
                 >
+                  <!-- Layer toggle button (top-right corner) -->
+                  <button
+                    type="button"
+                    style="
+                      position: absolute;
+                      top: 8px;
+                      right: 8px;
+                      z-index: 1000;
+                      display: flex;
+                      align-items: center;
+                      gap: 4px;
+                      padding: 5px 10px;
+                      border-radius: 6px;
+                      border: 1px solid rgba(255,255,255,0.4);
+                      background: rgba(30,30,30,0.72);
+                      backdrop-filter: blur(6px);
+                      color: #fff;
+                      font-size: 12px;
+                      font-weight: 500;
+                      cursor: pointer;
+                      letter-spacing: 0.3px;
+                    "
+                    @click.stop="toggleMapLayer"
+                  >
+                    <span style="font-size:14px;">{{ mapLayer === 'satellite' ? '🗺️' : '🛰️' }}</span>
+                    {{ mapLayer === 'satellite' ? 'Street' : 'Satellite' }}
+                  </button>
+
                   <LMap
                     :key="mapKey"
                     :zoom="mapZoom"
@@ -438,8 +547,10 @@ const onTerritoryMenuUpdate = isOpen => {
                     @click="onMapClick"
                   >
                     <LTileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+                      :key="mapLayer"
+                      :url="tileUrl"
+                      attribution=""
+                      :options="{ attribution: '' }"
                     />
                     <LMarker
                       v-if="markerLatLng"

@@ -228,6 +228,14 @@ const formatDate = dateStr => {
   })
 }
 
+// ── Detail map layer toggle ───────────────────────────────────────────────
+const detailMapLayer = ref('satellite')   // 'satellite' | 'street'
+const detailTileUrl  = computed(() =>
+  detailMapLayer.value === 'satellite'
+    ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+)
+
 // ── Init ────────────────────────────────────────────────────────────────────────────
 onMounted(async () => {
   // Fix Leaflet default marker icon paths broken by Vite's asset processing.
@@ -820,7 +828,35 @@ onMounted(async () => {
                   ({{ viewingCustomer.latitude }}, {{ viewingCustomer.longitude }})
                 </span>
               </p>
-              <div style="block-size: 220px; border-radius: 8px; overflow: hidden;">
+              <div style="position: relative; block-size: 220px; border-radius: 8px; overflow: hidden;">
+                <!-- Layer toggle button -->
+                <button
+                  type="button"
+                  style="
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    z-index: 1000;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    padding: 5px 10px;
+                    border-radius: 6px;
+                    border: 1px solid rgba(255,255,255,0.4);
+                    background: rgba(30,30,30,0.72);
+                    backdrop-filter: blur(6px);
+                    color: #fff;
+                    font-size: 12px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    letter-spacing: 0.3px;
+                  "
+                  @click.stop="detailMapLayer = detailMapLayer === 'satellite' ? 'street' : 'satellite'"
+                >
+                  <span style="font-size:14px;">{{ detailMapLayer === 'satellite' ? '🗺️' : '🛰️' }}</span>
+                  {{ detailMapLayer === 'satellite' ? 'Street' : 'Satellite' }}
+                </button>
+
                 <LMap
                   data-allow-mismatch
                   :zoom="13"
@@ -829,8 +865,10 @@ onMounted(async () => {
                   style="block-size: 100%; inline-size: 100%;"
                 >
                   <LTileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution="&copy; OpenStreetMap contributors"
+                    :key="detailMapLayer"
+                    :url="detailTileUrl"
+                    attribution=""
+                    :options="{ attribution: '' }"
                   />
                   <LMarker :lat-lng="[viewingCustomer.latitude, viewingCustomer.longitude]" />
                 </LMap>
