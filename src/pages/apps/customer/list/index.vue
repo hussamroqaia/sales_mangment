@@ -7,7 +7,7 @@
  * Access rules:
  *   - All authenticated roles can VIEW (action: 'read', subject: 'Auth')
  *   - Only ADMIN can CREATE / EDIT / DELETE (checked via useAuth userData.role)
- *   - All roles can change status (PATCH endpoint is role-agnostic per spec)
+ *   - Only ADMIN can change status
  */
 
 definePage({
@@ -570,6 +570,7 @@ onMounted(async () => {
 
             <!-- Status toggle dropdown -->
             <VBtn
+              v-if="isAdmin"
               icon
               variant="text"
               color="medium-emphasis"

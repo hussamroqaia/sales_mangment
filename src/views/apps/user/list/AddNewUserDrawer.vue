@@ -110,7 +110,7 @@ watch(() => props.isSubmitting, (newVal, oldVal) => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.password"
-                  :rules="[requiredValidator]"
+                  :rules="[requiredValidator, v => (v || '').length >= 8 || 'Password must be at least 8 characters']"
                   label="Password"
                   placeholder="············"
                   :type="isPasswordVisible ? 'text' : 'password'"
