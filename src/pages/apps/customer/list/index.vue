@@ -229,7 +229,7 @@ const formatDate = dateStr => {
 }
 
 // ── Detail map layer toggle ───────────────────────────────────────────────
-const detailMapLayer = ref('satellite')   // 'satellite' | 'street'
+const detailMapLayer = ref('street')   // 'satellite' | 'street'
 const detailTileUrl  = computed(() =>
   detailMapLayer.value === 'satellite'
     ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'

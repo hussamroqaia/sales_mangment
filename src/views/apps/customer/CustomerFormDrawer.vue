@@ -46,9 +46,12 @@ const defaultForm = () => ({
 const form = ref(defaultForm())
 
 // ── Map state ──────────────────────────────────────────────────────────────────
-// Default center: somewhere central (Riyadh, SA) — adjust if needed
-const mapCenter    = ref([24.7136, 46.6753])
-const mapZoom      = ref(10)
+// Default center: Damascus, Syria
+const DEFAULT_CENTER = [33.5138, 36.2765]
+const DEFAULT_ZOOM   = 12
+
+const mapCenter    = ref([...DEFAULT_CENTER])
+const mapZoom      = ref(DEFAULT_ZOOM)
 const markerLatLng = ref(null)   // null = no pin yet
 
 /**
@@ -114,7 +117,7 @@ const selectSearchResult = result => {
 }
 
 // ── Layer toggle ────────────────────────────────────────────────────────────
-const mapLayer = ref('satellite')   // 'satellite' | 'street'
+const mapLayer = ref('street')   // 'satellite' | 'street'
 
 const tileUrl = computed(() =>
   mapLayer.value === 'satellite'
@@ -153,8 +156,8 @@ watch(
     } else {
       form.value         = defaultForm()
       markerLatLng.value = null
-      mapCenter.value    = [24.7136, 46.6753]
-      mapZoom.value      = 10
+      mapCenter.value    = [...DEFAULT_CENTER]
+      mapZoom.value      = DEFAULT_ZOOM
     }
     // Force LMap to remount so it picks up the updated center/zoom/marker
     mapKey.value++
@@ -176,8 +179,8 @@ const onMapClick = event => {
 const resetForm = () => {
   form.value         = defaultForm()
   markerLatLng.value = null
-  mapCenter.value    = [24.7136, 46.6753]
-  mapZoom.value      = 10
+  mapCenter.value    = [...DEFAULT_CENTER]
+  mapZoom.value      = DEFAULT_ZOOM
   nextTick(() => {
     refForm.value?.resetValidation()
   })
