@@ -47,22 +47,30 @@ const form = ref(defaultForm())
 
 // ── Map state ──────────────────────────────────────────────────────────────────
 // Default center: somewhere central (Riyadh, SA) — adjust if needed
-const mapCenter   = ref([24.7136, 46.6753])
-const mapZoom     = ref(10)
+const mapCenter    = ref([24.7136, 46.6753])
+const mapZoom      = ref(10)
 const markerLatLng = ref(null)   // null = no pin yet
 
-// Leaflet fix: icons break with Vite's asset pipeline — patch the default icon
-onMounted(async () => {
-  // Dynamically import L to avoid SSR issues and fix the missing-icon problem
-  const L = (await import('leaflet')).default
+/**
+ * mapKey is bumped every time the customer prop changes so that <LMap> is
+ * fully destroyed and re-created with the correct center/zoom/marker.
+ * Without this the map uses its initial center and ignores reactive updates.
+ */
+const mapKey = ref(0)
 
+// Leaflet fix: icons break with Vite's asset pipeline — patch the default icon.
+// Run immediately (not just in onMounted) so the icon is ready before any
+// re-mount triggered by mapKey changes.
+const _patchLeafletIcons = async () => {
+  const L = (await import('leaflet')).default
   delete L.Icon.Default.prototype._getIconUrl
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
     iconUrl:       new URL('leaflet/dist/images/marker-icon.png',    import.meta.url).href,
     shadowUrl:     new URL('leaflet/dist/images/marker-shadow.png',  import.meta.url).href,
   })
-})
+}
+onMounted(_patchLeafletIcons)
 
 // ── Populate form when prop changes (edit mode) ────────────────────────────────
 watch(
@@ -85,6 +93,8 @@ watch(
         mapZoom.value      = 14
       } else {
         markerLatLng.value = null
+        mapCenter.value    = [24.7136, 46.6753]
+        mapZoom.value      = 10
       }
     } else {
       form.value         = defaultForm()
@@ -92,6 +102,8 @@ watch(
       mapCenter.value    = [24.7136, 46.6753]
       mapZoom.value      = 10
     }
+    // Force LMap to remount so it picks up the updated center/zoom/marker
+    mapKey.value++
   },
   { immediate: true },
 )
@@ -418,6 +430,7 @@ const onTerritoryMenuUpdate = isOpen => {
                   style="block-size: 260px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));"
                 >
                   <LMap
+                    :key="mapKey"
                     :zoom="mapZoom"
                     :center="mapCenter"
                     :use-global-leaflet="false"
