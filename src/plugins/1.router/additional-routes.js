@@ -68,22 +68,11 @@ export const routes = [
     name: 'apps-ecommerce-dashboard',
     component: () => import('@/pages/dashboards/ecommerce.vue'),
   },
-  {
-    path: '/apps/territory/list',
-    name: 'apps-territory-list',
-    component: () => import('@/pages/apps/territory/list/index.vue'),
-    meta: {
-      action: 'read',
-      subject: 'Auth',
-    },
-  },
-  {
-    path: '/apps/customer/list',
-    name: 'apps-customer-list',
-    component: () => import('@/pages/apps/customer/list/index.vue'),
-    meta: {
-      action: 'read',
-      subject: 'Auth',
-    },
-  },
+
+  // ⚠️ Do NOT add manual routes for pages that already exist under `src/pages`
+  // (e.g. /apps/territory/list, /apps/customer/list). unplugin-vue-router
+  // generates them automatically, and a manual duplicate with the same name
+  // makes vue-router drop the generated record — the path then resolves to an
+  // orphaned layout route with no page component, so a hard refresh renders
+  // a blank content area. Page meta belongs in `definePage()` inside the page.
 ]
