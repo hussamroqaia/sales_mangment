@@ -64,7 +64,7 @@ const {
 const headers = [
   { title: 'Customer',  key: 'name',        sortable: true  },
   { title: 'Category',  key: 'category',    sortable: true  },
-  { title: 'Territory', key: 'territoryId', sortable: false },
+  { title: 'Territory', key: 'territoryName', sortable: false },
   { title: 'Phone',     key: 'phone',       sortable: false },
   { title: 'Status',    key: 'status',      sortable: true  },
   { title: 'Actions',   key: 'actions',     sortable: false, align: 'end' },
@@ -142,10 +142,7 @@ const onFilterTerritoryMenuUpdate = isOpen => {
   if (isOpen && filterTerritoryItems.value.length === 0) loadFilterTerritoryPage(true)
 }
 
-// ── Territory lookup map (for resolving names in table rows) ────────────────────
-const territoryMap = computed(() =>
-  Object.fromEntries(filterTerritoryItems.value.map(t => [t.value, t.title])),
-)
+
 
 // ── Drawer State ───────────────────────────────────────────────────────────────
 const isDrawerOpen = ref(false)
@@ -502,9 +499,9 @@ onMounted(async () => {
         </template>
 
         <!-- Territory column -->
-        <template #item.territoryId="{ item }">
+        <template #item.territoryName="{ item }">
           <VChip
-            v-if="territoryMap[item.territoryId]"
+            v-if="item.territoryName"
             size="small"
             color="info"
             variant="tonal"
@@ -515,7 +512,7 @@ onMounted(async () => {
               icon="tabler-map-pin"
               size="12"
             />
-            {{ territoryMap[item.territoryId] }}
+            {{ item.territoryName }}
           </VChip>
           <span
             v-else
@@ -760,7 +757,7 @@ onMounted(async () => {
                 Territory
               </p>
               <VChip
-                v-if="territoryMap[viewingCustomer.territoryId]"
+                v-if="viewingCustomer.territoryName"
                 size="small"
                 color="info"
                 variant="tonal"
@@ -771,7 +768,7 @@ onMounted(async () => {
                   icon="tabler-map-pin"
                   size="12"
                 />
-                {{ territoryMap[viewingCustomer.territoryId] }}
+                {{ viewingCustomer.territoryName }}
               </VChip>
               <span
                 v-else
