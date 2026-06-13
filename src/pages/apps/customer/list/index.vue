@@ -17,18 +17,17 @@ definePage({
   },
 })
 
-import CustomerFormDrawer from '@/views/apps/customer/CustomerFormDrawer.vue'
+import { useAuth } from '@/composables/useAuth'
 import {
-  useCustomers,
-  CUSTOMER_CATEGORIES,
   CUSTOMER_STATUSES,
   resolveCategoryVariant,
   resolveStatusVariant,
+  useCustomers
 } from '@/composables/useCustomers'
-import { useAuth } from '@/composables/useAuth'
-import { fetchTerritories } from '@/services/territory.service'
 import { fetchCustomerById } from '@/services/customer.service'
-import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet'
+import { fetchTerritories } from '@/services/territory.service'
+import CustomerFormDrawer from '@/views/apps/customer/CustomerFormDrawer.vue'
+import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
 
 // ── Auth ───────────────────────────────────────────────────────────────────────

@@ -427,9 +427,12 @@ const onTerritoryMenuUpdate = isOpen => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.phone"
-                  :rules="[requiredValidator]"
+                  :rules="[
+                    requiredValidator,
+                    v => /^\+963\d{9}$/.test((v ?? '').trim()) || 'Phone must start with +963 followed by 9 digits (e.g. +963912345678)',
+                  ]"
                   label="Phone"
-                  placeholder="+966 5x xxx xxxx"
+                  placeholder="+963 9xx xxx xxx"
                   :disabled="props.isSubmitting"
                 />
               </VCol>
