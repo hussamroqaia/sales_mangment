@@ -9,13 +9,21 @@ export const redirects = [
     name: 'index',
     redirect: to => {
       const userData = useCookie('userData')
+      const accessToken = useCookie('accessToken')
+      const refreshToken = useCookie('refreshToken')
+
+      // If there is no active or refreshable session, always go to login
+      const isLoggedIn = !!(userData.value && (accessToken.value || refreshToken.value))
+      if (!isLoggedIn)
+        return { name: 'login', query: to.query }
+
       const userRole = userData.value?.role?.toLowerCase()
 
       if (userRole === 'admin')
         return { name: 'dashboards-crm' }
       if (['sales_manager', 'sales_rep', 'warehouse_manager'].includes(userRole))
         return { name: 'dashboards-analytics' }
-      
+
       return { name: 'login', query: to.query }
     },
   },
