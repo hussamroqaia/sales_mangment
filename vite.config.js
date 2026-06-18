@@ -26,6 +26,13 @@ export default defineConfig({
     // Docs: https://github.com/posva/unplugin-vue-router
     // ℹ️ This plugin should be placed before vue plugin
     VueRouter({
+      // ℹ️ The project path contains parentheses ("مجلد جديد (2)"), which are
+      // glob special characters. unplugin-vue-router appends its own /**/*.vue
+      // glob to routesFolder, so the option itself must be a plain filesystem
+      // path (not a pre-escaped glob). We use fileURLToPath to get a literal
+      // OS path; the plugin then escapes it internally before passing to
+      // fast-glob, so parentheses are handled correctly.
+      routesFolder: fileURLToPath(new URL('./src/pages', import.meta.url)),
       getRouteName: routeNode => {
         // Convert pascal case to kebab case
         return getPascalCaseRouteName(routeNode)

@@ -77,6 +77,22 @@ export const routes = [
     component: () => import('@/pages/dashboards/ecommerce.vue'),
   },
 
+  // ℹ️ The project directory name contains parentheses ("مجلد جديد (2)"), which
+  // are glob special characters. unplugin-vue-router uses fast-glob internally
+  // and silently fails to scan src/pages/products/, so the route is never
+  // auto-generated. We register it manually here as a workaround — the manual
+  // record replaces the (non-existent) auto-generated one, giving us one clean
+  // registration with the correct name and component.
+  {
+    path: '/products',
+    name: 'products',
+    component: () => import('@/pages/products/index.vue'),
+    meta: {
+      action: 'read',
+      subject: 'Auth',
+    },
+  },
+
   // ⚠️ Do NOT add manual routes for pages that already exist under `src/pages`
   // (e.g. /apps/territory/list, /apps/customer/list). unplugin-vue-router
   // generates them automatically, and a manual duplicate with the same name

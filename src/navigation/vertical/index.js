@@ -35,4 +35,11 @@ export default [
     action: 'read',
     subject: 'Auth',
   },
+  {
+    title: 'Products',
+    icon: { icon: 'tabler-packages' },
+    to: 'products',
+    action: 'read',
+    subject: 'Auth',
+  },
 ]
