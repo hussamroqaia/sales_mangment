@@ -23,8 +23,14 @@ import { useAuth } from '@/composables/useAuth'
 import { fetchProducts } from '@/services/product.service'
 
 // ── Auth — role guard for mutating actions ───────────────────────────────────
+// Both ADMIN and WAREHOUSE_MANAGER get full read/write/add access to stock.
+// (Mirrors the CASL rule warehouse_manager → manage:Warehouse defined in useAuth.)
 const { userData } = useAuth()
-const isAdmin = computed(() => userData.value?.role?.toLowerCase() === 'admin')
+
+const STOCK_MANAGER_ROLES = ['admin', 'warehouse_manager']
+
+const canManageStock = computed(() =>
+  STOCK_MANAGER_ROLES.includes(userData.value?.role?.toLowerCase()))
 
 // ── Composable ────────────────────────────────────────────────────────────────
 const {
@@ -389,7 +395,7 @@ onMounted(fetchAllStock)
 
         <!-- Add New Item -->
         <VBtn
-          v-if="isAdmin"
+          v-if="canManageStock"
           color="primary"
           prepend-icon="tabler-plus"
           @click="openAddDialog"
@@ -531,7 +537,7 @@ onMounted(fetchAllStock)
         <!-- Actions column -->
         <template #item.actions="{ item }">
           <div class="d-flex justify-end gap-1">
-            <template v-if="isAdmin">
+            <template v-if="canManageStock">
               <!-- Receive Stock -->
               <VTooltip text="Receive Stock">
                 <template #activator="{ props: tp }">
@@ -559,7 +565,7 @@ onMounted(fetchAllStock)
               </VTooltip>
             </template>
 
-            <!-- Non-admin: read-only indicator -->
+            <!-- No write access: read-only indicator -->
             <VChip
               v-else
               size="small"
