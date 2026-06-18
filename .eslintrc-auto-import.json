@@ -373,6 +373,9 @@
     "CUSTOMER_STATUSES": true,
     "useCustomers": true,
     "PRODUCT_STATUSES": true,
-    "useProducts": true
+    "useProducts": true,
+    "STOCK_MODES": true,
+    "resolveStockVariant": true,
+    "useWarehouseStock": true
   }
 }

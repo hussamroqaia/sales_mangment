@@ -42,4 +42,11 @@ export default [
     action: 'read',
     subject: 'Auth',
   },
+  {
+    title: 'Warehouse Stock',
+    icon: { icon: 'tabler-building-warehouse' },
+    to: 'warehouse-stock',
+    action: 'read',
+    subject: 'Auth',
+  },
 ]
