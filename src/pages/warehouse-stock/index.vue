@@ -12,15 +12,16 @@
  * This page is a thin wrapper; all UI lives in the WarehouseStockList view so the
  * component can be reused/tested independently of routing.
  *
+/**
  * Access rules:
- *   - All authenticated roles can VIEW the list (action: 'read', subject: 'Auth')
+ *   - Only ADMIN and WAREHOUSE_MANAGER can access this page
  *   - Only ADMIN can Receive / Correct stock (guarded inside the view via useAuth)
  */
 
 definePage({
   meta: {
-    action: 'read',
-    subject: 'Auth',
+    action: 'manage',
+    subject: 'Warehouse',
   },
 })
 

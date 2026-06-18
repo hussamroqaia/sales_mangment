@@ -147,9 +147,9 @@ export const useAuth = () => {
     // Extend this mapping as your permission model grows
     const abilityRulesMap = {
       admin: [{ action: 'manage', subject: 'all' }],
-      sales_manager: [{ action: 'read', subject: 'all' }],
-      sales_rep: [{ action: 'read', subject: 'all' }],
-      warehouse_manager: [{ action: 'read', subject: 'all' }],
+      sales_manager: [{ action: 'read', subject: 'Auth' }],
+      sales_rep: [{ action: 'read', subject: 'Auth' }],
+      warehouse_manager: [{ action: 'read', subject: 'Auth' }, { action: 'manage', subject: 'Warehouse' }],
     }
 
     const rules = abilityRulesMap[role?.toLowerCase()] ?? [{ action: 'read', subject: 'all' }]
