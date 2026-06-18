@@ -11,7 +11,7 @@
 
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import RepresentativeSelect from '@/views/apps/logistics/RepresentativeSelect.vue'
-import ProductAutocomplete from '@/views/apps/logistics/ProductAutocomplete.vue'
+import WarehouseStockAutocomplete from '@/views/apps/logistics/WarehouseStockAutocomplete.vue'
 
 const props = defineProps({
   isDrawerOpen: {
@@ -157,7 +157,7 @@ const onSubmit = () => {
               >
                 <div class="d-flex align-start gap-2">
                   <div class="flex-grow-1">
-                    <ProductAutocomplete
+                    <WarehouseStockAutocomplete
                       v-model="line.productId"
                       :rules="[requiredValidator]"
                       :disabled="props.isSubmitting"
