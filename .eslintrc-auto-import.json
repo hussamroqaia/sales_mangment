@@ -376,6 +376,17 @@
     "useProducts": true,
     "STOCK_MODES": true,
     "resolveStockVariant": true,
-    "useWarehouseStock": true
+    "useWarehouseStock": true,
+    "DEMAND_ORDER_STATUSES": true,
+    "RETURN_SHEET_STATUSES": true,
+    "confirmAction": true,
+    "resolveDemandStatusVariant": true,
+    "resolveReturnStatusVariant": true,
+    "swal": true,
+    "toastSuccess": true,
+    "useDemandOrders": true,
+    "useRepresentatives": true,
+    "useReturnSheets": true,
+    "useVanInventory": true
   }
 }

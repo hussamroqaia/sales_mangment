@@ -49,4 +49,33 @@ export default [
     action: 'manage',
     subject: 'Warehouse',
   },
+  {
+    title: 'Logistics',
+    icon: { icon: 'tabler-truck' },
+    action: 'read',
+    subject: 'Auth',
+    children: [
+      {
+        title: 'Demand Orders',
+        icon: { icon: 'tabler-truck-delivery' },
+        to: 'demand-orders',
+        action: 'read',
+        subject: 'Auth',
+      },
+      {
+        title: 'Return Sheets',
+        icon: { icon: 'tabler-truck-return' },
+        to: 'return-sheets',
+        action: 'read',
+        subject: 'Auth',
+      },
+      {
+        title: 'Van Inventory',
+        icon: { icon: 'tabler-box-seam' },
+        to: 'van-inventory',
+        action: 'read',
+        subject: 'Auth',
+      },
+    ],
+  },
 ]
