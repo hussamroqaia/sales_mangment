@@ -20,6 +20,7 @@ import {
   resolveStockVariant,
 } from '@/composables/useWarehouseStock'
 import { useAuth } from '@/composables/useAuth'
+import { fetchProducts } from '@/services/product.service'
 
 // ── Auth — role guard for mutating actions ───────────────────────────────────
 const { userData } = useAuth()
@@ -95,6 +96,67 @@ const formatDate = value => {
   }).format(d)
 }
 
+// ── Product autocomplete — server-side search + scroll pagination ───────────
+const productSearch     = ref('')
+const productItems      = ref([])
+const productPage       = ref(0)
+const productTotalPages = ref(1)
+const isProductLoading  = ref(false)
+let   _pSearchTimer     = null
+let   _pBlockScroll     = false
+
+const loadProductPage = async (reset = false) => {
+  if (isProductLoading.value) return
+  if (!reset && productPage.value >= productTotalPages.value) return
+
+  if (reset) {
+    _pBlockScroll = true
+    setTimeout(() => { _pBlockScroll = false }, 200)
+  }
+
+  isProductLoading.value = true
+  try {
+    const pageIndex = reset ? 0 : productPage.value
+    const data = await fetchProducts({
+      page:   pageIndex,
+      size:   20,
+      search: productSearch.value || undefined,
+    })
+
+    const incoming = (data?.content ?? []).map(p => ({ title: p.name, value: p.id }))
+
+    if (reset) {
+      productItems.value = incoming
+      productPage.value  = 1
+    } else {
+      productItems.value = [...productItems.value, ...incoming]
+      productPage.value  = pageIndex + 1
+    }
+    productTotalPages.value = data?.totalPages ?? 1
+  } catch (e) {
+    console.warn('[WarehouseStockList] Product load failed:', e)
+  } finally {
+    isProductLoading.value = false
+  }
+}
+
+const onProductSearch = val => {
+  productSearch.value = val ?? ''
+  clearTimeout(_pSearchTimer)
+  _pSearchTimer = setTimeout(() => loadProductPage(true), 350)
+}
+
+const onProductScrollEnd = (isIntersecting) => {
+  if (!isIntersecting || _pBlockScroll) return
+  if (productPage.value < productTotalPages.value) {
+    loadProductPage(false)
+  }
+}
+
+const onProductMenuUpdate = isOpen => {
+  if (isOpen && productItems.value.length === 0) loadProductPage(true)
+}
+
 // ── Fetch on mount ─────────────────────────────────────────────────────────────
 onMounted(fetchAllStock)
 </script>
@@ -143,21 +205,59 @@ onMounted(fetchAllStock)
       <!-- Filters -->
       <VCardText>
         <VRow class="align-center">
-          <!-- Product ID search -->
+          <!-- Product search -->
           <VCol
             cols="12"
             sm="6"
           >
-            <AppTextField
+            <VAutocomplete
               v-model="productIdFilter"
-              type="number"
-              min="1"
-              step="1"
-              placeholder="Filter by Product ID…"
-              prepend-inner-icon="tabler-search"
+              label="Filter by Product"
+              placeholder="Search products…"
+              :items="productItems"
+              item-title="title"
+              item-value="value"
+              :loading="isProductLoading"
+              no-filter
               clearable
+              @update:search="onProductSearch"
+              @update:menu="onProductMenuUpdate"
               @click:clear="productIdFilter = null"
-            />
+            >
+              <!-- Append sentinel for infinite scroll -->
+              <template #append-item>
+                <div
+                  v-intersect="{
+                    handler: onProductScrollEnd,
+                    options: { threshold: 0.5 },
+                  }"
+                  class="pa-2 text-center"
+                >
+                  <VProgressCircular
+                    v-if="isProductLoading"
+                    indeterminate
+                    size="20"
+                    width="2"
+                    color="primary"
+                  />
+                  <span
+                    v-else-if="productPage >= productTotalPages"
+                    class="text-caption text-disabled"
+                  >
+                    All products loaded
+                  </span>
+                </div>
+              </template>
+
+              <!-- Empty state -->
+              <template #no-data>
+                <VListItem>
+                  <VListItemTitle class="text-medium-emphasis">
+                    {{ isProductLoading ? 'Loading…' : 'No products found' }}
+                  </VListItemTitle>
+                </VListItem>
+              </template>
+            </VAutocomplete>
           </VCol>
 
           <!-- Low stock only toggle -->
