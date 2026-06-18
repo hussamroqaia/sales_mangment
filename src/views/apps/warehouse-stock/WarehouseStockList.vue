@@ -81,6 +81,100 @@ const onSubmit = async ({ productId, quantity, mode }) => {
   if (result.success) isModalOpen.value = false
 }
 
+// ── Add New Item Dialog ────────────────────────────────────────────────────────
+const isAddDialogOpen    = ref(false)
+const addForm            = ref({ productId: null, quantity: null })
+const refAddForm         = ref()
+const isAddSubmitting    = ref(false)
+
+// Separate product autocomplete state for the Add dialog
+const addProductSearch     = ref('')
+const addProductItems      = ref([])
+const addProductPage       = ref(0)
+const addProductTotalPages = ref(1)
+const isAddProductLoading  = ref(false)
+let   _addPSearchTimer     = null
+let   _addPBlockScroll     = false
+
+const loadAddProductPage = async (reset = false) => {
+  if (isAddProductLoading.value) return
+  if (!reset && addProductPage.value >= addProductTotalPages.value) return
+
+  if (reset) {
+    _addPBlockScroll = true
+    setTimeout(() => { _addPBlockScroll = false }, 200)
+  }
+
+  isAddProductLoading.value = true
+  try {
+    const pageIndex = reset ? 0 : addProductPage.value
+    const data = await fetchProducts({
+      page:   pageIndex,
+      size:   20,
+      search: addProductSearch.value || undefined,
+    })
+
+    const incoming = (data?.content ?? []).map(p => ({ title: p.name, value: p.id }))
+
+    if (reset) {
+      addProductItems.value = incoming
+      addProductPage.value  = 1
+    } else {
+      addProductItems.value = [...addProductItems.value, ...incoming]
+      addProductPage.value  = pageIndex + 1
+    }
+    addProductTotalPages.value = data?.totalPages ?? 1
+  } catch (e) {
+    console.warn('[WarehouseStockList] Add-dialog product load failed:', e)
+  } finally {
+    isAddProductLoading.value = false
+  }
+}
+
+const onAddProductSearch = val => {
+  addProductSearch.value = val ?? ''
+  clearTimeout(_addPSearchTimer)
+  _addPSearchTimer = setTimeout(() => loadAddProductPage(true), 350)
+}
+
+const onAddProductScrollEnd = (isIntersecting) => {
+  if (!isIntersecting || _addPBlockScroll) return
+  if (addProductPage.value < addProductTotalPages.value) {
+    loadAddProductPage(false)
+  }
+}
+
+const onAddProductMenuUpdate = isOpen => {
+  if (isOpen && addProductItems.value.length === 0) loadAddProductPage(true)
+}
+
+const openAddDialog = () => {
+  addForm.value = { productId: null, quantity: null }
+  addProductSearch.value = ''
+  addProductItems.value  = []
+  addProductPage.value   = 0
+  isAddDialogOpen.value  = true
+}
+
+const closeAddDialog = () => {
+  isAddDialogOpen.value = false
+}
+
+const onAddSubmit = async () => {
+  const { valid } = await refAddForm.value?.validate()
+  if (!valid) return
+
+  isAddSubmitting.value = true
+  try {
+    const result = await receiveStock(addForm.value.productId, Number(addForm.value.quantity))
+    if (result.success) {
+      isAddDialogOpen.value = false
+    }
+  } finally {
+    isAddSubmitting.value = false
+  }
+}
+
 // ── Formatters ──────────────────────────────────────────────────────────────────
 const formatDate = value => {
   if (!value) return '—'
@@ -293,6 +387,16 @@ onMounted(fetchAllStock)
 
         <VSpacer />
 
+        <!-- Add New Item -->
+        <VBtn
+          v-if="isAdmin"
+          color="primary"
+          prepend-icon="tabler-plus"
+          @click="openAddDialog"
+        >
+          Add New Item
+        </VBtn>
+
         <!-- Manual refresh -->
         <VBtn
           variant="tonal"
@@ -487,6 +591,139 @@ onMounted(fetchAllStock)
       :is-submitting="isSubmitting"
       @submit="onSubmit"
     />
+
+    <!-- ── Add New Item Dialog ──────────────────────────────────────────────── -->
+    <VDialog
+      v-model="isAddDialogOpen"
+      max-width="480"
+      persistent
+    >
+      <VCard>
+        <VCardItem class="pb-2">
+          <template #prepend>
+            <VAvatar
+              color="primary"
+              variant="tonal"
+              rounded
+              size="40"
+            >
+              <VIcon
+                icon="tabler-plus"
+                size="22"
+              />
+            </VAvatar>
+          </template>
+          <VCardTitle>Add New Item to Warehouse</VCardTitle>
+        </VCardItem>
+
+        <VDivider />
+
+        <VCardText>
+          <VForm
+            ref="refAddForm"
+            @submit.prevent="onAddSubmit"
+          >
+            <VRow>
+              <!-- Product Autocomplete -->
+              <VCol cols="12">
+                <VAutocomplete
+                  v-model="addForm.productId"
+                  :rules="[v => !!v || 'Product is required']"
+                  label="Product"
+                  placeholder="Search products…"
+                  :items="addProductItems"
+                  item-title="title"
+                  item-value="value"
+                  :loading="isAddProductLoading"
+                  :disabled="isAddSubmitting"
+                  no-filter
+                  clearable
+                  @update:search="onAddProductSearch"
+                  @update:menu="onAddProductMenuUpdate"
+                >
+                  <!-- Sentinel for infinite scroll -->
+                  <template #append-item>
+                    <div
+                      v-intersect="{
+                        handler: onAddProductScrollEnd,
+                        options: { threshold: 0.5 },
+                      }"
+                      class="pa-2 text-center"
+                    >
+                      <VProgressCircular
+                        v-if="isAddProductLoading"
+                        indeterminate
+                        size="20"
+                        width="2"
+                        color="primary"
+                      />
+                      <span
+                        v-else-if="addProductPage >= addProductTotalPages"
+                        class="text-caption text-disabled"
+                      >
+                        All products loaded
+                      </span>
+                    </div>
+                  </template>
+
+                  <!-- Empty state -->
+                  <template #no-data>
+                    <VListItem>
+                      <VListItemTitle class="text-medium-emphasis">
+                        {{ isAddProductLoading ? 'Loading…' : 'No products found' }}
+                      </VListItemTitle>
+                    </VListItem>
+                  </template>
+                </VAutocomplete>
+              </VCol>
+
+              <!-- Quantity -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="addForm.quantity"
+                  label="Quantity to Receive"
+                  :rules="[
+                    v => (v !== null && v !== undefined && v !== '') || 'Quantity is required',
+                    v => Number.isInteger(Number(v)) || 'Must be a whole number',
+                    v => Number(v) >= 1 || 'Enter a value of 1 or greater',
+                  ]"
+                  hint="This amount will be added to the warehouse stock."
+                  persistent-hint
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="0"
+                  :disabled="isAddSubmitting"
+                />
+              </VCol>
+            </VRow>
+          </VForm>
+        </VCardText>
+
+        <VCardActions class="pa-4 pt-0 gap-2 justify-end">
+          <VBtn
+            variant="tonal"
+            color="secondary"
+            :disabled="isAddSubmitting"
+            @click="closeAddDialog"
+          >
+            Cancel
+          </VBtn>
+          <VBtn
+            color="primary"
+            :loading="isAddSubmitting"
+            :disabled="isAddSubmitting"
+            @click="onAddSubmit"
+          >
+            <VIcon
+              icon="tabler-plus"
+              start
+            />
+            Add to Warehouse
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
     <!-- ── Global Snackbar ─────────────────────────────────────────────────── -->
     <VSnackbar
