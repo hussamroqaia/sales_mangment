@@ -142,13 +142,23 @@ const onSubmit = () => {
             class="mb-4"
             icon="tabler-lock"
           >
-            <p class="mb-1 font-weight-medium">
-              Account temporarily locked
-            </p>
-            <p class="mb-0 text-sm">
-              Too many failed attempts. Try again in
-              <strong>{{ lockoutRemainingFormatted }}</strong>.
-            </p>
+            <template v-if="loginError">
+              <p class="mb-1 font-weight-medium">
+                {{ loginError }}
+              </p>
+              <p class="mb-0 text-sm">
+                Time remaining: <strong>{{ lockoutRemainingFormatted }}</strong>
+              </p>
+            </template>
+            <template v-else>
+              <p class="mb-1 font-weight-medium">
+                Account temporarily locked
+              </p>
+              <p class="mb-0 text-sm">
+                Too many failed attempts. Try again in
+                <strong>{{ lockoutRemainingFormatted }}</strong>.
+              </p>
+            </template>
           </VAlert>
 
           <!-- Login error alert -->

@@ -233,19 +233,38 @@ export const useAuth = () => {
       }
 
       // ── Invalid credentials ───────────────────────────────────────────
-      if (status === 401 || status === 400 || status === 403) {
+      if (status === 401 || status === 400 || status === 403 || status === 429) {
+        // If the backend specifically says the account is locked, sync with local lockout
+        if (message && message.toLowerCase().includes('locked')) {
+          // Attempt to extract the remaining minutes from the message
+          let minutes = 15 // default to 15 if not found
+          const match = message.match(/in (\d+) minute/i)
+          if (match && match[1]) {
+            minutes = parseInt(match[1], 10)
+          }
+
+          const state = getLockoutState()
+          state.attempts = MAX_ATTEMPTS
+          state.lockoutUntil = Date.now() + (minutes * 60 * 1000)
+          saveLockoutState(state)
+          lockoutData.value = { ...state }
+          
+          loginError.value = message
+          return
+        }
+
         recordFailedAttempt()
         syncLockout()
 
         const remaining = MAX_ATTEMPTS - getLockoutState().attempts
 
         if (isLockedOut.value) {
-          loginError.value = `Account locked after ${MAX_ATTEMPTS} failed attempts. Try again in 15 minutes.`
+          loginError.value = message || `Account locked after ${MAX_ATTEMPTS} failed attempts. Try again in 15 minutes.`
         } else {
           const attemptsLeft = remaining > 0 ? remaining : 0
-          loginError.value = attemptsLeft > 0
+          loginError.value = message || (attemptsLeft > 0
             ? `Invalid email or password. ${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining.`
-            : 'Invalid email or password.'
+            : 'Invalid email or password.')
         }
 
         return
