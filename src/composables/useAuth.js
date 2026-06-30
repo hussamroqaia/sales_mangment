@@ -262,9 +262,15 @@ export const useAuth = () => {
           loginError.value = message || `Account locked after ${MAX_ATTEMPTS} failed attempts. Try again in 15 minutes.`
         } else {
           const attemptsLeft = remaining > 0 ? remaining : 0
-          loginError.value = message || (attemptsLeft > 0
-            ? `Invalid email or password. ${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining.`
-            : 'Invalid email or password.')
+          let errorMsg = message || 'Invalid email or password.'
+          
+          // Ensure it ends with a period if we are appending
+          if (attemptsLeft > 0 && !errorMsg.toLowerCase().includes('attempt')) {
+            if (!errorMsg.endsWith('.')) errorMsg += '.'
+            errorMsg += ` ${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining.`
+          }
+          
+          loginError.value = errorMsg
         }
 
         return
