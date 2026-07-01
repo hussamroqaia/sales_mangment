@@ -195,6 +195,20 @@ export const useAuth = () => {
     try {
       const data = await loginUser(email, password)
 
+      // ── Block Sales Reps from web login ───────────────────────────────
+      if (data.role?.toUpperCase() === 'SALES_REP') {
+        loginError.value = 'Access denied. Sales Representatives are not permitted to log into the web dashboard.'
+        
+        // Optionally logout the session on the backend since loginUser succeeded
+        try {
+          await logoutUser({ headers: { Authorization: `Bearer ${data.accessToken}` } })
+        } catch (e) {
+          // ignore logout errors
+        }
+
+        return
+      }
+
       // ✅ Successful login — clear any lockout counter
       clearLockout()
 
