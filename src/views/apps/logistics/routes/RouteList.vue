@@ -11,6 +11,7 @@
  */
 
 import RouteFormDrawer from '@/views/apps/logistics/routes/RouteFormDrawer.vue'
+import RepresentativeSelect from '@/views/apps/logistics/RepresentativeSelect.vue'
 import {
   useRoutes,
   ROUTE_STATUSES,
@@ -26,6 +27,8 @@ const {
   isListLoading,
   listError,
   selectedStatus,
+  selectedRepresentativeId,
+  selectedRouteDate,
   page,
   itemsPerPage,
   updateOptions,
@@ -121,6 +124,26 @@ onMounted(fetchAllRoutes)
               item-value="value"
               clearable
               clear-icon="tabler-x"
+            />
+          </VCol>
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <RepresentativeSelect
+              v-model="selectedRepresentativeId"
+              placeholder="Filter by Representative"
+            />
+          </VCol>
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <AppDateTimePicker
+              v-model="selectedRouteDate"
+              placeholder="Filter by Date (YYYY-MM-DD)"
+              :config="{ dateFormat: 'Y-m-d' }"
+              clearable
             />
           </VCol>
         </VRow>

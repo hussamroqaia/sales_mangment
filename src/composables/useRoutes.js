@@ -47,7 +47,9 @@ export const useRoutes = () => {
   const listError     = ref('')
 
   // ── Filter State ────────────────────────────────────────────────────────────
-  const selectedStatus = ref(null)
+  const selectedStatus           = ref(null)
+  const selectedRepresentativeId = ref(null)
+  const selectedRouteDate        = ref(null)
 
   // ── Pagination State ────────────────────────────────────────────────────────
   const page         = ref(1)
@@ -79,11 +81,13 @@ export const useRoutes = () => {
 
     try {
       const data = await fetchRoutes({
-        page:    page.value - 1,
-        size:    itemsPerPage.value,
-        status:  selectedStatus.value || undefined,
-        sortBy:  sortBy.value,
-        sortDir: sortDir.value,
+        page:             page.value - 1,
+        size:             itemsPerPage.value,
+        status:           selectedStatus.value || undefined,
+        representativeId: selectedRepresentativeId.value || undefined,
+        routeDate:        selectedRouteDate.value || undefined,
+        sortBy:           sortBy.value,
+        sortDir:          sortDir.value,
       })
 
       routes.value      = data?.content       ?? []
@@ -97,7 +101,7 @@ export const useRoutes = () => {
   }
 
   // ── Watchers ────────────────────────────────────────────────────────────────
-  watch(selectedStatus, () => {
+  watch([selectedStatus, selectedRepresentativeId, selectedRouteDate], () => {
     page.value = 1
     fetchAllRoutes()
   })
@@ -269,6 +273,8 @@ export const useRoutes = () => {
 
     // Filters
     selectedStatus,
+    selectedRepresentativeId,
+    selectedRouteDate,
 
     // Pagination
     page,
