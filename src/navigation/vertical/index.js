@@ -76,6 +76,13 @@ export default [
         action: 'read',
         subject: 'Auth',
       },
+      {
+        title: 'Routes',
+        icon: { icon: 'tabler-route' },
+        to: 'routes',
+        action: 'read',
+        subject: 'Auth',
+      },
     ],
   },
 ]

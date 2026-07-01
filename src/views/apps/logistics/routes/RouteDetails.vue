@@ -1,0 +1,450 @@
+<script setup>
+/**
+ * RouteDetails.vue
+ *
+ * Route detail view with split layout:
+ *   - Left:  Stops timeline ordered by sequenceNumber
+ *   - Right: OpenStreetMap with numbered markers via vue-leaflet
+ *
+ * Header shows route metadata + "Optimize Route" button.
+ * When isOptimized is true, the button is disabled and shows a success badge.
+ */
+
+import { LMap, LTileLayer, LMarker, LPopup, LPolyline } from '@vue-leaflet/vue-leaflet'
+import 'leaflet/dist/leaflet.css'
+import { useRoutes, resolveRouteStatusVariant, ROUTE_STATUSES } from '@/composables/useRoutes'
+
+const props = defineProps({
+  routeId: {
+    type: [String, Number],
+    required: true,
+  },
+})
+
+const router = useRouter()
+
+const {
+  selectedRoute,
+  isDetailLoading,
+  detailError,
+  isOptimizing,
+  isSubmitting,
+  snackbar,
+  fetchRoute,
+  optimizeSelectedRoute,
+  updateStatus,
+} = useRoutes()
+
+// ── Load route on mount ───────────────────────────────────────────────────────
+onMounted(() => {
+  fetchRoute(props.routeId)
+})
+
+watch(() => props.routeId, newId => {
+  if (newId) fetchRoute(newId)
+})
+
+// ── Computed: sorted stops ────────────────────────────────────────────────────
+const sortedStops = computed(() => {
+  if (!selectedRoute.value?.stops) return []
+
+  return [...selectedRoute.value.stops].sort((a, b) => a.sequenceNumber - b.sequenceNumber)
+})
+
+// ── Computed: map center ──────────────────────────────────────────────────────
+const defaultCenter = [33.5117, 36.3067]
+
+const mapCenter = computed(() => {
+  if (sortedStops.value.length > 0) {
+    const first = sortedStops.value[0]
+    if (first.latitude && first.longitude) {
+      return [first.latitude, first.longitude]
+    }
+  }
+
+  return defaultCenter
+})
+
+// ── Computed: polyline coordinates ────────────────────────────────────────────
+const polylineLatLngs = computed(() => {
+  return sortedStops.value
+    .filter(s => s.latitude && s.longitude)
+    .map(s => [s.latitude, s.longitude])
+})
+
+// ── Optimize handler ──────────────────────────────────────────────────────────
+const onOptimize = async () => {
+  await optimizeSelectedRoute(props.routeId)
+}
+
+// ── Update Status handler ─────────────────────────────────────────────────────
+const onUpdateStatus = async statusValue => {
+  if (selectedRoute.value?.status === statusValue) return
+  await updateStatus(props.routeId, statusValue)
+}
+
+// ── Status helper ─────────────────────────────────────────────────────────────
+const statusTitle = status =>
+  ROUTE_STATUSES.find(s => s.value === status)?.title ?? status ?? '—'
+
+// ── Back navigation ──────────────────────────────────────────────────────────
+const goBack = () => {
+  router.push({ path: '/routes' })
+}
+
+// ── Date formatter ──────────────────────────────────────────────────────────
+const formatDate = value => {
+  if (!value) return '—'
+  const d = new Date(value)
+
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+    year: 'numeric', month: 'short', day: '2-digit',
+  }).format(d)
+}
+</script>
+
+<template>
+  <section>
+    <!-- Loading State -->
+    <VCard
+      v-if="isDetailLoading"
+      class="pa-6"
+    >
+      <div class="d-flex align-center justify-center py-16">
+        <VProgressCircular
+          indeterminate
+          size="48"
+          color="primary"
+        />
+        <span class="ms-4 text-body-1 text-medium-emphasis">Loading route details…</span>
+      </div>
+    </VCard>
+
+    <!-- Error State -->
+    <VCard
+      v-else-if="detailError"
+      class="pa-6"
+    >
+      <VAlert
+        type="error"
+        variant="tonal"
+        class="mb-4"
+      >
+        {{ detailError }}
+      </VAlert>
+      <VBtn
+        variant="tonal"
+        color="secondary"
+        prepend-icon="tabler-arrow-left"
+        @click="goBack"
+      >
+        Back to Routes
+      </VBtn>
+    </VCard>
+
+    <!-- Route Detail -->
+    <div v-else-if="selectedRoute">
+      <!-- Header Card -->
+      <VCard class="mb-6">
+        <VCardItem>
+          <template #prepend>
+            <VBtn
+              icon
+              variant="text"
+              color="default"
+              size="small"
+              @click="goBack"
+            >
+              <VIcon icon="tabler-arrow-left" />
+            </VBtn>
+          </template>
+          <VCardTitle class="text-h5">
+            Route: {{ selectedRoute.name }}
+          </VCardTitle>
+          <template #append>
+            <!-- Update Status Menu -->
+            <VBtn
+              variant="tonal"
+              color="secondary"
+              class="me-3"
+              prepend-icon="tabler-refresh"
+              :loading="isSubmitting"
+              :disabled="isSubmitting"
+            >
+              Update Status
+              <VMenu activator="parent">
+                <VList>
+                  <VListItem
+                    v-for="status in ROUTE_STATUSES"
+                    :key="status.value"
+                    :value="status.value"
+                    @click="onUpdateStatus(status.value)"
+                  >
+                    <VListItemTitle>{{ status.title }}</VListItemTitle>
+                  </VListItem>
+                </VList>
+              </VMenu>
+            </VBtn>
+
+            <!-- Optimize Button -->
+            <VChip
+              v-if="selectedRoute.isOptimized"
+              color="success"
+              size="large"
+              label
+              class="me-3"
+            >
+              <VIcon
+                icon="tabler-check"
+                size="18"
+                class="me-1"
+              />
+              Successfully Optimized
+            </VChip>
+            <VBtn
+              v-if="!selectedRoute.isOptimized"
+              color="primary"
+              prepend-icon="tabler-route"
+              :loading="isOptimizing"
+              :disabled="isOptimizing"
+              @click="onOptimize"
+            >
+              Optimize Route
+            </VBtn>
+          </template>
+        </VCardItem>
+
+        <VDivider />
+
+        <VCardText>
+          <VRow>
+            <VCol
+              cols="12"
+              sm="3"
+            >
+              <div class="text-caption text-disabled mb-1">
+                Representative
+              </div>
+              <div class="text-body-1 font-weight-medium">
+                {{ selectedRoute.representativeName || `Rep #${selectedRoute.representativeId}` }}
+              </div>
+            </VCol>
+            <VCol
+              cols="12"
+              sm="3"
+            >
+              <div class="text-caption text-disabled mb-1">
+                Territory
+              </div>
+              <div class="text-body-1 font-weight-medium">
+                {{ selectedRoute.territoryName || `Territory #${selectedRoute.territoryId}` }}
+              </div>
+            </VCol>
+            <VCol
+              cols="12"
+              sm="3"
+            >
+              <div class="text-caption text-disabled mb-1">
+                Date
+              </div>
+              <div class="text-body-1 font-weight-medium">
+                {{ formatDate(selectedRoute.routeDate) }}
+              </div>
+            </VCol>
+            <VCol
+              cols="12"
+              sm="3"
+            >
+              <div class="text-caption text-disabled mb-1">
+                Status
+              </div>
+              <VChip
+                :color="resolveRouteStatusVariant(selectedRoute.status)"
+                size="small"
+                label
+              >
+                {{ statusTitle(selectedRoute.status) }}
+              </VChip>
+            </VCol>
+          </VRow>
+        </VCardText>
+      </VCard>
+
+      <!-- Split Layout: Stops Timeline + Map -->
+      <VRow>
+        <!-- Left: Stops List / Timeline -->
+        <VCol
+          cols="12"
+          md="5"
+        >
+          <VCard>
+            <VCardItem>
+              <VCardTitle>
+                <VIcon
+                  icon="tabler-list-numbers"
+                  size="20"
+                  class="me-2"
+                />
+                Route Stops ({{ sortedStops.length }})
+              </VCardTitle>
+            </VCardItem>
+
+            <VDivider />
+
+            <VCardText v-if="sortedStops.length === 0">
+              <div class="d-flex flex-column align-center justify-center py-8 gap-2">
+                <VIcon
+                  icon="tabler-map-pin-off"
+                  size="40"
+                  color="secondary"
+                />
+                <span class="text-body-2 text-medium-emphasis">No stops assigned to this route.</span>
+              </div>
+            </VCardText>
+
+            <VCardText
+              v-else
+              class="pa-0"
+            >
+              <VTimeline
+                density="compact"
+                side="end"
+                class="pa-4"
+              >
+                <VTimelineItem
+                  v-for="stop in sortedStops"
+                  :key="stop.assignmentId"
+                  dot-color="primary"
+                  size="small"
+                >
+                  <template #icon>
+                    <span class="text-caption font-weight-bold text-white">
+                      {{ stop.sequenceNumber }}
+                    </span>
+                  </template>
+
+                  <VCard
+                    variant="tonal"
+                    class="pa-3"
+                  >
+                    <div class="d-flex align-center gap-2 mb-1">
+                      <VChip
+                        color="primary"
+                        size="x-small"
+                        label
+                      >
+                        Stop {{ stop.sequenceNumber }}
+                      </VChip>
+                    </div>
+                    <div class="text-body-1 font-weight-medium">
+                      {{ stop.customerName }}
+                    </div>
+                    <div class="text-body-2 text-medium-emphasis mt-1">
+                      <VIcon
+                        icon="tabler-map-pin"
+                        size="14"
+                        class="me-1"
+                      />
+                      {{ stop.customerAddress || 'No address' }}
+                    </div>
+                    <div
+                      v-if="stop.latitude && stop.longitude"
+                      class="text-caption text-disabled mt-1"
+                    >
+                      {{ stop.latitude.toFixed(4) }}, {{ stop.longitude.toFixed(4) }}
+                    </div>
+                  </VCard>
+                </VTimelineItem>
+              </VTimeline>
+            </VCardText>
+          </VCard>
+        </VCol>
+
+        <!-- Right: Map -->
+        <VCol
+          cols="12"
+          md="7"
+        >
+          <VCard>
+            <VCardItem>
+              <VCardTitle>
+                <VIcon
+                  icon="tabler-map"
+                  size="20"
+                  class="me-2"
+                />
+                Route Map
+              </VCardTitle>
+            </VCardItem>
+
+            <VDivider />
+
+            <VCardText class="pa-0">
+              <div style="block-size: 600px; inline-size: 100%;">
+                <LMap
+                  :zoom="13"
+                  :center="mapCenter"
+                  :use-global-leaflet="false"
+                  style="block-size: 100%; inline-size: 100%; z-index: 0;"
+                >
+                  <LTileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+                    layer-type="base"
+                    name="OpenStreetMap"
+                  />
+
+                  <!-- Markers for each stop -->
+                  <LMarker
+                    v-for="stop in sortedStops"
+                    :key="`marker-${stop.assignmentId}`"
+                    :lat-lng="[stop.latitude, stop.longitude]"
+                  >
+                    <LPopup>
+                      <div>
+                        <strong>Stop {{ stop.sequenceNumber }}: {{ stop.customerName }}</strong>
+                        <br>
+                        <span>{{ stop.customerAddress || 'No address' }}</span>
+                      </div>
+                    </LPopup>
+                  </LMarker>
+
+                  <!-- Polyline connecting stops in order -->
+                  <LPolyline
+                    v-if="polylineLatLngs.length > 1"
+                    :lat-lngs="polylineLatLngs"
+                    :color="'#7367F0'"
+                    :weight="3"
+                    :opacity="0.8"
+                    dash-array="10, 6"
+                  />
+                </LMap>
+              </div>
+            </VCardText>
+          </VCard>
+        </VCol>
+      </VRow>
+    </div>
+
+    <!-- Snackbar -->
+    <VSnackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      :timeout="3500"
+      location="bottom end"
+    >
+      <VIcon
+        :icon="snackbar.color === 'success' ? 'tabler-circle-check' : 'tabler-alert-circle'"
+        class="me-2"
+      />
+      {{ snackbar.message }}
+    </VSnackbar>
+  </section>
+</template>
+
+<style scoped>
+/* Ensure leaflet container renders properly */
+:deep(.leaflet-container) {
+  z-index: 0;
+}
+</style>

@@ -387,6 +387,9 @@
     "useDemandOrders": true,
     "useRepresentatives": true,
     "useReturnSheets": true,
-    "useVanInventory": true
+    "useVanInventory": true,
+    "ROUTE_STATUSES": true,
+    "resolveRouteStatusVariant": true,
+    "useRoutes": true
   }
 }
