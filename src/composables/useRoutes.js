@@ -15,6 +15,7 @@
 
 import {
   fetchRoutes,
+  fetchMyRoute as fetchMyRouteService,
   fetchRouteById,
   createRoute as createRouteService,
   deleteRoute as deleteRouteService,
@@ -113,6 +114,22 @@ export const useRoutes = () => {
       selectedRoute.value = await fetchRouteById(id)
     } catch (error) {
       detailError.value = error?.response?.data?.message || `Failed to load route #${id}.`
+      showSnackbar(detailError.value, 'error')
+    } finally {
+      isDetailLoading.value = false
+    }
+  }
+
+  // ── fetchMyRoute(date) — load route for the logged-in user (sales rep) ──────
+  const loadMyRoute = async date => {
+    isDetailLoading.value = true
+    detailError.value     = ''
+    selectedRoute.value   = null
+
+    try {
+      selectedRoute.value = await fetchMyRouteService(date)
+    } catch (error) {
+      detailError.value = error?.response?.data?.message || 'Failed to load your route.'
       showSnackbar(detailError.value, 'error')
     } finally {
       isDetailLoading.value = false
@@ -273,6 +290,7 @@ export const useRoutes = () => {
     snackbar,
     fetchAllRoutes,
     fetchRoute,
+    loadMyRoute,
     createRoute,
     removeRoute,
     optimizeSelectedRoute,

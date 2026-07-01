@@ -40,6 +40,23 @@ export const fetchRoutes = async (params = {}) => {
   }
 }
 
+// ─── GET /routes/me ──────────────────────────────────────────────────────────
+/**
+ * Fetch the route for the currently logged-in user (sales rep) for a given date.
+ * @param {string} date - YYYY-MM-DD
+ * @returns {Promise<Object>}
+ */
+export const fetchMyRoute = async date => {
+  try {
+    const response = await apiClient.get(`${BASE}/me`, { params: { date } })
+
+    return response.data?.data ?? response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+
 // ─── GET /routes/:id ─────────────────────────────────────────────────────────
 /**
  * Fetch a single route with its nested stops.

@@ -18,7 +18,16 @@ import { fetchCustomers } from '@/services/customer.service'
 const props = defineProps({
   routeId: {
     type: [String, Number],
-    required: true,
+    required: false,
+    default: 0,
+  },
+  isMyRoute: {
+    type: Boolean,
+    default: false,
+  },
+  routeDate: {
+    type: String,
+    default: '',
   },
 })
 
@@ -32,18 +41,31 @@ const {
   isSubmitting,
   snackbar,
   fetchRoute,
+  loadMyRoute,
   optimizeSelectedRoute,
   updateStatus,
   assignCustomers,
 } = useRoutes()
 
 // ── Load route on mount ───────────────────────────────────────────────────────
+const fetchCurrentRoute = () => {
+  if (props.isMyRoute) {
+    if (props.routeDate) loadMyRoute(props.routeDate)
+  } else if (props.routeId) {
+    fetchRoute(props.routeId)
+  }
+}
+
 onMounted(() => {
-  fetchRoute(props.routeId)
+  fetchCurrentRoute()
 })
 
-watch(() => props.routeId, newId => {
-  if (newId) fetchRoute(newId)
+watch(() => props.routeId, () => {
+  fetchCurrentRoute()
+})
+
+watch(() => props.routeDate, () => {
+  fetchCurrentRoute()
 })
 
 // ── Computed: sorted stops ────────────────────────────────────────────────────
@@ -229,6 +251,7 @@ const onAssignCustomers = async () => {
         {{ detailError }}
       </VAlert>
       <VBtn
+        v-if="!isMyRoute"
         variant="tonal"
         color="secondary"
         prepend-icon="tabler-arrow-left"
@@ -245,6 +268,7 @@ const onAssignCustomers = async () => {
         <VCardItem>
           <template #prepend>
             <VBtn
+              v-if="!isMyRoute"
               icon
               variant="text"
               color="default"

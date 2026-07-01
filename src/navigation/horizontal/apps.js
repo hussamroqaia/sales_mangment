@@ -62,6 +62,7 @@ export default [
         children: [
           { title: 'Dashboard', to: 'apps-logistics-dashboard' },
           { title: 'Fleet', to: 'apps-logistics-fleet' },
+          { title: 'My Route', to: 'my-route' },
         ],
       },
       {
