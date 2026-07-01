@@ -45,20 +45,46 @@ const blankForm = () => ({
 
 const form = ref(blankForm())
 
-// ── Territory options ───────────────────────────────────────────────────────
-const territoryOptions    = ref([])
+// ── Territory autocomplete — server-side search + scroll pagination ───────────
+const territorySearch     = ref('')
+const territoryItems      = ref([])
+const territoryPage       = ref(0)
+const territoryTotalPages = ref(1)
 const isTerritoryLoading  = ref(false)
+let   _tSearchTimer       = null
+let   _tBlockScroll       = false
 
-const loadTerritories = async () => {
+const loadTerritoryPage = async (reset = false) => {
+  if (isTerritoryLoading.value) return
+  if (!reset && territoryPage.value >= territoryTotalPages.value) return
+
+  if (reset) {
+    _tBlockScroll = true
+    setTimeout(() => { _tBlockScroll = false }, 200)
+  }
+
   isTerritoryLoading.value = true
   try {
-    const data = await fetchTerritories({ page: 0, size: 200 })
-    const content = data?.content ?? []
+    const pageIndex = reset ? 0 : territoryPage.value
+    const data = await fetchTerritories({
+      page:   pageIndex,
+      size:   20,
+      search: territorySearch.value || undefined,
+    })
 
-    territoryOptions.value = content.map(t => ({
+    const incoming = (data?.content ?? []).map(t => ({
       title: t.name || `Territory #${t.id}`,
       value: t.id,
     }))
+
+    if (reset) {
+      territoryItems.value = incoming
+      territoryPage.value  = 1
+    } else {
+      territoryItems.value = [...territoryItems.value, ...incoming]
+      territoryPage.value  = pageIndex + 1
+    }
+    territoryTotalPages.value = data?.totalPages ?? 1
   } catch (e) {
     console.warn('[RouteFormDrawer] Failed to load territories:', e)
   } finally {
@@ -66,33 +92,71 @@ const loadTerritories = async () => {
   }
 }
 
-// ── Customer options (filtered by selected territory) ───────────────────────
-const customerOptions    = ref([])
+const onTerritorySearch = val => {
+  territorySearch.value = val ?? ''
+  clearTimeout(_tSearchTimer)
+  _tSearchTimer = setTimeout(() => loadTerritoryPage(true), 350)
+}
+
+const onTerritoryScrollEnd = (isIntersecting) => {
+  if (!isIntersecting || _tBlockScroll) return
+  if (territoryPage.value < territoryTotalPages.value) {
+    loadTerritoryPage(false)
+  }
+}
+
+const onTerritoryMenuUpdate = isOpen => {
+  if (isOpen && territoryItems.value.length === 0) loadTerritoryPage(true)
+}
+
+// ── Customer autocomplete — server-side search + scroll pagination ────────────
+const customerSearch     = ref('')
+const customerItems      = ref([])
+const customerPage       = ref(0)
+const customerTotalPages = ref(1)
 const isCustomerLoading  = ref(false)
+let   _cSearchTimer       = null
+let   _cBlockScroll       = false
 
-const loadCustomers = async territoryId => {
-  if (!territoryId) {
-    customerOptions.value = []
-
+const loadCustomerPage = async (reset = false) => {
+  if (!form.value.territoryId) {
+    customerItems.value = []
     return
+  }
+  if (isCustomerLoading.value) return
+  if (!reset && customerPage.value >= customerTotalPages.value) return
+
+  if (reset) {
+    _cBlockScroll = true
+    setTimeout(() => { _cBlockScroll = false }, 200)
   }
 
   isCustomerLoading.value = true
   try {
+    const pageIndex = reset ? 0 : customerPage.value
     const data = await fetchCustomers({
-      territoryId,
+      territoryId: form.value.territoryId,
       status: 'ACTIVE',
-      page: 0,
-      size: 200,
+      page: pageIndex,
+      size: 20,
+      search: customerSearch.value || undefined,
     })
 
     const content = data?.content ?? []
-
-    customerOptions.value = content.map(c => ({
+    const incoming = content.map(c => ({
       title: c.name || `Customer #${c.id}`,
       value: c.id,
       subtitle: c.address || '',
     }))
+
+    if (reset) {
+      customerItems.value = incoming
+      customerPage.value  = 1
+    } else {
+      customerItems.value = [...customerItems.value, ...incoming]
+      customerPage.value  = pageIndex + 1
+    }
+    customerTotalPages.value = data?.totalPages ?? 1
   } catch (e) {
     console.warn('[RouteFormDrawer] Failed to load customers:', e)
   } finally {
@@ -100,16 +164,49 @@ const loadCustomers = async territoryId => {
   }
 }
 
+const onCustomerSearch = val => {
+  customerSearch.value = val ?? ''
+  clearTimeout(_cSearchTimer)
+  _cSearchTimer = setTimeout(() => loadCustomerPage(true), 350)
+}
+
+const onCustomerScrollEnd = (isIntersecting) => {
+  if (!isIntersecting || _cBlockScroll) return
+  if (customerPage.value < customerTotalPages.value) {
+    loadCustomerPage(false)
+  }
+}
+
+const onCustomerMenuUpdate = isOpen => {
+  if (isOpen && customerItems.value.length === 0) loadCustomerPage(true)
+}
+
 // When territory changes, reset customers and reload
 watch(() => form.value.territoryId, newTerritoryId => {
   form.value.customerIds = []
-  loadCustomers(newTerritoryId)
+  customerSearch.value = ''
+  customerItems.value = []
+  customerPage.value = 0
+  customerTotalPages.value = 1
+  if (newTerritoryId) {
+    loadCustomerPage(true)
+  }
 })
 
 // ── Reset & close ───────────────────────────────────────────────────────────
 const resetForm = () => {
   form.value = blankForm()
-  customerOptions.value = []
+  
+  territorySearch.value = ''
+  territoryItems.value = []
+  territoryPage.value = 0
+  territoryTotalPages.value = 1
+  
+  customerSearch.value = ''
+  customerItems.value = []
+  customerPage.value = 0
+  customerTotalPages.value = 1
+
   nextTick(() => refForm.value?.resetValidation())
 }
 
@@ -123,7 +220,7 @@ watch(
   isOpen => {
     if (isOpen) {
       resetForm()
-      loadTerritories()
+      loadTerritoryPage(true)
       nextTick(() => {
         if (refScrollbar.value?.$el) refScrollbar.value.$el.scrollTop = 0
       })
@@ -190,7 +287,7 @@ const onSubmit = () => {
                   v-model="form.territoryId"
                   label="Territory"
                   placeholder="Select territory…"
-                  :items="territoryOptions"
+                  :items="territoryItems"
                   item-title="title"
                   item-value="value"
                   :loading="isTerritoryLoading"
@@ -198,7 +295,43 @@ const onSubmit = () => {
                   :disabled="props.isSubmitting"
                   clearable
                   no-filter
-                />
+                  @update:search="onTerritorySearch"
+                  @update:menu="onTerritoryMenuUpdate"
+                >
+                  <!-- Append sentinel for infinite scroll -->
+                  <template #append-item>
+                    <div
+                      v-intersect="{
+                        handler: onTerritoryScrollEnd,
+                        options: { threshold: 0.5 },
+                      }"
+                      class="pa-2 text-center"
+                    >
+                      <VProgressCircular
+                        v-if="isTerritoryLoading"
+                        indeterminate
+                        size="20"
+                        width="2"
+                        color="primary"
+                      />
+                      <span
+                        v-else-if="territoryPage >= territoryTotalPages"
+                        class="text-caption text-disabled"
+                      >
+                        All territories loaded
+                      </span>
+                    </div>
+                  </template>
+
+                  <!-- Empty state -->
+                  <template #no-data>
+                    <VListItem>
+                      <VListItemTitle class="text-medium-emphasis">
+                        {{ isTerritoryLoading ? 'Loading…' : 'No territories found' }}
+                      </VListItemTitle>
+                    </VListItem>
+                  </template>
+                </VAutocomplete>
               </VCol>
 
               <!-- Step 3: Customers (multi-select, depends on Territory) -->
@@ -207,7 +340,7 @@ const onSubmit = () => {
                   v-model="form.customerIds"
                   label="Customers"
                   placeholder="Select customers for this route…"
-                  :items="customerOptions"
+                  :items="customerItems"
                   item-title="title"
                   item-value="value"
                   :loading="isCustomerLoading"
@@ -218,7 +351,34 @@ const onSubmit = () => {
                   closable-chips
                   clearable
                   no-filter
+                  @update:search="onCustomerSearch"
+                  @update:menu="onCustomerMenuUpdate"
                 >
+                  <!-- Append sentinel for infinite scroll -->
+                  <template #append-item>
+                    <div
+                      v-intersect="{
+                        handler: onCustomerScrollEnd,
+                        options: { threshold: 0.5 },
+                      }"
+                      class="pa-2 text-center"
+                    >
+                      <VProgressCircular
+                        v-if="isCustomerLoading"
+                        indeterminate
+                        size="20"
+                        width="2"
+                        color="primary"
+                      />
+                      <span
+                        v-else-if="customerPage >= customerTotalPages"
+                        class="text-caption text-disabled"
+                      >
+                        All customers loaded
+                      </span>
+                    </div>
+                  </template>
+
                   <template #no-data>
                     <VListItem>
                       <VListItemTitle class="text-medium-emphasis">
