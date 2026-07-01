@@ -20,6 +20,7 @@ import {
   deleteRoute as deleteRouteService,
   optimizeRoute as optimizeRouteService,
   updateRouteStatus as updateRouteStatusService,
+  assignRouteCustomers as assignRouteCustomersService,
 } from '@/services/route.service'
 
 // ─── Status constants ─────────────────────────────────────────────────────────
@@ -215,6 +216,28 @@ export const useRoutes = () => {
     if (sortChanged) page.value = 1
   }
 
+  // ── assignCustomers(id, customerIds) — POST /routes/:id/customers ───────────
+  const assignCustomers = async (id, customerIds) => {
+    isSubmitting.value = true
+    try {
+      const updated = await assignRouteCustomersService(id, customerIds)
+
+      if (selectedRoute.value?.id == id) {
+        selectedRoute.value = updated
+      }
+      showSnackbar(updated?.message || 'Customers assigned successfully.')
+
+      return { success: true }
+    } catch (error) {
+      const message = error?.response?.data?.message
+      showSnackbar(message || 'Failed to assign customers.', 'error')
+
+      return { success: false, error: message || 'Failed to assign customers.' }
+    } finally {
+      isSubmitting.value = false
+    }
+  }
+
   const clearSelected = () => {
     selectedRoute.value = null
     detailError.value   = ''
@@ -254,6 +277,7 @@ export const useRoutes = () => {
     removeRoute,
     optimizeSelectedRoute,
     updateStatus,
+    assignCustomers,
     clearSelected,
   }
 }

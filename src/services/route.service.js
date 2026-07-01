@@ -121,3 +121,20 @@ export const updateRouteStatus = async (id, status) => {
     throw error
   }
 }
+
+// ─── POST /routes/:id/customers ──────────────────────────────────────────────
+/**
+ * Assign additional customers to an existing route.
+ * @param {number|string} id          - Route ID
+ * @param {number[]}      customerIds - Array of customer IDs to add
+ * @returns {Promise<Object>} The updated route with new stops
+ */
+export const assignRouteCustomers = async (id, customerIds) => {
+  try {
+    const response = await apiClient.post(`${BASE}/${id}/customers`, { customerIds })
+
+    return response.data?.data ?? response.data
+  } catch (error) {
+    throw error
+  }
+}

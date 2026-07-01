@@ -13,6 +13,7 @@
 import { LMap, LTileLayer, LMarker, LPopup, LPolyline } from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useRoutes, resolveRouteStatusVariant, ROUTE_STATUSES } from '@/composables/useRoutes'
+import { fetchCustomers } from '@/services/customer.service'
 
 const props = defineProps({
   routeId: {
@@ -33,6 +34,7 @@ const {
   fetchRoute,
   optimizeSelectedRoute,
   updateStatus,
+  assignCustomers,
 } = useRoutes()
 
 // ── Load route on mount ───────────────────────────────────────────────────────
@@ -100,6 +102,100 @@ const formatDate = value => {
   return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
     year: 'numeric', month: 'short', day: '2-digit',
   }).format(d)
+}
+
+// ── Add Customers — server-side search + scroll pagination ───────────────────
+const selectedCustomerIds = ref([])
+const customerSearch      = ref('')
+const customerItems       = ref([])
+const customerPage        = ref(0)
+const customerTotalPages  = ref(1)
+const isCustomerLoading   = ref(false)
+const isAssigning         = ref(false)
+let   _cSearchTimer       = null
+let   _cBlockScroll       = false
+
+/** IDs of customers already on the route — excludes them from the dropdown */
+const existingCustomerIds = computed(() => {
+  if (!selectedRoute.value?.stops) return new Set()
+  return new Set(selectedRoute.value.stops.map(s => s.customerId))
+})
+
+const loadCustomerPage = async (reset = false) => {
+  const territoryId = selectedRoute.value?.territoryId
+  if (!territoryId) { customerItems.value = []; return }
+  if (isCustomerLoading.value) return
+  if (!reset && customerPage.value >= customerTotalPages.value) return
+
+  if (reset) {
+    _cBlockScroll = true
+    setTimeout(() => { _cBlockScroll = false }, 200)
+  }
+
+  isCustomerLoading.value = true
+  try {
+    const pageIndex = reset ? 0 : customerPage.value
+    const data = await fetchCustomers({
+      territoryId,
+      status: 'ACTIVE',
+      page: pageIndex,
+      size: 20,
+      search: customerSearch.value || undefined,
+    })
+
+    const content = data?.content ?? []
+    const incoming = content
+      .filter(c => !existingCustomerIds.value.has(c.id))
+      .map(c => ({
+        title: c.name || `Customer #${c.id}`,
+        value: c.id,
+        subtitle: c.address || '',
+      }))
+
+    if (reset) {
+      customerItems.value = incoming
+      customerPage.value  = 1
+    } else {
+      customerItems.value = [...customerItems.value, ...incoming]
+      customerPage.value  = pageIndex + 1
+    }
+    customerTotalPages.value = data?.totalPages ?? 1
+  } catch (e) {
+    console.warn('[RouteDetails] Failed to load customers:', e)
+  } finally {
+    isCustomerLoading.value = false
+  }
+}
+
+const onCustomerSearch = val => {
+  customerSearch.value = val ?? ''
+  clearTimeout(_cSearchTimer)
+  _cSearchTimer = setTimeout(() => loadCustomerPage(true), 350)
+}
+
+const onCustomerScrollEnd = (isIntersecting) => {
+  if (!isIntersecting || _cBlockScroll) return
+  if (customerPage.value < customerTotalPages.value) {
+    loadCustomerPage(false)
+  }
+}
+
+const onCustomerMenuUpdate = isOpen => {
+  if (isOpen && customerItems.value.length === 0) loadCustomerPage(true)
+}
+
+const onAssignCustomers = async () => {
+  if (!selectedCustomerIds.value.length) return
+  isAssigning.value = true
+  const result = await assignCustomers(props.routeId, selectedCustomerIds.value)
+  isAssigning.value = false
+  if (result.success) {
+    selectedCustomerIds.value = []
+    customerItems.value = []
+    customerPage.value = 0
+    customerTotalPages.value = 1
+    customerSearch.value = ''
+  }
 }
 </script>
 
@@ -424,6 +520,97 @@ const formatDate = value => {
           </VCard>
         </VCol>
       </VRow>
+
+      <!-- Add Customers Card -->
+      <VCard class="mb-6">
+        <VCardItem>
+          <VCardTitle>
+            <VIcon
+              icon="tabler-user-plus"
+              size="20"
+              class="me-2"
+            />
+            Add Customers
+          </VCardTitle>
+        </VCardItem>
+
+        <VDivider />
+
+        <VCardText>
+          <VRow align="end">
+            <VCol
+              cols="12"
+              md="8"
+            >
+              <VAutocomplete
+                v-model="selectedCustomerIds"
+                label="Customers"
+                placeholder="Search customers in this territory…"
+                :items="customerItems"
+                item-title="title"
+                item-value="value"
+                :loading="isCustomerLoading"
+                :disabled="isAssigning"
+                multiple
+                chips
+                closable-chips
+                clearable
+                no-filter
+                @update:search="onCustomerSearch"
+                @update:menu="onCustomerMenuUpdate"
+              >
+                <!-- Append sentinel for infinite scroll -->
+                <template #append-item>
+                  <div
+                    v-intersect="{
+                      handler: onCustomerScrollEnd,
+                      options: { threshold: 0.5 },
+                    }"
+                    class="pa-2 text-center"
+                  >
+                    <VProgressCircular
+                      v-if="isCustomerLoading"
+                      indeterminate
+                      size="20"
+                      width="2"
+                      color="primary"
+                    />
+                    <span
+                      v-else-if="customerPage >= customerTotalPages"
+                      class="text-caption text-disabled"
+                    >
+                      All customers loaded
+                    </span>
+                  </div>
+                </template>
+
+                <template #no-data>
+                  <VListItem>
+                    <VListItemTitle class="text-medium-emphasis">
+                      {{ isCustomerLoading ? 'Loading…' : 'No customers found in this territory' }}
+                    </VListItemTitle>
+                  </VListItem>
+                </template>
+              </VAutocomplete>
+            </VCol>
+            <VCol
+              cols="12"
+              md="4"
+            >
+              <VBtn
+                color="primary"
+                prepend-icon="tabler-plus"
+                :loading="isAssigning"
+                :disabled="isAssigning || !selectedCustomerIds.length"
+                block
+                @click="onAssignCustomers"
+              >
+                Assign {{ selectedCustomerIds.length ? `(${selectedCustomerIds.length})` : '' }}
+              </VBtn>
+            </VCol>
+          </VRow>
+        </VCardText>
+      </VCard>
     </div>
 
     <!-- Snackbar -->
