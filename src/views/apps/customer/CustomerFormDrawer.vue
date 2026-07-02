@@ -181,6 +181,8 @@ const resetForm = () => {
   markerLatLng.value = null
   mapCenter.value    = [...DEFAULT_CENTER]
   mapZoom.value      = DEFAULT_ZOOM
+  mapSearchQuery.value   = ''
+  mapSearchResults.value = []
   nextTick(() => {
     refForm.value?.resetValidation()
   })
