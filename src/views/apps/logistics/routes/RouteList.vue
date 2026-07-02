@@ -11,6 +11,7 @@
  */
 
 import RouteFormDrawer from '@/views/apps/logistics/routes/RouteFormDrawer.vue'
+import RouteEditDrawer from '@/views/apps/logistics/routes/RouteEditDrawer.vue'
 import RepresentativeSelect from '@/views/apps/logistics/RepresentativeSelect.vue'
 import {
   useRoutes,
@@ -36,6 +37,7 @@ const {
   snackbar,
   fetchAllRoutes,
   createRoute,
+  updateSelectedRoute,
   removeRoute,
 } = useRoutes()
 
@@ -59,6 +61,20 @@ const openCreate = () => { isDrawerOpen.value = true }
 const onSubmit = async payload => {
   const result = await createRoute(payload)
   if (result.success) isDrawerOpen.value = false
+}
+
+// ── Edit Drawer state ─────────────────────────────────────────────────────────
+const isEditDrawerOpen = ref(false)
+const routeToEdit = ref(null)
+
+const openEdit = route => {
+  routeToEdit.value = route
+  isEditDrawerOpen.value = true
+}
+
+const onEditSubmit = async ({ id, payload }) => {
+  const result = await updateSelectedRoute(id, payload)
+  if (result.success) isEditDrawerOpen.value = false
 }
 
 // ── View Details — navigate to /routes/:id ────────────────────────────────────
@@ -270,6 +286,17 @@ onMounted(fetchAllRoutes)
 
         <template #item.actions="{ item }">
           <div class="d-flex justify-end gap-1">
+            <VTooltip text="Edit Route">
+              <template #activator="{ props: tp }">
+                <IconBtn
+                  v-bind="tp"
+                  @click="openEdit(item)"
+                >
+                  <VIcon icon="tabler-edit" />
+                </IconBtn>
+              </template>
+            </VTooltip>
+            
             <VTooltip text="View Details">
               <template #activator="{ props: tp }">
                 <IconBtn
@@ -311,6 +338,14 @@ onMounted(fetchAllRoutes)
       v-model:is-drawer-open="isDrawerOpen"
       :is-submitting="isSubmitting"
       @submit="onSubmit"
+    />
+
+    <!-- Edit Drawer -->
+    <RouteEditDrawer
+      v-model:is-drawer-open="isEditDrawerOpen"
+      :route="routeToEdit"
+      :is-submitting="isSubmitting"
+      @submit="onEditSubmit"
     />
 
     <!-- Snackbar -->

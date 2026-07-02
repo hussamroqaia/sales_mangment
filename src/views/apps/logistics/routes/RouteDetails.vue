@@ -14,6 +14,7 @@ import { LMap, LTileLayer, LMarker, LPopup, LPolyline } from '@vue-leaflet/vue-l
 import 'leaflet/dist/leaflet.css'
 import { useRoutes, resolveRouteStatusVariant, ROUTE_STATUSES } from '@/composables/useRoutes'
 import { fetchCustomers } from '@/services/customer.service'
+import RouteEditDrawer from '@/views/apps/logistics/routes/RouteEditDrawer.vue'
 
 const props = defineProps({
   routeId: {
@@ -43,6 +44,7 @@ const {
   fetchRoute,
   loadMyRoute,
   optimizeSelectedRoute,
+  updateSelectedRoute,
   updateStatus,
   assignCustomers,
 } = useRoutes()
@@ -219,6 +221,18 @@ const onAssignCustomers = async () => {
     customerSearch.value = ''
   }
 }
+
+// ── Edit Drawer ───────────────────────────────────────────────────────────────
+const isEditDrawerOpen = ref(false)
+
+const openEdit = () => {
+  isEditDrawerOpen.value = true
+}
+
+const onEditSubmit = async ({ id, payload }) => {
+  const result = await updateSelectedRoute(id, payload)
+  if (result.success) isEditDrawerOpen.value = false
+}
 </script>
 
 <template>
@@ -282,6 +296,19 @@ const onAssignCustomers = async () => {
             Route: {{ selectedRoute.name }}
           </VCardTitle>
           <template #append>
+            <!-- Edit Button -->
+            <VBtn
+              v-if="!isMyRoute"
+              variant="tonal"
+              color="primary"
+              class="me-3"
+              prepend-icon="tabler-edit"
+              :disabled="isSubmitting"
+              @click="openEdit"
+            >
+              Edit Route
+            </VBtn>
+
             <!-- Update Status Menu -->
             <VBtn
               variant="tonal"
@@ -636,6 +663,14 @@ const onAssignCustomers = async () => {
         </VCardText>
       </VCard>
     </div>
+
+    <!-- Edit Drawer -->
+    <RouteEditDrawer
+      v-model:is-drawer-open="isEditDrawerOpen"
+      :route="selectedRoute"
+      :is-submitting="isSubmitting"
+      @submit="onEditSubmit"
+    />
 
     <!-- Snackbar -->
     <VSnackbar

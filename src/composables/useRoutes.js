@@ -18,6 +18,7 @@ import {
   fetchMyRoute as fetchMyRouteService,
   fetchRouteById,
   createRoute as createRouteService,
+  updateRoute as updateRouteService,
   deleteRoute as deleteRouteService,
   optimizeRoute as optimizeRouteService,
   updateRouteStatus as updateRouteStatusService,
@@ -155,6 +156,35 @@ export const useRoutes = () => {
       showSnackbar(message || 'Failed to create route.', 'error')
 
       return { success: false, error: message || 'Failed to create route.' }
+    } finally {
+      isSubmitting.value = false
+    }
+  }
+
+  // ── updateSelectedRoute(id, payload) ────────────────────────────────────────
+  const updateSelectedRoute = async (id, payload) => {
+    isSubmitting.value = true
+    try {
+      const updated = await updateRouteService(id, payload)
+      showSnackbar('Route updated successfully.')
+      
+      // Update the local list and details if they match
+      if (selectedRoute.value?.id == id) {
+        selectedRoute.value = { ...selectedRoute.value, ...updated }
+      }
+      
+      // Update the item in the local routes array without a full refetch
+      const index = routes.value.findIndex(r => r.id == id)
+      if (index !== -1) {
+        routes.value[index] = { ...routes.value[index], ...updated }
+      }
+
+      return { success: true }
+    } catch (error) {
+      const message = error?.response?.data?.message
+      showSnackbar(message || 'Failed to update route.', 'error')
+
+      return { success: false, error: message || 'Failed to update route.' }
     } finally {
       isSubmitting.value = false
     }
@@ -298,6 +328,7 @@ export const useRoutes = () => {
     fetchRoute,
     loadMyRoute,
     createRoute,
+    updateSelectedRoute,
     removeRoute,
     optimizeSelectedRoute,
     updateStatus,

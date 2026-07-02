@@ -89,6 +89,22 @@ export const createRoute = async payload => {
   }
 }
 
+// ─── PUT /routes/:id ──────────────────────────────────────────────────────────
+/**
+ * Update a route's name and routeDate.
+ * @param {string|number} id
+ * @param {Object} payload - { name, routeDate }
+ */
+export const updateRoute = async (id, payload) => {
+  try {
+    const response = await apiClient.put(`${BASE}/${id}`, payload)
+
+    return response.data?.data ?? response.data
+  } catch (error) {
+    throw error
+  }
+}
+
 // ─── DELETE /routes/:id ──────────────────────────────────────────────────────
 /**
  * Delete a route by ID.
