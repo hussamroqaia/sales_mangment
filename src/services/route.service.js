@@ -171,3 +171,38 @@ export const assignRouteCustomers = async (id, customerIds) => {
     throw error
   }
 }
+
+// ─── DELETE /routes/:id/customers/:customerId ────────────────────────────────
+/**
+ * Remove a customer (stop) from a route.
+ * @param {number|string} id         - Route ID
+ * @param {number|string} customerId - Customer ID to remove
+ * @returns {Promise<Object>} The updated route
+ */
+export const removeRouteCustomer = async (id, customerId) => {
+  try {
+    const response = await apiClient.delete(`${BASE}/${id}/customers/${customerId}`)
+
+    return response.data?.data ?? response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+// ─── PUT /routes/:id/sequence ────────────────────────────────────────────────
+/**
+ * Reorder stops by providing an ordered list of customer IDs.
+ * @param {number|string} id                   - Route ID
+ * @param {number[]}      orderedCustomerIds   - Customer IDs in desired order
+ * @returns {Promise<Object>} The updated route with reordered stops
+ */
+export const updateRouteSequence = async (id, orderedCustomerIds) => {
+  try {
+    const response = await apiClient.put(`${BASE}/${id}/sequence`, { orderedCustomerIds })
+
+    return response.data?.data ?? response.data
+  } catch (error) {
+    throw error
+  }
+}
+

@@ -19,6 +19,12 @@ import {
   resolveRouteStatusVariant,
 } from '@/composables/useRoutes'
 import { confirmAction } from '@/utils/swal'
+import { useAuth } from '@/composables/useAuth'
+
+const { userData } = useAuth()
+const ROUTE_MANAGER_ROLES = ['admin', 'sales_manager']
+const canManageRoutes = computed(() =>
+  ROUTE_MANAGER_ROLES.includes(userData.value?.role?.toLowerCase()))
 
 const router = useRouter()
 
@@ -116,6 +122,7 @@ onMounted(fetchAllRoutes)
         <VCardTitle>Routes</VCardTitle>
         <template #append>
           <VBtn
+            v-if="canManageRoutes"
             prepend-icon="tabler-plus"
             @click="openCreate"
           >
@@ -283,17 +290,31 @@ onMounted(fetchAllRoutes)
 
         <template #item.actions="{ item }">
           <div class="d-flex justify-end gap-1">
-            <VTooltip text="Edit Route">
-              <template #activator="{ props: tp }">
-                <IconBtn
-                  v-bind="tp"
-                  @click="openEdit(item)"
-                >
-                  <VIcon icon="tabler-edit" />
-                </IconBtn>
-              </template>
-            </VTooltip>
+            <template v-if="canManageRoutes">
+              <VTooltip text="Edit Route">
+                <template #activator="{ props: tp }">
+                  <IconBtn
+                    v-bind="tp"
+                    @click="openEdit(item)"
+                  >
+                    <VIcon icon="tabler-edit" />
+                  </IconBtn>
+                </template>
+              </VTooltip>
             
+              <VTooltip text="Delete Route">
+                <template #activator="{ props: tp }">
+                  <IconBtn
+                    v-bind="tp"
+                    color="error"
+                    :loading="isSubmitting"
+                    @click="onDelete(item)"
+                  >
+                    <VIcon icon="tabler-trash" />
+                  </IconBtn>
+                </template>
+              </VTooltip>
+            </template>
             <VTooltip text="View Details">
               <template #activator="{ props: tp }">
                 <IconBtn
@@ -301,19 +322,6 @@ onMounted(fetchAllRoutes)
                   @click="viewDetails(item)"
                 >
                   <VIcon icon="tabler-eye" />
-                </IconBtn>
-              </template>
-            </VTooltip>
-
-            <VTooltip text="Delete Route">
-              <template #activator="{ props: tp }">
-                <IconBtn
-                  v-bind="tp"
-                  color="error"
-                  :loading="isSubmitting"
-                  @click="onDelete(item)"
-                >
-                  <VIcon icon="tabler-trash" />
                 </IconBtn>
               </template>
             </VTooltip>

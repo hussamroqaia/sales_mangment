@@ -15,6 +15,13 @@ import 'leaflet/dist/leaflet.css'
 import { useRoutes, resolveRouteStatusVariant, ROUTE_STATUSES } from '@/composables/useRoutes'
 import { fetchCustomers } from '@/services/customer.service'
 import RouteEditDrawer from '@/views/apps/logistics/routes/RouteEditDrawer.vue'
+import { useAuth } from '@/composables/useAuth'
+import { confirmAction } from '@/utils/swal'
+
+const { userData } = useAuth()
+const ROUTE_MANAGER_ROLES = ['admin', 'sales_manager']
+const canManageRoutes = computed(() =>
+  ROUTE_MANAGER_ROLES.includes(userData.value?.role?.toLowerCase()))
 
 const props = defineProps({
   routeId: {
@@ -47,6 +54,8 @@ const {
   updateSelectedRoute,
   updateStatus,
   assignCustomers,
+  removeCustomer,
+  reorderStops,
 } = useRoutes()
 
 // ── Load route on mount ───────────────────────────────────────────────────────
@@ -77,6 +86,42 @@ const sortedStops = computed(() => {
   return [...selectedRoute.value.stops].sort((a, b) => a.sequenceNumber - b.sequenceNumber)
 })
 
+// ── Local reorder state ───────────────────────────────────────────────────────
+const localStops = ref([])
+const isReordering = ref(false)
+
+const startReorder = () => {
+  localStops.value = sortedStops.value.map(s => ({ ...s }))
+  isReordering.value = true
+}
+
+const cancelReorder = () => {
+  isReordering.value = false
+  localStops.value = []
+}
+
+const moveStop = (index, direction) => {
+  const target = index + direction
+  if (target < 0 || target >= localStops.value.length) return
+  const arr = [...localStops.value]
+  ;[arr[index], arr[target]] = [arr[target], arr[index]]
+  // update sequenceNumbers to reflect new positions
+  arr.forEach((s, i) => { s.sequenceNumber = i + 1 })
+  localStops.value = arr
+}
+
+const saveOrder = async () => {
+  const orderedCustomerIds = localStops.value.map(s => s.customerId)
+  const result = await reorderStops(selectedRoute.value?.id, orderedCustomerIds)
+  if (result.success) {
+    isReordering.value = false
+    localStops.value = []
+  }
+}
+
+// The stops to render — local order when reordering, otherwise server order
+const displayStops = computed(() => isReordering.value ? localStops.value : sortedStops.value)
+
 // ── Computed: map center ──────────────────────────────────────────────────────
 const defaultCenter = [33.5117, 36.3067]
 
@@ -100,13 +145,13 @@ const polylineLatLngs = computed(() => {
 
 // ── Optimize handler ──────────────────────────────────────────────────────────
 const onOptimize = async () => {
-  await optimizeSelectedRoute(props.routeId)
+  await optimizeSelectedRoute(selectedRoute.value?.id)
 }
 
 // ── Update Status handler ─────────────────────────────────────────────────────
 const onUpdateStatus = async statusValue => {
   if (selectedRoute.value?.status === statusValue) return
-  await updateStatus(props.routeId, statusValue)
+  await updateStatus(selectedRoute.value?.id, statusValue)
 }
 
 // ── Status helper ─────────────────────────────────────────────────────────────
@@ -232,6 +277,19 @@ const openEdit = () => {
 const onEditSubmit = async ({ id, payload }) => {
   const result = await updateSelectedRoute(id, payload)
   if (result.success) isEditDrawerOpen.value = false
+}
+
+// ── Remove Customer ───────────────────────────────────────────────────────────
+const onRemoveCustomer = async customerId => {
+  const confirmed = await confirmAction({
+    title: 'Remove customer?',
+    text: 'Are you sure you want to remove this stop from the route?',
+    confirmText: 'Remove',
+    icon: 'warning',
+  })
+  if (!confirmed) return
+
+  await removeCustomer(selectedRoute.value?.id, customerId)
 }
 </script>
 
@@ -434,6 +492,43 @@ const onEditSubmit = async ({ id, payload }) => {
                 />
                 Route Stops ({{ sortedStops.length }})
               </VCardTitle>
+              <template #append>
+                <template v-if="canManageRoutes && sortedStops.length > 1">
+                  <VBtn
+                    v-if="!isReordering"
+                    variant="text"
+                    color="primary"
+                    size="small"
+                    prepend-icon="tabler-arrows-sort"
+                    @click="startReorder"
+                  >
+                    Reorder
+                  </VBtn>
+                  <template v-else>
+                    <VBtn
+                      variant="tonal"
+                      color="success"
+                      size="small"
+                      prepend-icon="tabler-check"
+                      :loading="isSubmitting"
+                      class="me-2"
+                      @click="saveOrder"
+                    >
+                      Save Order
+                    </VBtn>
+                    <VBtn
+                      variant="text"
+                      color="secondary"
+                      size="small"
+                      prepend-icon="tabler-x"
+                      :disabled="isSubmitting"
+                      @click="cancelReorder"
+                    >
+                      Cancel
+                    </VBtn>
+                  </template>
+                </template>
+              </template>
             </VCardItem>
 
             <VDivider />
@@ -459,7 +554,7 @@ const onEditSubmit = async ({ id, payload }) => {
                 class="pa-4"
               >
                 <VTimelineItem
-                  v-for="stop in sortedStops"
+                  v-for="(stop, idx) in displayStops"
                   :key="stop.assignmentId"
                   dot-color="primary"
                   size="small"
@@ -474,14 +569,45 @@ const onEditSubmit = async ({ id, payload }) => {
                     variant="tonal"
                     class="pa-3"
                   >
-                    <div class="d-flex align-center gap-2 mb-1">
-                      <VChip
-                        color="primary"
-                        size="x-small"
-                        label
-                      >
-                        Stop {{ stop.sequenceNumber }}
-                      </VChip>
+                    <div class="d-flex align-center justify-space-between mb-1">
+                      <div class="d-flex align-center gap-2">
+                        <VChip
+                          color="primary"
+                          size="x-small"
+                          label
+                        >
+                          Stop {{ stop.sequenceNumber }}
+                        </VChip>
+                      </div>
+                      <div class="d-flex align-center gap-1">
+                        <!-- Reorder arrows (only in reorder mode) -->
+                        <template v-if="isReordering">
+                          <IconBtn
+                            size="small"
+                            :disabled="idx === 0"
+                            @click="moveStop(idx, -1)"
+                          >
+                            <VIcon icon="tabler-arrow-up" size="18" />
+                          </IconBtn>
+                          <IconBtn
+                            size="small"
+                            :disabled="idx === displayStops.length - 1"
+                            @click="moveStop(idx, 1)"
+                          >
+                            <VIcon icon="tabler-arrow-down" size="18" />
+                          </IconBtn>
+                        </template>
+                        <!-- Delete (only when NOT reordering) -->
+                        <IconBtn
+                          v-if="canManageRoutes && !isReordering"
+                          color="error"
+                          size="small"
+                          :disabled="isSubmitting"
+                          @click="onRemoveCustomer(stop.customerId)"
+                        >
+                          <VIcon icon="tabler-trash" size="18" />
+                        </IconBtn>
+                      </div>
                     </div>
                     <div class="text-body-1 font-weight-medium">
                       {{ stop.customerName }}

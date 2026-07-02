@@ -23,6 +23,8 @@ import {
   optimizeRoute as optimizeRouteService,
   updateRouteStatus as updateRouteStatusService,
   assignRouteCustomers as assignRouteCustomersService,
+  removeRouteCustomer as removeRouteCustomerService,
+  updateRouteSequence as updateRouteSequenceService,
 } from '@/services/route.service'
 
 // ─── Status constants ─────────────────────────────────────────────────────────
@@ -289,6 +291,50 @@ export const useRoutes = () => {
     }
   }
 
+  // ── removeCustomer(routeId, customerId) — DELETE /routes/:id/customers/:customerId
+  const removeCustomer = async (routeId, customerId) => {
+    isSubmitting.value = true
+    try {
+      const updated = await removeRouteCustomerService(routeId, customerId)
+
+      if (selectedRoute.value?.id == routeId) {
+        selectedRoute.value = updated
+      }
+      showSnackbar(updated?.message || 'Customer removed successfully.')
+
+      return { success: true }
+    } catch (error) {
+      const message = error?.response?.data?.message
+      showSnackbar(message || 'Failed to remove customer.', 'error')
+
+      return { success: false, error: message || 'Failed to remove customer.' }
+    } finally {
+      isSubmitting.value = false
+    }
+  }
+
+  // ── reorderStops(routeId, orderedCustomerIds) — PUT /routes/:id/sequence ────
+  const reorderStops = async (routeId, orderedCustomerIds) => {
+    isSubmitting.value = true
+    try {
+      const updated = await updateRouteSequenceService(routeId, orderedCustomerIds)
+
+      if (selectedRoute.value?.id == routeId) {
+        selectedRoute.value = updated
+      }
+      showSnackbar(updated?.message || 'Stop order updated successfully.')
+
+      return { success: true }
+    } catch (error) {
+      const message = error?.response?.data?.message
+      showSnackbar(message || 'Failed to reorder stops.', 'error')
+
+      return { success: false, error: message || 'Failed to reorder stops.' }
+    } finally {
+      isSubmitting.value = false
+    }
+  }
+
   const clearSelected = () => {
     selectedRoute.value = null
     detailError.value   = ''
@@ -333,6 +379,8 @@ export const useRoutes = () => {
     optimizeSelectedRoute,
     updateStatus,
     assignCustomers,
+    removeCustomer,
+    reorderStops,
     clearSelected,
   }
 }
