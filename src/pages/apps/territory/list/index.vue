@@ -47,7 +47,6 @@ const {
 
 // ── Table Headers ──────────────────────────────────────────────────────────────
 const headers = [
-  { title: '#',           key: 'id',          sortable: false                },
   { title: 'Name',        key: 'name',         sortable: false                },
   { title: 'Description', key: 'description',  sortable: false                },
   { title: 'Created',     key: 'createdAt',    sortable: false                },
@@ -271,11 +270,6 @@ onMounted(fetchAllTerritories)
               Add Territory
             </VBtn>
           </div>
-        </template>
-
-        <!-- ID column -->
-        <template #item.id="{ item }">
-          <span class="text-body-2 text-medium-emphasis">#{{ item.id }}</span>
         </template>
 
         <!-- Name column -->

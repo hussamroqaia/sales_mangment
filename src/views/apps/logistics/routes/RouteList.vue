@@ -43,7 +43,6 @@ const {
 
 // ── Table Headers ──────────────────────────────────────────────────────────────
 const headers = [
-  { title: 'ID',        key: 'id',                 sortable: true  },
   { title: 'Route Name', key: 'name',              sortable: true  },
   { title: 'Rep Name',  key: 'representativeName', sortable: false },
   { title: 'Territory', key: 'territoryName',      sortable: false },
@@ -230,10 +229,6 @@ onMounted(fetchAllRoutes)
               No routes found.
             </p>
           </div>
-        </template>
-
-        <template #item.id="{ item }">
-          <span class="text-body-1 font-weight-medium">#{{ item.id }}</span>
         </template>
 
         <template #item.name="{ item }">

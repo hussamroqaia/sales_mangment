@@ -41,7 +41,6 @@ const {
 } = useReturnSheets()
 
 const headers = [
-  { title: 'ID',     key: 'id',               sortable: true  },
   { title: 'Rep ID', key: 'representativeId',  sortable: true  },
   { title: 'Date',   key: 'returnDate',        sortable: true  },
   { title: 'Status', key: 'status',            sortable: true  },
@@ -216,10 +215,6 @@ onMounted(fetchAllSheets)
               No return sheets found.
             </p>
           </div>
-        </template>
-
-        <template #item.id="{ item }">
-          <span class="text-body-1 font-weight-medium">#{{ item.id }}</span>
         </template>
 
         <template #item.representativeId="{ item }">
