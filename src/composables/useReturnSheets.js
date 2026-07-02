@@ -17,6 +17,7 @@ import {
   fetchReturnSheetById,
   createReturnSheet as createReturnSheetService,
   completeReturnSheet as completeReturnSheetService,
+  autoCreateReturnSheet as autoCreateReturnSheetService,
 } from '@/services/returnSheet.service'
 
 // ─── Status constants ─────────────────────────────────────────────────────────
@@ -163,6 +164,26 @@ export const useReturnSheets = () => {
     }
   }
 
+  // ── autoCreateSheet(representativeId) ───────────────────────────────────────
+  const autoCreateSheet = async representativeId => {
+    isSubmitting.value = true
+    try {
+      await autoCreateReturnSheetService(representativeId)
+      showSnackbar('Return sheet auto-created successfully.')
+      page.value = 1
+      await fetchAllSheets()
+
+      return { success: true }
+    } catch (error) {
+      const message = error?.response?.data?.message
+      showSnackbar(message || 'Failed to auto-create return sheet.', 'error')
+
+      return { success: false, error: message || 'Failed to auto-create return sheet.' }
+    } finally {
+      isSubmitting.value = false
+    }
+  }
+
   // ── updateOptions (VDataTableServer @update:options) ──────────────────────────
   const updateOptions = options => {
     const firstSort  = options.sortBy?.[0]
@@ -212,6 +233,7 @@ export const useReturnSheets = () => {
     fetchAllSheets,
     fetchSheet,
     createSheet,
+    autoCreateSheet,
     completeSheet,
     clearSelected,
   }

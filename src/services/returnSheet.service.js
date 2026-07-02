@@ -90,3 +90,21 @@ export const completeReturnSheet = async id => {
     throw error
   }
 }
+
+// ─── POST /return-sheets/auto-create ─────────────────────────────────────────
+/**
+ * Auto-create a draft return sheet from a representative's van inventory.
+ * @param {number|string} representativeId
+ * @returns {Promise<Object>}
+ */
+export const autoCreateReturnSheet = async representativeId => {
+  try {
+    const response = await apiClient.post(`${BASE}/auto-create`, null, {
+      params: { representativeId },
+    })
+
+    return response.data?.data ?? response.data
+  } catch (error) {
+    throw error
+  }
+}

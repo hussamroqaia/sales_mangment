@@ -36,6 +36,7 @@ const {
   fetchAllSheets,
   fetchSheet,
   createSheet,
+  autoCreateSheet,
   completeSheet,
   clearSelected,
 } = useReturnSheets()
@@ -49,12 +50,22 @@ const headers = [
 
 const isDrawerOpen = ref(false)
 const isModalOpen  = ref(false)
+const isAutoCreateModalOpen = ref(false)
+const autoCreateRepId = ref(null)
 
 const openCreate = () => { isDrawerOpen.value = true }
 
 const onSubmit = async payload => {
   const result = await createSheet(payload)
   if (result.success) isDrawerOpen.value = false
+}
+
+const onAutoCreate = async () => {
+  const result = await autoCreateSheet(autoCreateRepId.value)
+  if (result.success) {
+    isAutoCreateModalOpen.value = false
+    autoCreateRepId.value = null
+  }
 }
 
 const openDetails = async sheet => {
@@ -101,12 +112,22 @@ onMounted(fetchAllSheets)
       <VCardItem class="pb-2">
         <VCardTitle>Return Sheets</VCardTitle>
         <template #append>
-          <VBtn
-            prepend-icon="tabler-plus"
-            @click="openCreate"
-          >
-            New Return Sheet
-          </VBtn>
+          <div class="d-flex align-center gap-4">
+            <VBtn
+              color="secondary"
+              variant="tonal"
+              prepend-icon="tabler-wand"
+              @click="isAutoCreateModalOpen = true"
+            >
+              Auto-Create
+            </VBtn>
+            <VBtn
+              prepend-icon="tabler-plus"
+              @click="openCreate"
+            >
+              New Return Sheet
+            </VBtn>
+          </div>
         </template>
       </VCardItem>
 
@@ -305,6 +326,41 @@ onMounted(fetchAllSheets)
       :is-loading="isDetailLoading"
       @update:is-dialog-open="onModalToggle"
     />
+
+    <!-- Auto Create Modal -->
+    <VDialog
+      v-model="isAutoCreateModalOpen"
+      max-width="500"
+    >
+      <VCard>
+        <VCardTitle class="pt-4 px-6">Auto-Create Return Sheet</VCardTitle>
+        <VCardText class="pt-2 px-6">
+          Select a Sales Representative to automatically create a return sheet from their current van inventory.
+          <RepresentativeSelect
+            v-model="autoCreateRepId"
+            label="Sales Rep"
+            class="mt-4"
+          />
+        </VCardText>
+        <VCardActions class="justify-end px-6 pb-4">
+          <VBtn
+            variant="tonal"
+            color="secondary"
+            @click="isAutoCreateModalOpen = false"
+          >
+            Cancel
+          </VBtn>
+          <VBtn
+            color="primary"
+            :loading="isSubmitting"
+            :disabled="!autoCreateRepId || isSubmitting"
+            @click="onAutoCreate"
+          >
+            Auto-Create
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
     <!-- Snackbar -->
     <VSnackbar
