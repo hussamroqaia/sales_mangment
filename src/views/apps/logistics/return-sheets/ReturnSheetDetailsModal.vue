@@ -96,7 +96,7 @@ const formatDate = value => {
                 Representative
               </div>
               <div class="text-body-1 font-weight-medium">
-                #{{ props.sheet.representativeId ?? '—' }}
+                {{ props.sheet.representativeName || `Rep #${props.sheet.representativeId}` || '—' }}
               </div>
             </VCol>
             <VCol

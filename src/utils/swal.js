@@ -23,7 +23,7 @@ const themedSwal = Swal.mixin({
     popup: 'v-card v-card--variant-elevated rounded-lg',
     confirmButton: 'v-btn v-btn--elevated v-theme--light bg-primary px-5 me-3',
     cancelButton: 'v-btn v-btn--variant-tonal text-secondary px-5',
-    actions: 'gap-2',
+    actions: 'gap-2 mb-5',
   },
 })
 

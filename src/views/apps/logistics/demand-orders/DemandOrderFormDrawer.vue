@@ -98,7 +98,7 @@ const onSubmit = () => {
     emit('submit', {
       representativeId: form.value.representativeId,
       lines: form.value.lines.map(l => ({
-        productId:    l.productId,
+        productId: l.productId,
         requestedQty: Number(l.requestedQty),
       })),
     })

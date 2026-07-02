@@ -41,7 +41,7 @@ const {
 } = useReturnSheets()
 
 const headers = [
-  { title: 'Rep ID', key: 'representativeId',  sortable: true  },
+  { title: 'Sales Rep', key: 'representativeName',  sortable: false  },
   { title: 'Date',   key: 'returnDate',        sortable: true  },
   { title: 'Status', key: 'status',            sortable: true  },
   { title: 'Action', key: 'actions',           sortable: false, align: 'end' },
@@ -69,9 +69,10 @@ const onModalToggle = val => {
 
 // ── Complete Return — SweetAlert2 confirmation before POST /complete ──────────
 const onComplete = async sheet => {
+  const repName = sheet.representativeName || `Rep #${sheet.representativeId}`
   const confirmed = await confirmAction({
     title: `Complete return #${sheet.id}?`,
-    text: `This will move the returned stock back to the warehouse from Rep #${sheet.representativeId}'s van and mark the sheet as COMPLETED. This cannot be undone.`,
+    text: `This will move the returned stock back to the warehouse from ${repName}'s van and mark the sheet as COMPLETED. This cannot be undone.`,
     confirmText: 'Complete Return',
     icon: 'warning',
   })
@@ -217,15 +218,21 @@ onMounted(fetchAllSheets)
           </div>
         </template>
 
-        <template #item.representativeId="{ item }">
-          <VChip
-            size="small"
-            color="primary"
-            variant="tonal"
-            label
-          >
-            Rep #{{ item.representativeId }}
-          </VChip>
+        <template #item.representativeName="{ item }">
+          <div class="d-flex align-center gap-3">
+            <VAvatar
+              size="32"
+              color="primary"
+              variant="tonal"
+            >
+              <span>{{ (item.representativeName || 'Unknown').charAt(0).toUpperCase() }}</span>
+            </VAvatar>
+            <div class="d-flex flex-column">
+              <span class="text-body-1 font-weight-medium">
+                {{ item.representativeName || 'Unknown Rep' }}
+              </span>
+            </div>
+          </div>
         </template>
 
         <template #item.returnDate="{ item }">
