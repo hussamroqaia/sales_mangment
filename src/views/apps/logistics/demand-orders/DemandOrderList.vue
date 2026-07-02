@@ -44,9 +44,10 @@ const {
 
 // ── Table Headers ──────────────────────────────────────────────────────────────
 const headers = [
-  { title: 'Rep ID', key: 'representativeId',  sortable: true  },
-  { title: 'Date',   key: 'orderDate',         sortable: true  },
-  { title: 'Status', key: 'status',            sortable: true  },
+  { title: 'Rep Name',  key: 'representativeName', sortable: false },
+  { title: 'Manager',   key: 'salesManagerName',   sortable: false },
+  { title: 'Date',      key: 'orderDate',          sortable: true  },
+  { title: 'Status',    key: 'status',             sortable: true  },
   { title: 'Action', key: 'actions',           sortable: false, align: 'end' },
 ]
 
@@ -139,6 +140,7 @@ onMounted(fetchAllOrders)
               v-model="orderDate"
               placeholder="Filter by Order Date"
               :config="{ dateFormat: 'Y-m-d' }"
+              clearable
             />
           </VCol>
           <VCol
@@ -222,15 +224,19 @@ onMounted(fetchAllOrders)
           </div>
         </template>
 
-        <template #item.representativeId="{ item }">
+        <template #item.representativeName="{ item }">
           <VChip
             size="small"
             color="primary"
             variant="tonal"
             label
           >
-            Rep #{{ item.representativeId }}
+            {{ item.representativeName || `Rep #${item.representativeId}` }}
           </VChip>
+        </template>
+
+        <template #item.salesManagerName="{ item }">
+          <span class="text-body-2">{{ item.salesManagerName || '—' }}</span>
         </template>
 
         <template #item.orderDate="{ item }">
