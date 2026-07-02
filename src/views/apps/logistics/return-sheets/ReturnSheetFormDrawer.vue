@@ -177,7 +177,7 @@ const onSubmit = () => {
                     />
                   </div>
                   <IconBtn
-                    class="mt-1"
+                    class="mt-7"
                     color="error"
                     :disabled="props.isSubmitting"
                     @click="removeLine(index)"
