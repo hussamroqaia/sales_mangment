@@ -147,7 +147,9 @@ onMounted(fetchAllRoutes)
           >
             <RepresentativeSelect
               v-model="selectedRepresentativeId"
+              label="Sales Rep"
               placeholder="Filter by Representative"
+              clearable
             />
           </VCol>
           <VCol

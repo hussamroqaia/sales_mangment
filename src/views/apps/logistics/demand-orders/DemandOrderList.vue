@@ -74,9 +74,10 @@ const onModalToggle = val => {
 
 // ── Load Van — SweetAlert2 confirmation before firing POST /load ───────────────
 const onLoadVan = async order => {
+  const repName = order.representativeName || `Rep #${order.representativeId}`
   const confirmed = await confirmAction({
-    title: `Load order #${order.id}?`,
-    text: `This will move the requested stock onto Rep #${order.representativeId}'s van and mark the order as LOADED. This cannot be undone.`,
+    title: `Load Van for ${repName}?`,
+    text: `This will move the requested stock onto ${repName}'s van and mark the order as LOADED. This cannot be undone.`,
     confirmText: 'Load Van',
     icon: 'warning',
   })

@@ -54,7 +54,6 @@ const {
 // ── Table Headers ──────────────────────────────────────────────────────────────
 const headers = [
   { title: 'Product',     key: 'productName',   sortable: true  },
-  { title: 'SKU',         key: 'sku',           sortable: true  },
   { title: 'Quantity',    key: 'quantity',      sortable: true  },
   { title: 'Min Stock',   key: 'minStockLevel', sortable: true  },
   { title: 'Status',      key: 'lowStock',      sortable: true  },
@@ -487,16 +486,13 @@ onMounted(fetchAllStock)
                 {{ item.productName || '—' }}
               </span>
               <span class="text-caption text-medium-emphasis">
-                Product #{{ item.productId }}
+                SKU: {{ item.sku || '—' }}
               </span>
             </div>
           </div>
         </template>
 
-        <!-- SKU column -->
-        <template #item.sku="{ item }">
-          <span class="text-body-2 font-weight-medium">{{ item.sku || '—' }}</span>
-        </template>
+
 
         <!-- Quantity column -->
         <template #item.quantity="{ item }">
