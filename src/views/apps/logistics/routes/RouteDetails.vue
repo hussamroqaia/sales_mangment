@@ -10,8 +10,12 @@
  * When isOptimized is true, the button is disabled and shows a success badge.
  */
 
-import { LMap, LTileLayer, LMarker, LPopup, LPolyline } from '@vue-leaflet/vue-leaflet'
+import { LMap, LTileLayer } from '@vue-leaflet/vue-leaflet'
+import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+
+// Expose L globally so vue-leaflet uses the same instance (use-global-leaflet="true")
+window.L = L
 import { useRoutes, resolveRouteStatusVariant, ROUTE_STATUSES } from '@/composables/useRoutes'
 import { fetchCustomers } from '@/services/customer.service'
 import RouteEditDrawer from '@/views/apps/logistics/routes/RouteEditDrawer.vue'
@@ -136,12 +140,142 @@ const mapCenter = computed(() => {
   return defaultCenter
 })
 
-// ── Computed: polyline coordinates ────────────────────────────────────────────
-const polylineLatLngs = computed(() => {
-  return sortedStops.value
-    .filter(s => s.latitude && s.longitude)
-    .map(s => [s.latitude, s.longitude])
-})
+// ── Leaflet map ref + routing ─────────────────────────────────────────────────
+let leafletMap = null          // raw L.Map instance
+let routePolyline = null       // the drawn route polyline
+let stopMarkers = []           // manually-added numbered markers
+
+/**
+ * Creates a numbered circle DivIcon for each stop marker.
+ * Shows sequenceNumber inside a styled circle.
+ */
+const createNumberedIcon = (number) => {
+  return L.divIcon({
+    className: 'route-stop-numbered-icon',
+    html: `<div style="
+      background: #7367F0;
+      color: #fff;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      border: 3px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    ">${number}</div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -18],
+  })
+}
+
+/**
+ * Calls the OSRM demo API directly to get the real driving route geometry.
+ * Returns an array of [lat, lng] pairs, or null on failure.
+ */
+const fetchOSRMRoute = async (stops) => {
+  // OSRM expects coordinates as lng,lat pairs separated by semicolons
+  const coords = stops.map(s => `${s.longitude},${s.latitude}`).join(';')
+  const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`
+
+  try {
+    const response = await fetch(url)
+    const data = await response.json()
+
+    if (data.code === 'Ok' && data.routes?.[0]?.geometry?.coordinates?.length) {
+      // GeoJSON coordinates are [lng, lat] — convert to Leaflet [lat, lng]
+      return data.routes[0].geometry.coordinates.map(c => [c[1], c[0]])
+    }
+
+    console.warn('[RouteDetails] OSRM returned no usable route:', data.code)
+
+    return null
+  } catch (err) {
+    console.warn('[RouteDetails] OSRM fetch failed:', err.message)
+
+    return null
+  }
+}
+
+/**
+ * Builds / rebuilds the route polyline and numbered stop markers
+ * on the raw Leaflet map whenever stops change.
+ */
+const buildRoute = async () => {
+  if (!leafletMap) return
+
+  // ── Clean up previous layers ──
+  if (routePolyline) {
+    leafletMap.removeLayer(routePolyline)
+    routePolyline = null
+  }
+  stopMarkers.forEach(m => leafletMap.removeLayer(m))
+  stopMarkers = []
+
+  const stops = sortedStops.value.filter(s => s.latitude && s.longitude)
+  if (stops.length === 0) return
+
+  // ── Add numbered markers with popups ──
+  stops.forEach(stop => {
+    const marker = L.marker([stop.latitude, stop.longitude], {
+      icon: createNumberedIcon(stop.sequenceNumber),
+    })
+      .addTo(leafletMap)
+      .bindPopup(
+        `<div>
+          <strong>Stop ${stop.sequenceNumber}: ${stop.customerName}</strong><br>
+          <span>${stop.customerAddress || 'No address'}</span>
+        </div>`,
+      )
+    stopMarkers.push(marker)
+  })
+
+  // ── Draw the route (needs ≥ 2 points) ──
+  if (stops.length >= 2) {
+    // Try real street routing via OSRM
+    const osrmLatLngs = await fetchOSRMRoute(stops)
+
+    if (osrmLatLngs) {
+      // Real street route from OSRM
+      routePolyline = L.polyline(osrmLatLngs, {
+        color: '#7367F0',
+        weight: 5,
+        opacity: 0.85,
+      }).addTo(leafletMap)
+    } else {
+      // Fallback: straight dashed lines between stops
+      const fallbackLatLngs = stops.map(s => [s.latitude, s.longitude])
+      routePolyline = L.polyline(fallbackLatLngs, {
+        color: '#7367F0',
+        weight: 4,
+        opacity: 0.8,
+        dashArray: '10, 6',
+      }).addTo(leafletMap)
+    }
+
+    // Fit the map to show the entire route
+    leafletMap.fitBounds(routePolyline.getBounds(), { padding: [40, 40] })
+  } else {
+    // Single stop — just center on it
+    leafletMap.setView([stops[0].latitude, stops[0].longitude], 15)
+  }
+}
+
+/**
+ * Called by LMap's @ready event. Receives the raw Leaflet map object.
+ */
+const onMapReady = (map) => {
+  leafletMap = map
+  buildRoute()
+}
+
+// Re-draw routing whenever sortedStops change (optimize, reorder, add/remove)
+watch(sortedStops, () => {
+  buildRoute()
+}, { deep: true })
 
 // ── Optimize handler ──────────────────────────────────────────────────────────
 const onOptimize = async () => {
@@ -657,39 +791,15 @@ const onRemoveCustomer = async customerId => {
                 <LMap
                   :zoom="13"
                   :center="mapCenter"
-                  :use-global-leaflet="false"
+                  :use-global-leaflet="true"
                   style="block-size: 100%; inline-size: 100%; z-index: 0;"
+                  @ready="onMapReady"
                 >
                   <LTileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
                     layer-type="base"
                     name="OpenStreetMap"
-                  />
-
-                  <!-- Markers for each stop -->
-                  <LMarker
-                    v-for="stop in sortedStops"
-                    :key="`marker-${stop.assignmentId}`"
-                    :lat-lng="[stop.latitude, stop.longitude]"
-                  >
-                    <LPopup>
-                      <div>
-                        <strong>Stop {{ stop.sequenceNumber }}: {{ stop.customerName }}</strong>
-                        <br>
-                        <span>{{ stop.customerAddress || 'No address' }}</span>
-                      </div>
-                    </LPopup>
-                  </LMarker>
-
-                  <!-- Polyline connecting stops in order -->
-                  <LPolyline
-                    v-if="polylineLatLngs.length > 1"
-                    :lat-lngs="polylineLatLngs"
-                    :color="'#7367F0'"
-                    :weight="3"
-                    :opacity="0.8"
-                    dash-array="10, 6"
                   />
                 </LMap>
               </div>
@@ -818,5 +928,16 @@ const onRemoveCustomer = async customerId => {
 /* Ensure leaflet container renders properly */
 :deep(.leaflet-container) {
   z-index: 0;
+}
+
+/* Hide the routing-machine itinerary / instructions panel */
+:deep(.leaflet-routing-container) {
+  display: none !important;
+}
+
+/* Remove default box-shadow/background on our custom DivIcon */
+:deep(.route-stop-numbered-icon) {
+  background: transparent !important;
+  border: none !important;
 }
 </style>

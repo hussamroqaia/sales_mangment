@@ -35,6 +35,7 @@
     "eslint-plugin-regexp": "2.7.0",
     "jwt-decode": "4.0.0",
     "leaflet": "^1.9.4",
+    "leaflet-routing-machine": "^3.2.12",
     "mapbox-gl": "3.5.2",
     "ofetch": "1.4.1",
     "pinia": "3.0.2",
