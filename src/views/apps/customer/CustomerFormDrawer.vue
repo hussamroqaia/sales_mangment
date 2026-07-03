@@ -143,6 +143,18 @@ watch(
         longitude:   val.longitude   ?? null,
         category:    val.category    ?? null,
       }
+
+      // Ensure the autocomplete shows the territory name instead of just the ID
+      if (val.territoryId && val.territoryName) {
+        const exists = territoryItems.value.some(t => t.value === val.territoryId)
+        if (!exists) {
+          territoryItems.value.push({
+            value: val.territoryId,
+            title: val.territoryName,
+          })
+        }
+      }
+
       // If customer already has coordinates, show pin and center map there
       if (val.latitude && val.longitude) {
         markerLatLng.value = [val.latitude, val.longitude]

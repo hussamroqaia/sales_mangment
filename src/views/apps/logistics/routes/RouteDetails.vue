@@ -681,6 +681,7 @@ const onRemoveCustomer = async customerId => {
             <VCardText
               v-else
               class="pa-0"
+              style="max-block-size: 600px; overflow-y: auto;"
             >
               <VTimeline
                 density="compact"
@@ -809,7 +810,7 @@ const onRemoveCustomer = async customerId => {
       </VRow>
 
       <!-- Add Customers Card -->
-      <VCard class="mb-6">
+      <VCard class="mb-6 mt-6">
         <VCardItem>
           <VCardTitle>
             <VIcon
