@@ -17,11 +17,13 @@ const emit = defineEmits(['update:isDrawerOpen', 'submit'])
 
 const refForm = ref()
 const isPasswordVisible = ref(false)
+const isConfirmPasswordVisible = ref(false)
 
 const form = ref({
   name: '',
   email: '',
   password: '',
+  confirmPassword: '',
   role: null,
 })
 
@@ -32,6 +34,7 @@ const closeDrawer = () => {
     refForm.value?.reset()
     refForm.value?.resetValidation()
     isPasswordVisible.value = false
+    isConfirmPasswordVisible.value = false
   })
 }
 
@@ -118,6 +121,21 @@ watch(() => props.isSubmitting, (newVal, oldVal) => {
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   :disabled="props.isSubmitting"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                />
+              </VCol>
+
+              <!-- Confirm Password -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="form.confirmPassword"
+                  :rules="[requiredValidator, v => v === form.password || 'Passwords do not match']"
+                  label="Confirm Password"
+                  placeholder="············"
+                  :type="isConfirmPasswordVisible ? 'text' : 'password'"
+                  autocomplete="new-password"
+                  :append-inner-icon="isConfirmPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                  :disabled="props.isSubmitting"
+                  @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
                 />
               </VCol>
 
