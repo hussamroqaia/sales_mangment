@@ -83,13 +83,6 @@ export default [
         action: 'manage',
         subject: 'Routes',
       },
-      {
-        title: 'My Route',
-        icon: { icon: 'tabler-map-pin' },
-        to: 'my-route',
-        action: 'read',
-        subject: 'MyRoute',
-      },
     ],
   },
 ]

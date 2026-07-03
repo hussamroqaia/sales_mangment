@@ -609,6 +609,97 @@ const onRemoveCustomer = async customerId => {
         </VCardText>
       </VCard>
 
+      <!-- Add Customers Card -->
+      <VCard class="mb-6">
+        <VCardItem>
+          <VCardTitle>
+            <VIcon
+              icon="tabler-user-plus"
+              size="20"
+              class="me-2"
+            />
+            Add Customers
+          </VCardTitle>
+        </VCardItem>
+
+        <VDivider />
+
+        <VCardText>
+          <VRow align="end">
+            <VCol
+              cols="12"
+              md="8"
+            >
+              <VAutocomplete
+                v-model="selectedCustomerIds"
+                label="Customers"
+                placeholder="Search customers in this territory…"
+                :items="customerItems"
+                item-title="title"
+                item-value="value"
+                :loading="isCustomerLoading"
+                :disabled="isAssigning"
+                multiple
+                chips
+                closable-chips
+                clearable
+                no-filter
+                @update:search="onCustomerSearch"
+                @update:menu="onCustomerMenuUpdate"
+              >
+                <!-- Append sentinel for infinite scroll -->
+                <template #append-item>
+                  <div
+                    v-intersect="{
+                      handler: onCustomerScrollEnd,
+                      options: { threshold: 0.5 },
+                    }"
+                    class="pa-2 text-center"
+                  >
+                    <VProgressCircular
+                      v-if="isCustomerLoading"
+                      indeterminate
+                      size="20"
+                      width="2"
+                      color="primary"
+                    />
+                    <span
+                      v-else-if="customerPage >= customerTotalPages"
+                      class="text-caption text-disabled"
+                    >
+                      All customers loaded
+                    </span>
+                  </div>
+                </template>
+
+                <template #no-data>
+                  <VListItem>
+                    <VListItemTitle class="text-medium-emphasis">
+                      {{ isCustomerLoading ? 'Loading…' : 'No customers found in this territory' }}
+                    </VListItemTitle>
+                  </VListItem>
+                </template>
+              </VAutocomplete>
+            </VCol>
+            <VCol
+              cols="12"
+              md="4"
+            >
+              <VBtn
+                color="primary"
+                prepend-icon="tabler-plus"
+                :loading="isAssigning"
+                :disabled="isAssigning || !selectedCustomerIds.length"
+                block
+                @click="onAssignCustomers"
+              >
+                Assign {{ selectedCustomerIds.length ? `(${selectedCustomerIds.length})` : '' }}
+              </VBtn>
+            </VCol>
+          </VRow>
+        </VCardText>
+      </VCard>
+
       <!-- Split Layout: Stops Timeline + Map -->
       <VRow>
         <!-- Left: Stops List / Timeline -->
@@ -808,97 +899,6 @@ const onRemoveCustomer = async customerId => {
           </VCard>
         </VCol>
       </VRow>
-
-      <!-- Add Customers Card -->
-      <VCard class="mb-6 mt-6">
-        <VCardItem>
-          <VCardTitle>
-            <VIcon
-              icon="tabler-user-plus"
-              size="20"
-              class="me-2"
-            />
-            Add Customers
-          </VCardTitle>
-        </VCardItem>
-
-        <VDivider />
-
-        <VCardText>
-          <VRow align="end">
-            <VCol
-              cols="12"
-              md="8"
-            >
-              <VAutocomplete
-                v-model="selectedCustomerIds"
-                label="Customers"
-                placeholder="Search customers in this territory…"
-                :items="customerItems"
-                item-title="title"
-                item-value="value"
-                :loading="isCustomerLoading"
-                :disabled="isAssigning"
-                multiple
-                chips
-                closable-chips
-                clearable
-                no-filter
-                @update:search="onCustomerSearch"
-                @update:menu="onCustomerMenuUpdate"
-              >
-                <!-- Append sentinel for infinite scroll -->
-                <template #append-item>
-                  <div
-                    v-intersect="{
-                      handler: onCustomerScrollEnd,
-                      options: { threshold: 0.5 },
-                    }"
-                    class="pa-2 text-center"
-                  >
-                    <VProgressCircular
-                      v-if="isCustomerLoading"
-                      indeterminate
-                      size="20"
-                      width="2"
-                      color="primary"
-                    />
-                    <span
-                      v-else-if="customerPage >= customerTotalPages"
-                      class="text-caption text-disabled"
-                    >
-                      All customers loaded
-                    </span>
-                  </div>
-                </template>
-
-                <template #no-data>
-                  <VListItem>
-                    <VListItemTitle class="text-medium-emphasis">
-                      {{ isCustomerLoading ? 'Loading…' : 'No customers found in this territory' }}
-                    </VListItemTitle>
-                  </VListItem>
-                </template>
-              </VAutocomplete>
-            </VCol>
-            <VCol
-              cols="12"
-              md="4"
-            >
-              <VBtn
-                color="primary"
-                prepend-icon="tabler-plus"
-                :loading="isAssigning"
-                :disabled="isAssigning || !selectedCustomerIds.length"
-                block
-                @click="onAssignCustomers"
-              >
-                Assign {{ selectedCustomerIds.length ? `(${selectedCustomerIds.length})` : '' }}
-              </VBtn>
-            </VCol>
-          </VRow>
-        </VCardText>
-      </VCard>
     </div>
 
     <!-- Edit Drawer -->
