@@ -117,6 +117,12 @@ export const routes = [
     },
   },
 
+  // ℹ️ /tracking is NOT listed here on purpose. The glob-escaping fix in
+  // vite.config.js (globSafePath) made unplugin-vue-router scan src/pages/
+  // successfully again, so src/pages/tracking/index.vue IS auto-generated and
+  // its definePage() meta is applied. Adding a manual entry would register the
+  // path twice — see the warning below.
+
   // ⚠️ Do NOT add manual routes for pages that ARE auto-generated (e.g.
   // /apps/territory/list, /apps/customer/list, /routes, /demand-orders).
   // definePage() inside the page file handles registration and meta correctly.

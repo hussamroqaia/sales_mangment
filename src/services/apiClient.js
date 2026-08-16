@@ -30,6 +30,15 @@ const removeCookie = name => {
   document.cookie = `${name}=; path=/; max-age=0; SameSite=Strict`
 }
 
+// ─── Token / Base URL Accessors ───────────────────────────────────────────────
+// Exported so transports that cannot go through Axios (browser SSE needs a
+// streaming `fetch()` — see tracking.service.js) reuse THIS token source and
+// base URL instead of re-implementing cookie/JWT handling.
+// This is a read-only accessor: refreshing stays the response interceptor's job.
+export const getAccessToken = () => getCookie('accessToken')
+
+export const getApiBaseUrl = () => apiClient.defaults.baseURL ?? ''
+
 // ─── Force Logout Helper ──────────────────────────────────────────────────────
 // Exported so useAuth composable can also trigger it (single-session eviction)
 export const forceLogout = () => {

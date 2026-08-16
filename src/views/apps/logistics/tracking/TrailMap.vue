@@ -1,0 +1,178 @@
+<script setup>
+/**
+ * TrailMap.vue
+ *
+ * Historical movement of one representative for one calendar day: the recorded
+ * GPS points in chronological order, joined by a polyline, with a distinct
+ * start and end marker.
+ *
+ * Same vue-leaflet / OpenStreetMap setup as LiveTrackingMap and RouteDetails.
+ * Presentation only — the points arrive already validated and sorted from
+ * useTracking. Trail layers are kept entirely separate from live marker state.
+ *
+ * No distance/analytics is computed: GPS trails contain noise and that would be
+ * a product decision, not a rendering one.
+ */
+
+import { LMap, LTileLayer } from '@vue-leaflet/vue-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+
+const props = defineProps({
+  /** [{ latitude, longitude, recordedAt }] — chronological, already validated */
+  points: {
+    type: Array,
+    default: () => [],
+  },
+  height: {
+    type: String,
+    default: '520px',
+  },
+})
+
+// Expose L globally so vue-leaflet uses the same instance (use-global-leaflet="true")
+window.L = L
+
+import { formatTrackingTime } from '@/composables/useTracking'
+
+const DEFAULT_CENTER = [33.5117, 36.3067]
+const DEFAULT_ZOOM = 6
+
+let leafletMap = null
+let layerGroup = null
+
+const createDot = () => L.divIcon({
+  className: 'tracking-trail-icon',
+  html: `<div style="
+    inline-size: 10px;
+    block-size: 10px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: #7367F0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 25%);
+  "></div>`,
+  iconSize: [10, 10],
+  iconAnchor: [5, 5],
+  popupAnchor: [0, -6],
+})
+
+const createEndpointIcon = (color, label) => L.divIcon({
+  className: 'tracking-trail-icon',
+  html: `<div style="
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 26px;
+    block-size: 26px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    background: ${color};
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 30%);
+    color: #fff;
+    font: 700 10px/1 sans-serif;
+  ">${label}</div>`,
+  iconSize: [26, 26],
+  iconAnchor: [13, 13],
+  popupAnchor: [0, -14],
+})
+
+/** Redraw the whole trail — it only changes on an explicit user query. */
+const drawTrail = () => {
+  if (!leafletMap) return
+
+  if (layerGroup) {
+    leafletMap.removeLayer(layerGroup)
+    layerGroup = null
+  }
+
+  const points = props.points
+
+  if (!points.length) return
+
+  const latLngs = points.map(p => [p.latitude, p.longitude])
+  const layers = []
+
+  // A polyline needs at least two points — a single point is just a marker,
+  // never a fake route.
+  if (latLngs.length > 1) {
+    layers.push(L.polyline(latLngs, {
+      color: '#7367F0',
+      weight: 4,
+      opacity: 0.75,
+    }))
+  }
+
+  // Intermediate points stay small so the start/end stand out.
+  points.slice(1, -1).forEach((point, index) => {
+    layers.push(
+      L.marker([point.latitude, point.longitude], { icon: createDot() })
+        .bindPopup(`Point ${index + 2} · ${formatTrackingTime(point.recordedAt)}`),
+    )
+  })
+
+  const first = points[0]
+
+  layers.push(
+    L.marker([first.latitude, first.longitude], { icon: createEndpointIcon('#28C76F', 'A') })
+      .bindPopup(`<strong>Start</strong><br>${formatTrackingTime(first.recordedAt)}`),
+  )
+
+  if (points.length > 1) {
+    const last = points[points.length - 1]
+
+    layers.push(
+      L.marker([last.latitude, last.longitude], { icon: createEndpointIcon('#EA5455', 'B') })
+        .bindPopup(`<strong>End</strong><br>${formatTrackingTime(last.recordedAt)}`),
+    )
+  }
+
+  layerGroup = L.layerGroup(layers).addTo(leafletMap)
+
+  if (latLngs.length > 1)
+    leafletMap.fitBounds(L.latLngBounds(latLngs), { padding: [50, 50], maxZoom: 16 })
+  else
+    leafletMap.setView(latLngs[0], 15)
+}
+
+const onMapReady = map => {
+  leafletMap = map
+  drawTrail()
+}
+
+watch(() => props.points, drawTrail)
+
+onBeforeUnmount(() => {
+  layerGroup = null
+  leafletMap = null
+})
+</script>
+
+<template>
+  <div :style="{ blockSize: props.height, inlineSize: '100%' }">
+    <LMap
+      :zoom="DEFAULT_ZOOM"
+      :center="DEFAULT_CENTER"
+      use-global-leaflet
+      style="block-size: 100%; inline-size: 100%; z-index: 0;"
+      @ready="onMapReady"
+    >
+      <LTileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+        layer-type="base"
+        name="OpenStreetMap"
+      />
+    </LMap>
+  </div>
+</template>
+
+<style scoped>
+:deep(.leaflet-container) {
+  z-index: 0;
+}
+
+:deep(.tracking-trail-icon) {
+  border: none !important;
+  background: transparent !important;
+}
+</style>

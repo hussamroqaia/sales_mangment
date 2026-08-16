@@ -397,6 +397,16 @@
     "parseVisitLocation": true,
     "resolveVisitStatusVariant": true,
     "useVisits": true,
-    "visitStatusTitle": true
+    "visitStatusTitle": true,
+    "ACTIVE_WINDOW_MS": true,
+    "TRACKING_MANAGER_ROLES": true,
+    "formatRelativeTime": true,
+    "formatTrackingDateTime": true,
+    "formatTrackingTime": true,
+    "isRecentlyActive": true,
+    "isValidCoordinate": true,
+    "toApiDate": true,
+    "todayApiDate": true,
+    "useTracking": true
   }
 }

@@ -90,6 +90,15 @@ export default [
         action: 'read',
         subject: 'Auth',
       },
+      {
+        // ADMIN + SALES_MANAGER only — same ability as Routes, which is exactly
+        // the role set the tracking endpoints allow.
+        title: 'Tracking',
+        icon: { icon: 'tabler-current-location' },
+        to: 'tracking',
+        action: 'manage',
+        subject: 'Routes',
+      },
     ],
   },
 ]
