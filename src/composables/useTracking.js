@@ -54,15 +54,72 @@ export const isRecentlyActive = (recordedAt, nowMs = Date.now()) => {
 
 // ─── Coordinate validation ────────────────────────────────────────────────────
 /**
- * Defensive guard so one malformed point cannot break the whole map.
- * The bounds are INCLUSIVE: (-90, -180) is a legal coordinate and appears in
- * the current backend test data — it must not be rejected.
+ * Coerce an API coordinate to a number.
+ *
+ * The backend emits fixed-scale decimals (`"latitude":87.000000`), which is what
+ * a Jackson-serialised BigDecimal looks like. That is a JSON number today, but
+ * the same column serialises as a STRING under `WRITE_BIGDECIMAL_AS_PLAIN` /
+ * `toPlainString()` configurations. `Number.isFinite("87.0")` is false, so an
+ * unguarded check would silently drop every representative from the map the day
+ * that setting changes. Coercing first costs nothing and removes the trap.
  */
-export const isValidCoordinate = (latitude, longitude) =>
-  Number.isFinite(latitude)
-  && Number.isFinite(longitude)
-  && latitude >= -90 && latitude <= 90
-  && longitude >= -180 && longitude <= 180
+const toCoordinate = value => {
+  if (typeof value === 'number') return value
+  if (typeof value === 'string' && value.trim() !== '') return Number(value)
+
+  return Number.NaN
+}
+
+/**
+ * Is this a legal WGS84 coordinate — i.e. is the DATA sound?
+ *
+ * The bounds are INCLUSIVE: (-90, -180) is a legal coordinate and appears in the
+ * current backend test data — it must not be rejected.
+ *
+ * Note this is a separate question from whether the point can be DRAWN; see
+ * MERCATOR_MAX_LATITUDE below.
+ */
+export const isValidCoordinate = (latitude, longitude) => {
+  const lat = toCoordinate(latitude)
+  const lng = toCoordinate(longitude)
+
+  return Number.isFinite(lat)
+    && Number.isFinite(lng)
+    && lat >= -90 && lat <= 90
+    && lng >= -180 && lng <= 180
+}
+
+/**
+ * Web Mercator (EPSG:3857 — what every OSM/Leaflet tile layer uses) is only
+ * defined to ±85.0511287798°. Leaflet hard-codes this as `SphericalMercator
+ * .MAX_LATITUDE` and silently clamps anything beyond it.
+ *
+ * That gap between "valid data" (±90) and "drawable" (±85.05) is a real defect
+ * source, not a nicety: the backend's own test rows sit at latitude 87 and -90.
+ * Passing them to Leaflet puts the marker on the top/bottom edge of the world
+ * with empty grey beyond it, and hands `fitBounds` a box spanning the entire
+ * globe — which is exactly the broken-looking map being reported.
+ *
+ * So we clamp explicitly for RENDERING only, and keep the true value for
+ * display. The pin is then at the pole (where the rep genuinely is) instead of
+ * off-world, and the UI flags it rather than passing the clamp off as precise.
+ */
+export const MERCATOR_MAX_LATITUDE = 85.0511287798
+
+/**
+ * Map an API coordinate onto something Leaflet can actually project.
+ * @returns {{ lat: number, lng: number, isClamped: boolean } | null}
+ *          null when the data itself is unusable.
+ */
+export const toRenderableLatLng = (latitude, longitude) => {
+  if (!isValidCoordinate(latitude, longitude)) return null
+
+  const lat = toCoordinate(latitude)
+  const lng = toCoordinate(longitude)
+  const clampedLat = Math.min(Math.max(lat, -MERCATOR_MAX_LATITUDE), MERCATOR_MAX_LATITUDE)
+
+  return { lat: clampedLat, lng, isClamped: clampedLat !== lat }
+}
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 /**
@@ -190,13 +247,24 @@ export const useTracking = () => {
    *  - `active`      : the backend value, untouched
    *  - `isLive`      : derived from recordedAt via the documented 15-min rule
    *  - `hasValidCoordinates`: false points are listed but never mapped
+   *  - `mapLat`/`mapLng`: Mercator-safe position for Leaflet (see
+   *    toRenderableLatLng). NEVER show these to the user — `latitude` /
+   *    `longitude` remain the values to display.
+   *  - `isOutsideMapRange`: the pin had to be pulled to the pole to be drawable
    */
   const representatives = computed(() =>
-    [...locationsById.value.values()].map(location => ({
-      ...location,
-      isLive: isRecentlyActive(location.recordedAt, now.value),
-      hasValidCoordinates: isValidCoordinate(location.latitude, location.longitude),
-    })),
+    [...locationsById.value.values()].map(location => {
+      const renderable = toRenderableLatLng(location.latitude, location.longitude)
+
+      return {
+        ...location,
+        isLive: isRecentlyActive(location.recordedAt, now.value),
+        hasValidCoordinates: !!renderable,
+        mapLat: renderable?.lat ?? null,
+        mapLng: renderable?.lng ?? null,
+        isOutsideMapRange: !!renderable?.isClamped,
+      }
+    }),
   )
 
   /** Only the points Leaflet may safely render. */
@@ -205,6 +273,10 @@ export const useTracking = () => {
 
   const invalidCoordinateCount = computed(() =>
     representatives.value.length - mappableRepresentatives.value.length)
+
+  /** Drawn, but at a clamped position — the UI must say so rather than imply precision. */
+  const outsideMapRangeCount = computed(() =>
+    representatives.value.filter(r => r.isOutsideMapRange).length)
 
   const activeCount = computed(() =>
     representatives.value.filter(r => r.isLive).length)
@@ -386,8 +458,22 @@ export const useTracking = () => {
 
       // Backend order is preserved when it is already chronological; we only
       // sort when it is not, so a correctly ordered response is untouched.
-      const points = (Array.isArray(data) ? data : []).filter(p =>
-        isValidCoordinate(p?.latitude, p?.longitude))
+      // Each point carries a Mercator-safe mapLat/mapLng alongside the raw
+      // values so the polyline cannot run off the top/bottom of the world.
+      const points = (Array.isArray(data) ? data : []).reduce((acc, p) => {
+        const renderable = toRenderableLatLng(p?.latitude, p?.longitude)
+
+        if (renderable) {
+          acc.push({
+            ...p,
+            mapLat: renderable.lat,
+            mapLng: renderable.lng,
+            isOutsideMapRange: renderable.isClamped,
+          })
+        }
+
+        return acc
+      }, [])
 
       const isChronological = points.every((p, i) =>
         i === 0 || Date.parse(points[i - 1].recordedAt) <= Date.parse(p.recordedAt))
@@ -432,6 +518,7 @@ export const useTracking = () => {
       pointCount: points.length,
       firstRecordedAt: points[0].recordedAt,
       lastRecordedAt: points[points.length - 1].recordedAt,
+      outsideMapRangeCount: points.filter(p => p.isOutsideMapRange).length,
     }
   })
 
@@ -468,6 +555,7 @@ export const useTracking = () => {
     representatives,
     mappableRepresentatives,
     invalidCoordinateCount,
+    outsideMapRangeCount,
     activeCount,
     isLatestLoading,
     latestError,

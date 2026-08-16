@@ -44,6 +44,7 @@ const {
   representatives,
   mappableRepresentatives,
   invalidCoordinateCount,
+  outsideMapRangeCount,
   activeCount,
   isLatestLoading,
   latestError,
@@ -109,9 +110,10 @@ const representativeHeaders = [
   { title: 'Coordinates', key: 'coordinates', sortable: false },
 ]
 
+// Always the values the API returned — never the clamped map position.
 const coordinateLabel = rep =>
   (rep.hasValidCoordinates
-    ? `${rep.latitude.toFixed(5)}, ${rep.longitude.toFixed(5)}`
+    ? `${Number(rep.latitude).toFixed(5)}, ${Number(rep.longitude).toFixed(5)}`
     : 'Invalid coordinates')
 
 // ── Trail ─────────────────────────────────────────────────────────────────────
@@ -277,6 +279,23 @@ onBeforeUnmount(teardown)
             range and are listed below without being mapped.
           </VAlert>
 
+          <!--
+            Valid data the projection cannot draw: Web Mercator stops at ±85.05°
+            while the API allows ±90. The pin is pulled to the nearest drawable
+            point, so the map must not imply it is exact.
+          -->
+          <VAlert
+            v-if="outsideMapRangeCount"
+            type="info"
+            variant="tonal"
+            density="compact"
+            class="ma-4 mb-0"
+          >
+            {{ outsideMapRangeCount }} position(s) lie beyond the map's ±85.05° latitude limit.
+            Their pins are shown at the nearest drawable point; the table below lists the exact
+            coordinates the API returned.
+          </VAlert>
+
           <VCardItem class="pb-2">
             <VCardTitle class="text-h6">
               Representatives
@@ -317,6 +336,20 @@ onBeforeUnmount(teardown)
               <span :class="item.hasValidCoordinates ? 'text-medium-emphasis' : 'text-error'">
                 {{ coordinateLabel(item) }}
               </span>
+              <VTooltip
+                v-if="item.isOutsideMapRange"
+                text="Beyond the map's ±85.05° latitude limit — the pin is drawn at the nearest point the projection allows."
+              >
+                <template #activator="{ props: tooltipProps }">
+                  <VIcon
+                    v-bind="tooltipProps"
+                    icon="tabler-alert-triangle"
+                    size="16"
+                    color="warning"
+                    class="ms-2"
+                  />
+                </template>
+              </VTooltip>
             </template>
 
             <template #bottom>

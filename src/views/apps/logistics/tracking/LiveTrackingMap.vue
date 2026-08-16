@@ -93,9 +93,21 @@ const popupHtml = rep => {
         "></span>${status}
       </div>
       <div style="color: #6c6f75;">Last update: ${escapeHtml(formatTrackingDateTime(rep.recordedAt))}</div>
-      <div style="color: #6c6f75;">${rep.latitude.toFixed(5)}, ${rep.longitude.toFixed(5)}</div>
+      <div style="color: #6c6f75;">${Number(rep.latitude).toFixed(5)}, ${Number(rep.longitude).toFixed(5)}</div>
+      ${rep.isOutsideMapRange
+    ? '<div style="color: #FF9F43; margin-block-start: 4px;">Beyond the map\'s ±85.05° range — pin shown at the nearest drawable point.</div>'
+    : ''}
     </div>`
 }
+
+/**
+ * Position Leaflet may actually project. Falls back to the raw values only if a
+ * caller forgot to pass the pre-clamped pair (useTracking always does).
+ */
+const mapLatLngOf = rep => [
+  rep.mapLat ?? Number(rep.latitude),
+  rep.mapLng ?? Number(rep.longitude),
+]
 
 const initialOf = rep =>
   escapeHtml((rep.representativeName?.trim()?.[0] ?? '#').toUpperCase())
@@ -111,7 +123,7 @@ const syncMarkers = () => {
 
     seen.add(id)
 
-    const latLng = [rep.latitude, rep.longitude]
+    const latLng = mapLatLngOf(rep)
     const existing = markersById.get(id)
 
     if (existing) {
@@ -151,6 +163,10 @@ const syncMarkers = () => {
  * Fit the viewport to the markers.
  *  - 0 markers → left at the default view (never zoom into nothing)
  *  - 1 marker  → a sane street-level zoom instead of maximum zoom
+ *
+ * A clamped (polar) pin gets a wide zoom instead: the true position is beyond
+ * the projection, so street-level detail there would be a featureless blue
+ * square implying a precision we do not have.
  */
 function fitToMarkers() {
   if (!leafletMap || !props.representatives.length) return
@@ -158,12 +174,24 @@ function fitToMarkers() {
   if (props.representatives.length === 1) {
     const only = props.representatives[0]
 
-    leafletMap.setView([only.latitude, only.longitude], 14)
-  } else {
-    const bounds = L.latLngBounds(props.representatives.map(r => [r.latitude, r.longitude]))
+    leafletMap.setView(mapLatLngOf(only), only.isOutsideMapRange ? 4 : 14)
 
-    leafletMap.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 })
+    return
   }
+
+  const bounds = L.latLngBounds(props.representatives.map(mapLatLngOf))
+
+  // Degenerate bounds (every rep on the same point) make fitBounds jump to max
+  // zoom; treat that as the single-marker case.
+  if (!bounds.isValid()) return
+
+  if (bounds.getNorth() === bounds.getSouth() && bounds.getEast() === bounds.getWest()) {
+    leafletMap.setView(bounds.getCenter(), 14)
+
+    return
+  }
+
+  leafletMap.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 })
 }
 
 const onMapReady = map => {

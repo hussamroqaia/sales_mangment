@@ -89,7 +89,14 @@ const drawTrail = () => {
 
   if (!points.length) return
 
-  const latLngs = points.map(p => [p.latitude, p.longitude])
+  // Mercator-safe positions (see toRenderableLatLng in useTracking): a raw
+  // latitude beyond ±85.05° cannot be projected, so an unclamped polyline runs
+  // off the top/bottom of the world and fitBounds ends up spanning the globe.
+  const latLngs = points.map(p => [
+    p.mapLat ?? Number(p.latitude),
+    p.mapLng ?? Number(p.longitude),
+  ])
+
   const layers = []
 
   // A polyline needs at least two points — a single point is just a marker,
@@ -102,36 +109,55 @@ const drawTrail = () => {
     }))
   }
 
+  // Popups keep the TRUE coordinates; only the pin position is clamped.
+  const clampNote = point => (point.isOutsideMapRange
+    ? '<br><span style="color:#FF9F43;">Beyond the map\'s ±85.05° range</span>'
+    : '')
+
   // Intermediate points stay small so the start/end stand out.
   points.slice(1, -1).forEach((point, index) => {
     layers.push(
-      L.marker([point.latitude, point.longitude], { icon: createDot() })
-        .bindPopup(`Point ${index + 2} · ${formatTrackingTime(point.recordedAt)}`),
+      L.marker(latLngs[index + 1], { icon: createDot() })
+        .bindPopup(`Point ${index + 2} · ${formatTrackingTime(point.recordedAt)}${clampNote(point)}`),
     )
   })
 
   const first = points[0]
 
   layers.push(
-    L.marker([first.latitude, first.longitude], { icon: createEndpointIcon('#28C76F', 'A') })
-      .bindPopup(`<strong>Start</strong><br>${formatTrackingTime(first.recordedAt)}`),
+    L.marker(latLngs[0], { icon: createEndpointIcon('#28C76F', 'A') })
+      .bindPopup(`<strong>Start</strong><br>${formatTrackingTime(first.recordedAt)}${clampNote(first)}`),
   )
 
   if (points.length > 1) {
     const last = points[points.length - 1]
 
     layers.push(
-      L.marker([last.latitude, last.longitude], { icon: createEndpointIcon('#EA5455', 'B') })
-        .bindPopup(`<strong>End</strong><br>${formatTrackingTime(last.recordedAt)}`),
+      L.marker(latLngs[latLngs.length - 1], { icon: createEndpointIcon('#EA5455', 'B') })
+        .bindPopup(`<strong>End</strong><br>${formatTrackingTime(last.recordedAt)}${clampNote(last)}`),
     )
   }
 
   layerGroup = L.layerGroup(layers).addTo(leafletMap)
 
-  if (latLngs.length > 1)
-    leafletMap.fitBounds(L.latLngBounds(latLngs), { padding: [50, 50], maxZoom: 16 })
-  else
-    leafletMap.setView(latLngs[0], 15)
+  if (latLngs.length === 1) {
+    leafletMap.setView(latLngs[0], points[0].isOutsideMapRange ? 4 : 15)
+
+    return
+  }
+
+  const bounds = L.latLngBounds(latLngs)
+
+  if (!bounds.isValid()) return
+
+  // Every point on the same spot → fitBounds would slam to max zoom.
+  if (bounds.getNorth() === bounds.getSouth() && bounds.getEast() === bounds.getWest()) {
+    leafletMap.setView(bounds.getCenter(), 15)
+
+    return
+  }
+
+  leafletMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 })
 }
 
 const onMapReady = map => {
