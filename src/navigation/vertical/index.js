@@ -83,6 +83,13 @@ export default [
         action: 'manage',
         subject: 'Routes',
       },
+      {
+        title: 'Visits',
+        icon: { icon: 'tabler-map-pin-check' },
+        to: 'visits',
+        action: 'read',
+        subject: 'Auth',
+      },
     ],
   },
 ]

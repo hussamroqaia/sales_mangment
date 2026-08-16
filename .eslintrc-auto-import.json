@@ -390,6 +390,13 @@
     "useVanInventory": true,
     "ROUTE_STATUSES": true,
     "resolveRouteStatusVariant": true,
-    "useRoutes": true
+    "useRoutes": true,
+    "VISIT_STATUSES": true,
+    "formatVisitDateTime": true,
+    "formatVisitDuration": true,
+    "parseVisitLocation": true,
+    "resolveVisitStatusVariant": true,
+    "useVisits": true,
+    "visitStatusTitle": true
   }
 }

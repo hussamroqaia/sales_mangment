@@ -93,9 +93,35 @@ export const routes = [
     },
   },
 
-  // ⚠️ Do NOT add manual routes for pages that already exist under `src/pages`
-  // (e.g. /apps/territory/list, /apps/customer/list, /routes). definePage()
-  // inside the page file handles the route registration and meta correctly.
+  // ℹ️ Same glob problem as /products above: unplugin-vue-router does not pick
+  // up src/pages/visits/, so `visits` / `visits-id` are never auto-generated and
+  // the sidebar entry throws `No match for {"name":"visits"}`. Registered here
+  // manually with the same meta the definePage() blocks declare.
+  {
+    path: '/visits',
+    name: 'visits',
+    component: () => import('@/pages/visits/index.vue'),
+    meta: {
+      action: 'read',
+      subject: 'Auth',
+    },
+  },
+  {
+    path: '/visits/:id',
+    name: 'visits-id',
+    component: () => import('@/pages/visits/[id].vue'),
+    meta: {
+      action: 'read',
+      subject: 'Auth',
+      navActiveLink: 'visits',
+    },
+  },
+
+  // ⚠️ Do NOT add manual routes for pages that ARE auto-generated (e.g.
+  // /apps/territory/list, /apps/customer/list, /routes, /demand-orders).
+  // definePage() inside the page file handles registration and meta correctly.
   // A manual duplicate with the same name creates two route records, causing
   // the <Suspense> wrapper to fail with "slots expect a single root node".
+  // Only add an entry here when the auto-generated route is genuinely missing
+  // (verify with a "No match for {name:...}" error after a dev-server restart).
 ]
