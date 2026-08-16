@@ -104,15 +104,6 @@ const computedMoreList = computed(() => {
       prependIcon: 'tabler-download',
     },
     {
-      title: 'Edit',
-      value: 'edit',
-      prependIcon: 'tabler-pencil',
-      to: {
-        name: 'apps-invoice-edit-id',
-        params: { id: paramId },
-      },
-    },
-    {
       title: 'Duplicate',
       value: 'duplicate',
       prependIcon: 'tabler-layers-intersect',

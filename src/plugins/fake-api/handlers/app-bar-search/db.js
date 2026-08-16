@@ -177,16 +177,6 @@ export const db = {
           title: 'Invoice Preview',
         },
         {
-          url: { name: 'apps-invoice-edit-id', params: { id: '5036' } },
-          icon: 'tabler-file-pencil',
-          title: 'Invoice Edit',
-        },
-        {
-          url: { name: 'apps-invoice-add' },
-          icon: 'tabler-file-plus',
-          title: 'Invoice Add',
-        },
-        {
           url: { name: 'apps-user-list' },
           icon: 'tabler-users-group',
           title: 'User List',

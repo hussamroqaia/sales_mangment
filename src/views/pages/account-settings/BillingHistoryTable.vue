@@ -145,13 +145,6 @@ const deleteInvoice = async id => {
         />
       </div>
 
-      <VBtn
-        prepend-icon="tabler-plus"
-        :to="{ name: 'apps-invoice-add' }"
-      >
-        Create invoice
-      </VBtn>
-
       <VSpacer />
 
       <div class="d-flex align-end flex-wrap gap-4">

@@ -127,15 +127,6 @@ const computedMoreList = computed(() => {
       prependIcon: 'tabler-download',
     },
     {
-      title: 'Edit',
-      value: 'edit',
-      prependIcon: 'tabler-pencil',
-      to: {
-        name: 'apps-invoice-edit-id',
-        params: { id: paramId },
-      },
-    },
-    {
       title: 'Duplicate',
       value: 'duplicate',
       prependIcon: 'tabler-layers-intersect',
@@ -174,13 +165,6 @@ const deleteInvoice = async id => {
               @update:model-value="itemsPerPage = parseInt($event, 10)"
             />
           </div>
-          <!-- 👉 Create invoice -->
-          <VBtn
-            prepend-icon="tabler-plus"
-            :to="{ name: 'apps-invoice-add' }"
-          >
-            Create invoice
-          </VBtn>
         </div>
         <div class="d-flex align-center flex-wrap gap-4">
           <!-- 👉 Search  -->
