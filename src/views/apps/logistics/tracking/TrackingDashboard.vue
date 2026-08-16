@@ -91,9 +91,8 @@ const showLiveBlocker = computed(() => liveStatus.value === 'unavailable')
 
 const liveBlockerText = computed(() => {
   if (liveErrorStatus.value === 403) {
-    return 'The server rejected the live tracking stream with 403 Forbidden. '
-      + 'The snapshot below is still loaded from /tracking/latest, but positions will not update in real time '
-      + 'until the backend authorises this account for GET /api/tracking/live.'
+    return 'Your account does not have permission to access the live tracking stream. '
+      + 'The last known positions are shown below but will not update in real time.'
   }
 
   return liveError.value || 'The live tracking stream is unavailable.'

@@ -27,9 +27,20 @@
  *    it is out of scope for the web dashboard and belongs to the mobile client.
  */
 
-import apiClient, { getAccessToken, getApiBaseUrl } from '@/services/apiClient'
+import apiClient, {
+  getAccessToken,
+  getApiBaseUrl,
+  hasUsableAccessToken,
+  refreshAccessToken,
+} from '@/services/apiClient'
 
 const BASE = '/tracking'
+
+// At most one silent refresh per stream per minute. See the 401/403 branch in
+// `run()` for why a plain once-per-connection budget is not enough.
+const AUTH_REFRESH_COOLDOWN_MS = 60 * 1000
+
+const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Please log in again.'
 
 // ─── GET /tracking/latest ────────────────────────────────────────────────────
 /**
@@ -168,6 +179,7 @@ export const connectLiveTracking = ({
   let retryTimer = null
   let isClosed = false
   let hasConnectedOnce = false
+  let lastAuthRefreshAt = 0
 
   const url = `${getApiBaseUrl()}${BASE}/live`
 
@@ -257,8 +269,16 @@ export const connectLiveTracking = ({
     if (!response.ok) {
       const status = response.status
 
-      if (status === 403) {
-        // Terminal: authorisation, not connectivity. Reported verbatim.
+      // The stream reads the same signal as the Axios interceptor: 401 is
+      // always authentication, but 403 is only authentication when we hold no
+      // live access token. The backend answers a missing Authorization header
+      // with 403 (Spring Security's default entry point), which is exactly what
+      // an idle tab sends once the 15-minute accessToken cookie lapses.
+      const isAuthFailure = status === 401 || (status === 403 && !hasUsableAccessToken())
+
+      if (status === 403 && !isAuthFailure) {
+        // Terminal: authorisation, not connectivity. Refreshing cannot grant a
+        // role, so this must never re-enter the refresh path.
         onError?.({
           message: 'The server rejected the live tracking stream (403 Forbidden).',
           status,
@@ -269,10 +289,56 @@ export const connectLiveTracking = ({
         return
       }
 
+      if (isAuthFailure) {
+        // Reported as 401 whatever the wire status was, so the dashboard shows
+        // "session expired" rather than its permission-denied banner.
+        // Silent once closed: a refresh that fails after the page was torn down
+        // must not push a status back into a composable that has already reset.
+        const failAuth = () => {
+          if (isClosed) return
+
+          onError?.({ message: SESSION_EXPIRED_MESSAGE, status: 401, kind: 'auth' })
+          emitStatus('unavailable', { status: 401 })
+        }
+
+        // A cooldown rather than a once-per-connection flag. Resetting the
+        // budget on every successful handshake looks equivalent but is not: a
+        // server that accepts the connection and drops the stream immediately
+        // would hand back a fresh budget on each reconnect, and the 1s first
+        // backoff would turn that into a refresh-per-second loop against
+        // /auth/refresh. The cooldown bounds it no matter the reconnect shape,
+        // while still allowing recovery when the token genuinely ages out.
+        if (Date.now() - lastAuthRefreshAt < AUTH_REFRESH_COOLDOWN_MS) {
+          failAuth()
+
+          return
+        }
+
+        lastAuthRefreshAt = Date.now()
+
+        try {
+          // Shares apiClient's lock, so an Axios 401 racing this one produces a
+          // single /auth/refresh round-trip, not two.
+          await refreshAccessToken()
+        } catch {
+          // Refresh token expired or revoked — the session is unrecoverable.
+          // apiClient has already started the logout redirect.
+          failAuth()
+
+          return
+        }
+
+        // close() may have run while the refresh was in flight: unmounting the
+        // Tracking page during a refresh must not resurrect the stream.
+        if (!isClosed) run()
+
+        return
+      }
+
       onError?.({
         message: `Live tracking stream returned HTTP ${status}.`,
         status,
-        kind: status === 401 ? 'auth' : 'network',
+        kind: 'network',
       })
       scheduleRetry()
 
