@@ -59,6 +59,16 @@ export default [
     subject: 'Warehouse',
   },
   {
+    // ADMIN + SALES_MANAGER + WAREHOUSE_MANAGER. Which report categories are
+    // offered inside the page depends on the role, mirroring the backend's own
+    // @PreAuthorize split. SALES_REP holds no `Reports` ability.
+    title: 'Reports',
+    icon: { icon: 'tabler-report-analytics' },
+    to: 'reports',
+    action: 'read',
+    subject: 'Reports',
+  },
+  {
     title: 'Logistics',
     icon: { icon: 'tabler-truck' },
     action: 'read',

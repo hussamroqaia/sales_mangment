@@ -109,6 +109,7 @@ export const useAuth = () => {
   // ── Internal: record a failed attempt ────────────────────────────────────
   const recordFailedAttempt = () => {
     const state = getLockoutState()
+
     state.attempts += 1
 
     if (state.attempts >= MAX_ATTEMPTS) {
@@ -138,6 +139,7 @@ export const useAuth = () => {
 
     // Strip tokens from userData before storing (principle of least privilege)
     const { accessToken, refreshToken, ...userInfo } = normalizedUserData
+
     userDataCookie.value = userInfo
   }
 
@@ -155,6 +157,10 @@ export const useAuth = () => {
         // GET /invoices and the review transitions are SALES_MANAGER + ADMIN.
         // Deliberately NOT granted to warehouse_manager or sales_rep.
         { action: 'manage', subject: 'Invoices' },
+
+        // Reports area. Which categories appear inside is gated separately —
+        // this role sees Sales/Customers/Routes but never Inventory.
+        { action: 'read', subject: 'Reports' },
       ],
       sales_rep: [
         { action: 'read', subject: 'Auth' },
@@ -163,6 +169,10 @@ export const useAuth = () => {
       warehouse_manager: [
         { action: 'read', subject: 'Auth' },
         { action: 'manage', subject: 'Warehouse' },
+
+        // Reports area — Inventory categories only; the composable hides the
+        // Sales/Customers/Routes categories for this role.
+        { action: 'read', subject: 'Reports' },
       ],
     }
 
@@ -272,12 +282,14 @@ export const useAuth = () => {
           }
 
           const state = getLockoutState()
+
           state.attempts = MAX_ATTEMPTS
           state.lockoutUntil = Date.now() + (minutes * 60 * 1000)
           saveLockoutState(state)
           lockoutData.value = { ...state }
           
           loginError.value = message
+          
           return
         }
 

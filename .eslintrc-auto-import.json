@@ -420,6 +420,12 @@
     "formatDashboardAmount": true,
     "formatDashboardCount": true,
     "formatDashboardPercent": true,
-    "useDashboard": true
+    "useDashboard": true,
+    "REPORT_CATEGORIES": true,
+    "formatReportCell": true,
+    "humaniseKey": true,
+    "useReports": true,
+    "MERCATOR_MAX_LATITUDE": true,
+    "toRenderableLatLng": true
   }
 }
