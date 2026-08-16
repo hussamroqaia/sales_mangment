@@ -416,6 +416,10 @@
     "invoiceStatusTitle": true,
     "isReviewable": true,
     "resolveInvoiceStatusVariant": true,
-    "useInvoices": true
+    "useInvoices": true,
+    "formatDashboardAmount": true,
+    "formatDashboardCount": true,
+    "formatDashboardPercent": true,
+    "useDashboard": true
   }
 }

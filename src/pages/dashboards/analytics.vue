@@ -15,10 +15,20 @@ import AnalyticsSourceVisits from '@/views/dashboards/analytics/AnalyticsSourceV
 import AnalyticsSupportTracker from '@/views/dashboards/analytics/AnalyticsSupportTracker.vue'
 import AnalyticsTotalEarning from '@/views/dashboards/analytics/AnalyticsTotalEarning.vue'
 import AnalyticsWebsiteAnalytics from '@/views/dashboards/analytics/AnalyticsWebsiteAnalytics.vue'
+
+// Real backend KPIs. Self-gating by role: renders nothing and issues no request
+// for roles without dashboard access — which matters here because guards.js
+// admits every logged-in user to this route, SALES_REP included.
+import DashboardKpiOverview from '@/views/dashboards/DashboardKpiOverview.vue'
 </script>
 
 <template>
   <VRow class="match-height">
+    <!-- 👉 Real backend KPIs (role-gated) -->
+    <VCol cols="12">
+      <DashboardKpiOverview />
+    </VCol>
+
     <!-- 👉 Website analytics -->
     <VCol
       cols="12"

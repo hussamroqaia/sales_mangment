@@ -10,28 +10,23 @@ import CrmRevenueGrowth from '@/views/dashboards/crm/CrmRevenueGrowth.vue'
 import CrmSalesAreaCharts from '@/views/dashboards/crm/CrmSalesAreaCharts.vue'
 import CrmSalesByCountries from '@/views/dashboards/crm/CrmSalesByCountries.vue'
 
-const simpleStatisticsDemoCards = [
-  {
-    icon: 'tabler-credit-card',
-    color: 'error',
-    title: 'Total Profit',
-    subTitle: 'Last week',
-    stat: '1.28k',
-    change: '-12.2%',
-  },
-  {
-    icon: 'tabler-currency-dollar',
-    color: 'success',
-    title: 'Total Sales',
-    subTitle: 'Last week',
-    stat: '$4,673',
-    change: '+25.2%',
-  },
-]
+// Real backend KPIs. Self-gating by role, so it issues only the requests the
+// signed-in role is authorised to make.
+import DashboardKpiOverview from '@/views/dashboards/DashboardKpiOverview.vue'
+
+// The two "Total Profit" / "Total Sales" template cards that used to sit here
+// were hardcoded Vuexy figures with invented week-over-week deltas. The backend
+// exposes neither profit nor a period-over-period change, so rather than
+// fabricate them they are dropped — the real KPI tiles above carry the numbers.
 </script>
 
 <template>
   <VRow class="match-height">
+    <!-- 👉 Real backend KPIs (role-gated) -->
+    <VCol cols="12">
+      <DashboardKpiOverview />
+    </VCol>
+
     <VCol
       cols="12"
       md="4"
@@ -48,48 +43,6 @@ const simpleStatisticsDemoCards = [
       lg="2"
     >
       <CrmSalesAreaCharts />
-    </VCol>
-
-    <VCol
-      v-for="demo in simpleStatisticsDemoCards"
-      :key="demo.title"
-      cols="12"
-      sm="6"
-      md="4"
-      lg="2"
-    >
-      <VCard>
-        <VCardText>
-          <VAvatar
-            :color="demo.color"
-            variant="tonal"
-            rounded
-            size="44"
-          >
-            <VIcon
-              :icon="demo.icon"
-              size="28"
-            />
-          </VAvatar>
-
-          <h5 class="text-h5 mt-3">
-            {{ demo.title }}
-          </h5>
-          <p class="my-1">
-            {{ demo.subTitle }}
-          </p>
-          <p class="mb-3 text-high-emphasis">
-            {{ demo.stat }}
-          </p>
-          <VChip
-            :color="demo.color"
-            label
-            size="small"
-          >
-            {{ demo.change }}
-          </VChip>
-        </VCardText>
-      </VCard>
     </VCol>
 
     <!-- 👉 Revenue Growth -->

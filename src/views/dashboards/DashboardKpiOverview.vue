@@ -1,0 +1,252 @@
+<script setup>
+/**
+ * DashboardKpiOverview.vue
+ *
+ * Real backend KPI tiles for the management dashboards.
+ *
+ *   GET /api/reports/dashboard/sales      → ADMIN, SALES_MANAGER
+ *   GET /api/reports/dashboard/inventory  → ADMIN, WAREHOUSE_MANAGER
+ *
+ * Sections are rendered per role, and the composable refuses to request an
+ * endpoint the role cannot access — so a SALES_MANAGER never calls the
+ * inventory endpoint, a WAREHOUSE_MANAGER never calls the sales endpoint, and a
+ * SALES_REP renders nothing and issues no request at all.
+ *
+ * Layout reuses the project's existing Vuexy widget pattern (VCard → VCardText →
+ * VRow of value/label/VAvatar tiles with inset dividers), so labels, icons, and
+ * spacing are static UI configuration while every number is live backend data.
+ */
+
+import {
+  useDashboard,
+  formatDashboardAmount,
+  formatDashboardCount,
+  formatDashboardPercent,
+} from '@/composables/useDashboard'
+
+const {
+  canViewSalesDashboard,
+  canViewInventoryDashboard,
+  hasAnyDashboard,
+  salesDashboard,
+  isSalesLoading,
+  salesError,
+  loadSalesDashboard,
+  inventoryDashboard,
+  isInventoryLoading,
+  inventoryError,
+  loadInventoryDashboard,
+  isLoading,
+  loadDashboards,
+} = useDashboard()
+
+// ── Tile definitions ──────────────────────────────────────────────────────────
+// STATIC_UI_CONFIGURATION: titles/icons only. `value` reads the live DTO field.
+const salesTiles = computed(() => {
+  const d = salesDashboard.value
+
+  return [
+    { title: "Today's Sales",    icon: 'tabler-currency-dollar', value: formatDashboardAmount(d?.todaySalesTotal) },
+    { title: "Today's Invoices", icon: 'tabler-file-invoice',    value: formatDashboardCount(d?.todayInvoiceCount) },
+    { title: 'Month Sales',      icon: 'tabler-chart-line',      value: formatDashboardAmount(d?.monthSalesTotal) },
+    { title: 'Month Invoices',   icon: 'tabler-files',           value: formatDashboardCount(d?.monthInvoiceCount) },
+    { title: 'Active Routes',    icon: 'tabler-route',           value: formatDashboardCount(d?.activeRoutesToday) },
+  ]
+})
+
+const inventoryTiles = computed(() => {
+  const d = inventoryDashboard.value
+
+  return [
+    { title: 'Below Minimum', icon: 'tabler-alert-triangle',      value: formatDashboardCount(d?.belowMinimumCount) },
+    { title: 'Aging Stock',   icon: 'tabler-clock-exclamation',   value: formatDashboardCount(d?.agingCount) },
+    { title: 'Total SKUs',    icon: 'tabler-packages',            value: formatDashboardCount(d?.totalSkus) },
+    { title: 'Month Fill Rate', icon: 'tabler-progress-check',    value: formatDashboardPercent(d?.monthFillRatePercent) },
+  ]
+})
+
+onMounted(loadDashboards)
+</script>
+
+<template>
+  <!--
+    Renders nothing for roles without dashboard KPIs (e.g. SALES_REP), which
+    is also why no request is issued for them. 
+  -->
+  <VCard v-if="hasAnyDashboard">
+    <VCardItem class="pb-2">
+      <VCardTitle>Overview</VCardTitle>
+      <VCardSubtitle>Live figures from the reporting service</VCardSubtitle>
+
+      <template #append>
+        <VBtn
+          variant="tonal"
+          color="secondary"
+          size="small"
+          prepend-icon="tabler-refresh"
+          :loading="isLoading"
+          @click="loadDashboards"
+        >
+          Refresh
+        </VBtn>
+      </template>
+    </VCardItem>
+
+    <!-- ── Sales ─────────────────────────────────────────────────────────── -->
+    <template v-if="canViewSalesDashboard">
+      <VCardText>
+        <VAlert
+          v-if="salesError"
+          type="error"
+          variant="tonal"
+          class="mb-4"
+        >
+          {{ salesError }}
+          <template #append>
+            <VBtn
+              variant="text"
+              size="small"
+              :loading="isSalesLoading"
+              @click="loadSalesDashboard"
+            >
+              Retry
+            </VBtn>
+          </template>
+        </VAlert>
+
+        <!-- Skeletons keep the layout stable instead of flashing placeholder numbers. -->
+        <VRow v-if="isSalesLoading && !salesDashboard">
+          <VCol
+            v-for="n in 5"
+            :key="n"
+            cols="12"
+            sm="6"
+            md="4"
+            lg="2"
+          >
+            <VSkeletonLoader type="list-item-two-line" />
+          </VCol>
+        </VRow>
+
+        <VRow v-else-if="salesDashboard">
+          <template
+            v-for="(tile, index) in salesTiles"
+            :key="tile.title"
+          >
+            <VCol
+              cols="12"
+              sm="6"
+              md="4"
+              lg="2"
+            >
+              <div class="d-flex justify-space-between align-center">
+                <div class="d-flex flex-column">
+                  <h4 class="text-h4">
+                    {{ tile.value }}
+                  </h4>
+                  <span class="text-body-1">{{ tile.title }}</span>
+                </div>
+
+                <VAvatar
+                  variant="tonal"
+                  rounded
+                  size="42"
+                >
+                  <VIcon
+                    :icon="tile.icon"
+                    size="26"
+                    color="high-emphasis"
+                  />
+                </VAvatar>
+              </div>
+            </VCol>
+
+            <VDivider
+              v-if="$vuetify.display.lgAndUp && index !== salesTiles.length - 1"
+              vertical
+              inset
+              length="60"
+            />
+          </template>
+        </VRow>
+      </VCardText>
+
+      <VDivider v-if="canViewInventoryDashboard" />
+    </template>
+
+    <!-- ── Inventory ─────────────────────────────────────────────────────── -->
+    <VCardText v-if="canViewInventoryDashboard">
+      <VAlert
+        v-if="inventoryError"
+        type="error"
+        variant="tonal"
+        class="mb-4"
+      >
+        {{ inventoryError }}
+        <template #append>
+          <VBtn
+            variant="text"
+            size="small"
+            :loading="isInventoryLoading"
+            @click="loadInventoryDashboard"
+          >
+            Retry
+          </VBtn>
+        </template>
+      </VAlert>
+
+      <VRow v-if="isInventoryLoading && !inventoryDashboard">
+        <VCol
+          v-for="n in 4"
+          :key="n"
+          cols="12"
+          sm="6"
+          md="3"
+        >
+          <VSkeletonLoader type="list-item-two-line" />
+        </VCol>
+      </VRow>
+
+      <VRow v-else-if="inventoryDashboard">
+        <template
+          v-for="(tile, index) in inventoryTiles"
+          :key="tile.title"
+        >
+          <VCol
+            cols="12"
+            sm="6"
+            md="3"
+          >
+            <div class="d-flex justify-space-between align-center">
+              <div class="d-flex flex-column">
+                <h4 class="text-h4">
+                  {{ tile.value }}
+                </h4>
+                <span class="text-body-1">{{ tile.title }}</span>
+              </div>
+
+              <VAvatar
+                variant="tonal"
+                rounded
+                size="42"
+              >
+                <VIcon
+                  :icon="tile.icon"
+                  size="26"
+                  color="high-emphasis"
+                />
+              </VAvatar>
+            </div>
+          </VCol>
+
+          <VDivider
+            v-if="$vuetify.display.mdAndUp && index !== inventoryTiles.length - 1"
+            vertical
+            inset
+            length="60"
+          />
+        </template>
+      </VRow>
+    </VCardText>
+  </VCard>
+</template>
