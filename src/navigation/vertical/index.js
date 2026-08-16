@@ -36,6 +36,15 @@ export default [
     subject: 'Auth',
   },
   {
+    // ADMIN + SALES_MANAGER only — WAREHOUSE_MANAGER has no invoice access,
+    // and the SALES_REP half of the lifecycle lives in the mobile client.
+    title: 'Invoices',
+    icon: { icon: 'tabler-file-invoice' },
+    to: 'apps-invoice-list',
+    action: 'manage',
+    subject: 'Invoices',
+  },
+  {
     title: 'Products',
     icon: { icon: 'tabler-packages' },
     to: 'products',

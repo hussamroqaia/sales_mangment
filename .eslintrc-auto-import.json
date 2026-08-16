@@ -407,6 +407,15 @@
     "isValidCoordinate": true,
     "toApiDate": true,
     "todayApiDate": true,
-    "useTracking": true
+    "useTracking": true,
+    "INVOICE_STATUS_OPTIONS": true,
+    "REJECTION_REASON_MAX_LENGTH": true,
+    "formatAmount": true,
+    "formatInvoiceDate": true,
+    "formatInvoiceTimestamp": true,
+    "invoiceStatusTitle": true,
+    "isReviewable": true,
+    "resolveInvoiceStatusVariant": true,
+    "useInvoices": true
   }
 }

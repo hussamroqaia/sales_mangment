@@ -13,9 +13,16 @@ import apiClient from '@/services/apiClient'
  * Fetch a server-side paginated list of territories.
  *
  * @param {Object} params
- * @param {number} [params.page=0]    - Zero-based page index
- * @param {number} [params.size=10]   - Page size
- * @param {string} [params.search=''] - Optional search/filter string
+ * @param {number}  [params.page=0]    - Zero-based page index
+ * @param {number}  [params.size=10]   - Page size. The backend's PageRequest is
+ *                                       annotated @Max(100); a larger value is
+ *                                       rejected with 400, so never raise this
+ *                                       to "fetch everything" — pass `all` instead.
+ * @param {string}  [params.search=''] - Optional search/filter string
+ * @param {boolean} [params.all=false] - Return every territory in one unpaged
+ *                                       response, for dropdown/option loading.
+ *                                       NOTE: the backend ignores `search` when
+ *                                       this is set, so never combine the two.
  *
  * @returns {Promise<{
  *   content: Array,

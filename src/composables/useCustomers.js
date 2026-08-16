@@ -101,8 +101,17 @@ export const useCustomers = () => {
     if (territoriesList.value.length) return  // already loaded — don't re-fetch
     isTerritoriesLoading.value = true
     try {
-      // Fetch a large page to get all territories for the dropdown
-      const data = await fetchTerritories({ page: 0, size: 500 })
+      // `all=true` is the backend's own switch for "give me every territory"
+      // (TerritoryController.list → TerritoryService.list returns a synthetic
+      // unpaged Page). The previous `size: 500` could never work: PageRequest
+      // caps size at @Max(100), so the request failed validation with 400 and
+      // this dropdown silently stayed empty — the catch below only warns.
+      //
+      // Safe here precisely because this loader has no search term: `all=true`
+      // ignores `search`, so the paginated, searchable territory pickers must
+      // keep using page/size instead.
+      const data = await fetchTerritories({ all: true })
+
       territoriesList.value = data?.content ?? []
     } catch (error) {
       console.warn('[useCustomers] Failed to load territories for dropdown:', error)

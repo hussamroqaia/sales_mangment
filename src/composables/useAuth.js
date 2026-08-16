@@ -150,6 +150,11 @@ export const useAuth = () => {
       sales_manager: [
         { action: 'read', subject: 'Auth' },
         { action: 'manage', subject: 'Routes' },
+
+        // Invoice review (approve/reject). Matches the backend, where
+        // GET /invoices and the review transitions are SALES_MANAGER + ADMIN.
+        // Deliberately NOT granted to warehouse_manager or sales_rep.
+        { action: 'manage', subject: 'Invoices' },
       ],
       sales_rep: [
         { action: 'read', subject: 'Auth' },
