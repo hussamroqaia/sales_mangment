@@ -15,7 +15,6 @@
 
 import {
   fetchRoutes,
-  fetchMyRoute as fetchMyRouteService,
   fetchRouteById,
   createRoute as createRouteService,
   updateRoute as updateRouteService,
@@ -36,10 +35,10 @@ export const ROUTE_STATUSES = [
 
 export const resolveRouteStatusVariant = status => {
   switch (status?.toUpperCase()) {
-    case 'COMPLETED':   return 'success'
-    case 'ACTIVE':      return 'warning'
-    case 'PLANNED':     return 'info'
-    default:            return 'secondary'
+  case 'COMPLETED':   return 'success'
+  case 'ACTIVE':      return 'warning'
+  case 'PLANNED':     return 'info'
+  default:            return 'secondary'
   }
 }
 
@@ -84,13 +83,13 @@ export const useRoutes = () => {
 
     try {
       const data = await fetchRoutes({
-        page:             page.value - 1,
-        size:             itemsPerPage.value,
-        status:           selectedStatus.value || undefined,
+        page: page.value - 1,
+        size: itemsPerPage.value,
+        status: selectedStatus.value || undefined,
         representativeId: selectedRepresentativeId.value || undefined,
-        routeDate:        selectedRouteDate.value || undefined,
-        sortBy:           sortBy.value,
-        sortDir:          sortDir.value,
+        routeDate: selectedRouteDate.value || undefined,
+        sortBy: sortBy.value,
+        sortDir: sortDir.value,
       })
 
       routes.value      = data?.content       ?? []
@@ -127,21 +126,9 @@ export const useRoutes = () => {
     }
   }
 
-  // ── fetchMyRoute(date) — load route for the logged-in user (sales rep) ──────
-  const loadMyRoute = async date => {
-    isDetailLoading.value = true
-    detailError.value     = ''
-    selectedRoute.value   = null
-
-    try {
-      selectedRoute.value = await fetchMyRouteService(date)
-    } catch (error) {
-      detailError.value = error?.response?.data?.message || 'Failed to load your route.'
-      showSnackbar(detailError.value, 'error')
-    } finally {
-      isDetailLoading.value = false
-    }
-  }
+  // GET /routes/me had a loader here. It backed the /my-route screen — a rep's
+  // own daily route — which is a mobile workflow, so both the screen and the
+  // call were removed rather than left reachable from the management app.
 
   // ── createRoute(payload) ────────────────────────────────────────────────────
   const createRoute = async payload => {
@@ -155,6 +142,7 @@ export const useRoutes = () => {
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
+
       showSnackbar(message || 'Failed to create route.', 'error')
 
       return { success: false, error: message || 'Failed to create route.' }
@@ -168,6 +156,7 @@ export const useRoutes = () => {
     isSubmitting.value = true
     try {
       const updated = await updateRouteService(id, payload)
+
       showSnackbar('Route updated successfully.')
       
       // Update the local list and details if they match
@@ -184,6 +173,7 @@ export const useRoutes = () => {
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
+
       showSnackbar(message || 'Failed to update route.', 'error')
 
       return { success: false, error: message || 'Failed to update route.' }
@@ -197,12 +187,14 @@ export const useRoutes = () => {
     isSubmitting.value = true
     try {
       const res = await deleteRouteService(id)
+
       showSnackbar(res?.message || 'Route deleted successfully.')
       await fetchAllRoutes()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
+
       showSnackbar(message || 'Failed to delete route.', 'error')
 
       return { success: false, error: message || 'Failed to delete route.' }
@@ -224,6 +216,7 @@ export const useRoutes = () => {
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
+
       showSnackbar(message || 'Failed to optimize route.', 'error')
 
       return { success: false, error: message || 'Failed to optimize route.' }
@@ -249,6 +242,7 @@ export const useRoutes = () => {
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
+
       showSnackbar(message || 'Failed to update route status.', 'error')
 
       return { success: false, error: message || 'Failed to update route status.' }
@@ -283,6 +277,7 @@ export const useRoutes = () => {
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
+
       showSnackbar(message || 'Failed to assign customers.', 'error')
 
       return { success: false, error: message || 'Failed to assign customers.' }
@@ -305,6 +300,7 @@ export const useRoutes = () => {
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
+
       showSnackbar(message || 'Failed to remove customer.', 'error')
 
       return { success: false, error: message || 'Failed to remove customer.' }
@@ -327,6 +323,7 @@ export const useRoutes = () => {
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
+
       showSnackbar(message || 'Failed to reorder stops.', 'error')
 
       return { success: false, error: message || 'Failed to reorder stops.' }
@@ -372,7 +369,6 @@ export const useRoutes = () => {
     snackbar,
     fetchAllRoutes,
     fetchRoute,
-    loadMyRoute,
     createRoute,
     updateSelectedRoute,
     removeRoute,

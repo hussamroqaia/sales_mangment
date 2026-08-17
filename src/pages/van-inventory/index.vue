@@ -13,7 +13,7 @@
 definePage({
   meta: {
     action: 'read',
-    subject: 'Auth',
+    subject: 'Management',
   },
 })
 

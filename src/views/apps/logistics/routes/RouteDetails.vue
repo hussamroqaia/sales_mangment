@@ -14,6 +14,19 @@ import { LMap, LTileLayer } from '@vue-leaflet/vue-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
+// `isMyRoute` / `routeDate` used to switch this view into the rep's own-route
+// mode for the /my-route screen. That screen was a mobile workflow and has been
+// removed, so the props went with it — this view is now purely the management
+// route-detail surface reached from /routes/:id.
+const props = defineProps({
+  routeId: {
+    type: [String, Number],
+    required: false,
+    default: 0,
+  },
+})
+
+
 // Expose L globally so vue-leaflet uses the same instance (use-global-leaflet="true")
 window.L = L
 import { useRoutes, resolveRouteStatusVariant, ROUTE_STATUSES } from '@/composables/useRoutes'
@@ -24,24 +37,9 @@ import { confirmAction } from '@/utils/swal'
 
 const { userData } = useAuth()
 const ROUTE_MANAGER_ROLES = ['admin', 'sales_manager']
+
 const canManageRoutes = computed(() =>
   ROUTE_MANAGER_ROLES.includes(userData.value?.role?.toLowerCase()))
-
-const props = defineProps({
-  routeId: {
-    type: [String, Number],
-    required: false,
-    default: 0,
-  },
-  isMyRoute: {
-    type: Boolean,
-    default: false,
-  },
-  routeDate: {
-    type: String,
-    default: '',
-  },
-})
 
 const router = useRouter()
 
@@ -53,7 +51,6 @@ const {
   isSubmitting,
   snackbar,
   fetchRoute,
-  loadMyRoute,
   optimizeSelectedRoute,
   updateSelectedRoute,
   updateStatus,
@@ -64,11 +61,7 @@ const {
 
 // ── Load route on mount ───────────────────────────────────────────────────────
 const fetchCurrentRoute = () => {
-  if (props.isMyRoute) {
-    if (props.routeDate) loadMyRoute(props.routeDate)
-  } else if (props.routeId) {
-    fetchRoute(props.routeId)
-  }
+  if (props.routeId) fetchRoute(props.routeId)
 }
 
 onMounted(() => {
@@ -76,10 +69,6 @@ onMounted(() => {
 })
 
 watch(() => props.routeId, () => {
-  fetchCurrentRoute()
-})
-
-watch(() => props.routeDate, () => {
   fetchCurrentRoute()
 })
 
@@ -107,8 +96,11 @@ const cancelReorder = () => {
 const moveStop = (index, direction) => {
   const target = index + direction
   if (target < 0 || target >= localStops.value.length) return
+
   const arr = [...localStops.value]
+
   ;[arr[index], arr[target]] = [arr[target], arr[index]]
+
   // update sequenceNumbers to reflect new positions
   arr.forEach((s, i) => { s.sequenceNumber = i + 1 })
   localStops.value = arr
@@ -149,7 +141,7 @@ let stopMarkers = []           // manually-added numbered markers
  * Creates a numbered circle DivIcon for each stop marker.
  * Shows sequenceNumber inside a styled circle.
  */
-const createNumberedIcon = (number) => {
+const createNumberedIcon = number => {
   return L.divIcon({
     className: 'route-stop-numbered-icon',
     html: `<div style="
@@ -176,7 +168,7 @@ const createNumberedIcon = (number) => {
  * Calls the OSRM demo API directly to get the real driving route geometry.
  * Returns an array of [lat, lng] pairs, or null on failure.
  */
-const fetchOSRMRoute = async (stops) => {
+const fetchOSRMRoute = async stops => {
   // OSRM expects coordinates as lng,lat pairs separated by semicolons
   const coords = stops.map(s => `${s.longitude},${s.latitude}`).join(';')
   const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`
@@ -230,6 +222,7 @@ const buildRoute = async () => {
           <span>${stop.customerAddress || 'No address'}</span>
         </div>`,
       )
+
     stopMarkers.push(marker)
   })
 
@@ -248,6 +241,7 @@ const buildRoute = async () => {
     } else {
       // Fallback: straight dashed lines between stops
       const fallbackLatLngs = stops.map(s => [s.latitude, s.longitude])
+
       routePolyline = L.polyline(fallbackLatLngs, {
         color: '#7367F0',
         weight: 4,
@@ -267,7 +261,7 @@ const buildRoute = async () => {
 /**
  * Called by LMap's @ready event. Receives the raw Leaflet map object.
  */
-const onMapReady = (map) => {
+const onMapReady = map => {
   leafletMap = map
   buildRoute()
 }
@@ -321,12 +315,15 @@ let   _cBlockScroll       = false
 /** IDs of customers already on the route — excludes them from the dropdown */
 const existingCustomerIds = computed(() => {
   if (!selectedRoute.value?.stops) return new Set()
+  
   return new Set(selectedRoute.value.stops.map(s => s.customerId))
 })
 
 const loadCustomerPage = async (reset = false) => {
   const territoryId = selectedRoute.value?.territoryId
-  if (!territoryId) { customerItems.value = []; return }
+  if (!territoryId) { customerItems.value = [] 
+
+    return }
   if (isCustomerLoading.value) return
   if (!reset && customerPage.value >= customerTotalPages.value) return
 
@@ -338,6 +335,7 @@ const loadCustomerPage = async (reset = false) => {
   isCustomerLoading.value = true
   try {
     const pageIndex = reset ? 0 : customerPage.value
+
     const data = await fetchCustomers({
       territoryId,
       status: 'ACTIVE',
@@ -347,6 +345,7 @@ const loadCustomerPage = async (reset = false) => {
     })
 
     const content = data?.content ?? []
+
     const incoming = content
       .filter(c => !existingCustomerIds.value.has(c.id))
       .map(c => ({
@@ -376,7 +375,7 @@ const onCustomerSearch = val => {
   _cSearchTimer = setTimeout(() => loadCustomerPage(true), 350)
 }
 
-const onCustomerScrollEnd = (isIntersecting) => {
+const onCustomerScrollEnd = isIntersecting => {
   if (!isIntersecting || _cBlockScroll) return
   if (customerPage.value < customerTotalPages.value) {
     loadCustomerPage(false)
@@ -390,7 +389,9 @@ const onCustomerMenuUpdate = isOpen => {
 const onAssignCustomers = async () => {
   if (!selectedCustomerIds.value.length) return
   isAssigning.value = true
+
   const result = await assignCustomers(props.routeId, selectedCustomerIds.value)
+
   isAssigning.value = false
   if (result.success) {
     selectedCustomerIds.value = []
@@ -421,6 +422,7 @@ const onRemoveCustomer = async customerId => {
     confirmText: 'Remove',
     icon: 'warning',
   })
+
   if (!confirmed) return
 
   await removeCustomer(selectedRoute.value?.id, customerId)
@@ -457,7 +459,6 @@ const onRemoveCustomer = async customerId => {
         {{ detailError }}
       </VAlert>
       <VBtn
-        v-if="!isMyRoute"
         variant="tonal"
         color="secondary"
         prepend-icon="tabler-arrow-left"
@@ -474,7 +475,6 @@ const onRemoveCustomer = async customerId => {
         <VCardItem>
           <template #prepend>
             <VBtn
-              v-if="!isMyRoute"
               icon
               variant="text"
               color="default"
@@ -490,7 +490,6 @@ const onRemoveCustomer = async customerId => {
           <template #append>
             <!-- Edit Button -->
             <VBtn
-              v-if="!isMyRoute"
               variant="tonal"
               color="primary"
               class="me-3"
@@ -813,14 +812,20 @@ const onRemoveCustomer = async customerId => {
                             :disabled="idx === 0"
                             @click="moveStop(idx, -1)"
                           >
-                            <VIcon icon="tabler-arrow-up" size="18" />
+                            <VIcon
+                              icon="tabler-arrow-up"
+                              size="18"
+                            />
                           </IconBtn>
                           <IconBtn
                             size="small"
                             :disabled="idx === displayStops.length - 1"
                             @click="moveStop(idx, 1)"
                           >
-                            <VIcon icon="tabler-arrow-down" size="18" />
+                            <VIcon
+                              icon="tabler-arrow-down"
+                              size="18"
+                            />
                           </IconBtn>
                         </template>
                         <!-- Delete (only when NOT reordering) -->
@@ -831,7 +836,10 @@ const onRemoveCustomer = async customerId => {
                           :disabled="isSubmitting"
                           @click="onRemoveCustomer(stop.customerId)"
                         >
-                          <VIcon icon="tabler-trash" size="18" />
+                          <VIcon
+                            icon="tabler-trash"
+                            size="18"
+                          />
                         </IconBtn>
                       </div>
                     </div>

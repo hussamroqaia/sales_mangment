@@ -151,6 +151,14 @@ export const useAuth = () => {
       admin: [{ action: 'manage', subject: 'all' }],
       sales_manager: [
         { action: 'read', subject: 'Auth' },
+
+        // Management modules (territories, customers, products, demand orders,
+        // return sheets, van inventory, visits). These were gated on `Auth`,
+        // which every authenticated role holds — including SALES_REP, whose
+        // workflows live in the mobile app. `Management` is the gate that
+        // actually separates the three web roles from a rep.
+        { action: 'read', subject: 'Management' },
+
         { action: 'manage', subject: 'Routes' },
 
         // Invoice review (approve/reject). Matches the backend, where
@@ -173,6 +181,10 @@ export const useAuth = () => {
       ],
       warehouse_manager: [
         { action: 'read', subject: 'Auth' },
+
+        // Same management gate as sales_manager — see the note there.
+        { action: 'read', subject: 'Management' },
+
         { action: 'manage', subject: 'Warehouse' },
 
         // Reports area — Inventory categories only; the composable hides the

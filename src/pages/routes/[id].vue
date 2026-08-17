@@ -11,8 +11,8 @@
 
 definePage({
   meta: {
-    action: 'read',
-    subject: 'Auth',
+    action: 'manage',
+    subject: 'Routes',
     navActiveLink: 'routes',
   },
 })

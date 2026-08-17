@@ -88,8 +88,11 @@ export const routes = [
     name: 'products',
     component: () => import('@/pages/products/index.vue'),
     meta: {
+      // Kept in step with the definePage meta on the page itself: `Auth` is held
+      // by every authenticated role including SALES_REP, so management modules
+      // are gated on `Management` instead.
       action: 'read',
-      subject: 'Auth',
+      subject: 'Management',
     },
   },
 
@@ -103,7 +106,7 @@ export const routes = [
     component: () => import('@/pages/visits/index.vue'),
     meta: {
       action: 'read',
-      subject: 'Auth',
+      subject: 'Management',
     },
   },
   {
@@ -112,7 +115,7 @@ export const routes = [
     component: () => import('@/pages/visits/[id].vue'),
     meta: {
       action: 'read',
-      subject: 'Auth',
+      subject: 'Management',
       navActiveLink: 'visits',
     },
   },

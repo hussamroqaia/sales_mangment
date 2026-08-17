@@ -40,22 +40,12 @@ export const fetchRoutes = async (params = {}) => {
   }
 }
 
-// ─── GET /routes/me ──────────────────────────────────────────────────────────
-/**
- * Fetch the route for the currently logged-in user (sales rep) for a given date.
- * @param {string} date - YYYY-MM-DD
- * @returns {Promise<Object>}
- */
-export const fetchMyRoute = async date => {
-  try {
-    const response = await apiClient.get(`${BASE}/me`, { params: { date } })
-
-    return response.data?.data ?? response.data
-  } catch (error) {
-    throw error
-  }
-}
-
+// ─── GET /routes/me — deliberately NOT implemented ───────────────────────────
+// The backend guard is hasAnyRole('ADMIN','SALES_REP'), but the endpoint returns
+// the CALLER'S OWN route for a date — a sales rep's daily operational view. An
+// admin has no route of their own, so the ADMIN half of that guard yields
+// nothing useful; managers work through the full /routes surface instead.
+// That makes it a mobile workflow, so the web client does not call it.
 
 // ─── GET /routes/:id ─────────────────────────────────────────────────────────
 /**
