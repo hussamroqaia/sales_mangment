@@ -77,48 +77,20 @@ export const routes = [
     component: () => import('@/pages/dashboards/ecommerce.vue'),
   },
 
-  // ℹ️ The project directory name contains parentheses ("مجلد جديد (2)"), which
-  // are glob special characters. unplugin-vue-router uses fast-glob internally
-  // and silently fails to scan src/pages/products/, so the route is never
-  // auto-generated. We register it manually here as a workaround — the manual
-  // record replaces the (non-existent) auto-generated one, giving us one clean
-  // registration with the correct name and component.
-  {
-    path: '/products',
-    name: 'products',
-    component: () => import('@/pages/products/index.vue'),
-    meta: {
-      // Kept in step with the definePage meta on the page itself: `Auth` is held
-      // by every authenticated role including SALES_REP, so management modules
-      // are gated on `Management` instead.
-      action: 'read',
-      subject: 'Management',
-    },
-  },
-
-  // ℹ️ Same glob problem as /products above: unplugin-vue-router does not pick
-  // up src/pages/visits/, so `visits` / `visits-id` are never auto-generated and
-  // the sidebar entry throws `No match for {"name":"visits"}`. Registered here
-  // manually with the same meta the definePage() blocks declare.
-  {
-    path: '/visits',
-    name: 'visits',
-    component: () => import('@/pages/visits/index.vue'),
-    meta: {
-      action: 'read',
-      subject: 'Management',
-    },
-  },
-  {
-    path: '/visits/:id',
-    name: 'visits-id',
-    component: () => import('@/pages/visits/[id].vue'),
-    meta: {
-      action: 'read',
-      subject: 'Management',
-      navActiveLink: 'visits',
-    },
-  },
+  // ℹ️ /products, /visits and /visits/:id were registered here manually, from a
+  // time when the parentheses in the project directory name ("مجلد جديد (2)")
+  // stopped fast-glob from scanning src/pages/. The globSafePath fix in
+  // vite.config.js resolved that, and all three ARE auto-generated now —
+  // confirmed by reading the router's own generated module:
+  //
+  //   curl "http://localhost:<port>/@id/virtual:vue-router/auto-routes"
+  //
+  // which lists '/products', '/visits' and '/visits/:id' with their
+  // definePage() meta imported. Keeping the manual copies made each of them a
+  // duplicate record, which is exactly the failure the products page warns
+  // about — vue-router drops the auto-generated record and the surviving one
+  // renders blank on hard refresh. They are removed; definePage() now owns
+  // registration and meta for all three.
 
   // ℹ️ /tracking is NOT listed here on purpose. The glob-escaping fix in
   // vite.config.js (globSafePath) made unplugin-vue-router scan src/pages/

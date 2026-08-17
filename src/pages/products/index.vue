@@ -9,7 +9,8 @@
  * leaving an orphaned component-less route that renders blank on hard refresh.
  *
  * Access rules:
- *   - All authenticated roles can VIEW the list (action: 'read', subject: 'Auth')
+ *   - ADMIN / SALES_MANAGER / WAREHOUSE_MANAGER can VIEW the list
+ *     (action: 'read', subject: 'Management' — SALES_REP is excluded)
  *   - Only ADMIN can CREATE / EDIT / DELETE / change status (checked via useAuth)
  */
 

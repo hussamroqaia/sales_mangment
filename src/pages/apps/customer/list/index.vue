@@ -5,7 +5,9 @@
  * Route name: apps-customer-list  →  /apps/customer/list
  *
  * Access rules:
- *   - All authenticated roles can VIEW (action: 'read', subject: 'Auth')
+ *   - ADMIN / SALES_MANAGER / WAREHOUSE_MANAGER can VIEW
+ *     (action: 'read', subject: 'Management' — SALES_REP is excluded; its
+ *      workflows live in the mobile client)
  *   - Only ADMIN can CREATE / EDIT / DELETE (checked via useAuth userData.role)
  *   - Only ADMIN can change status
  */
