@@ -69,6 +69,15 @@ export default [
     subject: 'Reports',
   },
   {
+    // ADMIN + SALES_MANAGER can read config; only ADMIN can write it, which is
+    // enforced inside the page rather than by hiding the entry.
+    title: 'System Config',
+    icon: { icon: 'tabler-settings-cog' },
+    to: 'config',
+    action: 'read',
+    subject: 'Config',
+  },
+  {
     title: 'Logistics',
     icon: { icon: 'tabler-truck' },
     action: 'read',

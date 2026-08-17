@@ -426,6 +426,11 @@
     "humaniseKey": true,
     "useReports": true,
     "MERCATOR_MAX_LATITUDE": true,
-    "toRenderableLatLng": true
+    "toRenderableLatLng": true,
+    "CONFIG_VALUE_TYPE_INT": true,
+    "KNOWN_CONFIG_KEYS": true,
+    "formatConfigTimestamp": true,
+    "useSystemConfig": true,
+    "validateConfigValue": true
   }
 }

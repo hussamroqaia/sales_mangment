@@ -161,6 +161,11 @@ export const useAuth = () => {
         // Reports area. Which categories appear inside is gated separately —
         // this role sees Sales/Customers/Routes but never Inventory.
         { action: 'read', subject: 'Reports' },
+
+        // System config: GET /api/config admits SALES_MANAGER, but
+        // PUT /api/config/{key} is ADMIN only — the write controls are gated
+        // inside the view, so this grants read access only.
+        { action: 'read', subject: 'Config' },
       ],
       sales_rep: [
         { action: 'read', subject: 'Auth' },
