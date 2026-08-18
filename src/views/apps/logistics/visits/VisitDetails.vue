@@ -260,7 +260,6 @@ const openRoute = () => {
               <div class="text-caption text-disabled mb-1">
                 Route
               </div>
-              <!-- GET /visits/{id} returns routeId only — no route name is invented. -->
               <VBtn
                 v-if="canOpenRoute && selectedVisit.routeId"
                 variant="text"
@@ -269,13 +268,13 @@ const openRoute = () => {
                 append-icon="tabler-external-link"
                 @click="openRoute"
               >
-                Route #{{ selectedVisit.routeId }}
+                {{ selectedVisit.routeName || `Route #${selectedVisit.routeId}` }}
               </VBtn>
               <div
                 v-else
                 class="text-body-1 font-weight-medium"
               >
-                {{ selectedVisit.routeId ? `Route #${selectedVisit.routeId}` : '—' }}
+                {{ selectedVisit.routeName || (selectedVisit.routeId ? `Route #${selectedVisit.routeId}` : '—') }}
               </div>
             </VCol>
 

@@ -59,25 +59,13 @@ const {
 const headers = [
   { title: 'Customer',       key: 'customerName',       sortable: false },
   { title: 'Representative', key: 'representativeName', sortable: false },
-  { title: 'Route',          key: 'routeId',            sortable: false },
+  { title: 'Route',          key: 'routeName',          sortable: false },
   { title: 'Status',         key: 'status',             sortable: true  },
   { title: 'Duration',       key: 'duration',           sortable: false },
   { title: 'Action',         key: 'actions',            sortable: false, align: 'end' },
 ]
 
-// ── Route name resolution ─────────────────────────────────────────────────────
-// GET /visits returns `routeId` but no `routeName`. We resolve the label from
-// the routes the filter dropdown has already loaded — never one request per row.
-const loadedRoutes = ref([])
 
-const routeNameById = computed(() =>
-  new Map(loadedRoutes.value.map(r => [r.id, r.name])))
-
-const routeLabel = routeId => {
-  if (routeId == null) return '—'
-
-  return routeNameById.value.get(routeId) ?? `#${routeId}`
-}
 
 // ── Dependent filters ─────────────────────────────────────────────────────────
 // Keep the raw selected route so the customer filter can narrow to its stops.
@@ -159,7 +147,6 @@ onMounted(fetchAllVisits)
               label="Route"
               placeholder="Filter by Route"
               clearable
-              @options="loadedRoutes = $event"
               @select="onRouteSelect"
             />
           </VCol>
@@ -290,8 +277,8 @@ onMounted(fetchAllVisits)
           </VChip>
         </template>
 
-        <template #item.routeId="{ item }">
-          <span class="text-body-2">{{ routeLabel(item.routeId) }}</span>
+        <template #item.routeName="{ item }">
+          <span class="text-body-2">{{ item.routeName || `Route #${item.routeId}` }}</span>
         </template>
 
         <template #item.status="{ item }">
