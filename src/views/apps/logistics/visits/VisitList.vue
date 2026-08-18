@@ -57,13 +57,10 @@ const {
 // `sortable` is true only for columns the backend can actually sort on — the
 // computed Duration column must never send `sortBy=duration`.
 const headers = [
-  { title: 'ID',             key: 'id',                 sortable: true  },
   { title: 'Customer',       key: 'customerName',       sortable: false },
   { title: 'Representative', key: 'representativeName', sortable: false },
   { title: 'Route',          key: 'routeId',            sortable: false },
   { title: 'Status',         key: 'status',             sortable: true  },
-  { title: 'Check-in',       key: 'checkInTime',        sortable: true  },
-  { title: 'Check-out',      key: 'checkOutTime',       sortable: true  },
   { title: 'Duration',       key: 'duration',           sortable: false },
   { title: 'Action',         key: 'actions',            sortable: false, align: 'end' },
 ]
@@ -186,7 +183,7 @@ onMounted(fetchAllVisits)
             md="3"
             sm="6"
           >
-            <AppSelect
+            <VSelect
               v-model="selectedStatus"
               label="Status"
               placeholder="Filter by Status"
@@ -276,10 +273,6 @@ onMounted(fetchAllVisits)
           </div>
         </template>
 
-        <template #item.id="{ item }">
-          <span class="text-body-2 text-medium-emphasis">#{{ item.id }}</span>
-        </template>
-
         <template #item.customerName="{ item }">
           <span class="text-body-1 font-weight-medium">
             {{ item.customerName || `Customer #${item.customerId}` }}
@@ -306,17 +299,10 @@ onMounted(fetchAllVisits)
             :color="resolveVisitStatusVariant(item.status)"
             size="small"
             label
+            class="text-no-wrap"
           >
             {{ visitStatusTitle(item.status) }}
           </VChip>
-        </template>
-
-        <template #item.checkInTime="{ item }">
-          <span class="text-body-2">{{ formatVisitDateTime(item.checkInTime) }}</span>
-        </template>
-
-        <template #item.checkOutTime="{ item }">
-          <span class="text-body-2">{{ formatVisitDateTime(item.checkOutTime) }}</span>
         </template>
 
         <template #item.duration="{ item }">

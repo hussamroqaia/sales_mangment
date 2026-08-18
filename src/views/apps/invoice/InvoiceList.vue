@@ -49,7 +49,6 @@ const {
 // service after the query and are NOT persisted columns — sorting on them would
 // make Spring Data throw.
 const headers = [
-  { title: 'Invoice',        key: 'id',                 sortable: true  },
   { title: 'Status',         key: 'status',             sortable: true  },
   { title: 'Customer',       key: 'customerName',       sortable: false },
   { title: 'Representative', key: 'representativeName', sortable: false },
@@ -115,7 +114,7 @@ onMounted(fetchAllInvoices)
             md="3"
             sm="6"
           >
-            <AppSelect
+            <VSelect
               v-model="selectedStatus"
               label="Status"
               placeholder="Filter by Status"
@@ -134,9 +133,9 @@ onMounted(fetchAllInvoices)
           >
             <AppDateTimePicker
               v-model="selectedInvoiceDate"
-              label="Invoice Date"
-              placeholder="YYYY-MM-DD"
+              placeholder="Invoice Date (YYYY-MM-DD)"
               :config="{ dateFormat: 'Y-m-d' }"
+              clearable
             />
           </VCol>
         </VRow>
@@ -216,15 +215,6 @@ onMounted(fetchAllInvoices)
               No invoices found for the selected filters.
             </p>
           </div>
-        </template>
-
-        <template #item.id="{ item }">
-          <RouterLink
-            :to="{ name: 'apps-invoice-preview-id', params: { id: item.id } }"
-            class="text-link font-weight-medium"
-          >
-            #{{ item.id }}
-          </RouterLink>
         </template>
 
         <template #item.status="{ item }">
