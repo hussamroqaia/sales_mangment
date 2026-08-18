@@ -22,9 +22,10 @@ const {
 } = useVanInventory()
 
 const headers = [
-  { title: 'Product',          key: 'productName', sortable: true  },
-  { title: 'SKU',              key: 'sku',         sortable: true  },
-  { title: 'Current Quantity', key: 'quantity',    sortable: true, align: 'end' },
+  { title: 'Product',          key: 'product.name', sortable: true  },
+  { title: 'SKU',              key: 'product.sku',  sortable: true  },
+  { title: 'Current Quantity', key: 'quantity',     sortable: true, align: 'end' },
+  { title: 'Unit',             key: 'product.unitOfMeasure', sortable: true },
 ]
 </script>
 
@@ -133,7 +134,7 @@ const headers = [
           </div>
         </template>
 
-        <template #item.productName="{ item }">
+        <template #item.product.name="{ item }">
           <div class="d-flex align-center gap-x-3">
             <VAvatar
               size="36"
@@ -146,17 +147,21 @@ const headers = [
               />
             </VAvatar>
             <span class="text-body-1 font-weight-medium text-high-emphasis">
-              {{ item.productName || '—' }}
+              {{ item.product?.name || '—' }}
             </span>
           </div>
         </template>
 
-        <template #item.sku="{ item }">
-          <span class="text-body-2 font-weight-medium">{{ item.sku || '—' }}</span>
+        <template #item.product.sku="{ item }">
+          <span class="text-body-2 font-weight-medium">{{ item.product?.sku || '—' }}</span>
         </template>
 
         <template #item.quantity="{ item }">
           <span class="text-body-1 font-weight-medium">{{ item.quantity ?? '—' }}</span>
+        </template>
+
+        <template #item.product.unitOfMeasure="{ item }">
+          <span class="text-body-2 text-capitalize">{{ (item.product?.unitOfMeasure || '—').toLowerCase() }}</span>
         </template>
       </VDataTable>
     </VCard>
