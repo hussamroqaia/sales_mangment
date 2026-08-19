@@ -20,6 +20,7 @@ import {
 } from '@/composables/useRoutes'
 import { confirmAction } from '@/utils/swal'
 import { useAuth } from '@/composables/useAuth'
+import { INTL_LOCALE } from '@/utils/locale'
 
 const { userData } = useAuth()
 const ROUTE_MANAGER_ROLES = ['admin', 'sales_manager']
@@ -49,13 +50,13 @@ const {
 
 // ── Table Headers ──────────────────────────────────────────────────────────────
 const headers = [
-  { title: 'Route Name', key: 'name',              sortable: true  },
-  { title: 'Rep Name',  key: 'representativeName', sortable: false },
-  { title: 'Territory', key: 'territoryName',      sortable: false },
-  { title: 'Date',      key: 'routeDate',          sortable: true  },
-  { title: 'Status',    key: 'status',             sortable: true  },
-  { title: 'Optimized', key: 'isOptimized',        sortable: false },
-  { title: 'Action',    key: 'actions',            sortable: false, align: 'end' },
+  { title: 'اسم المسار', key: 'name',              sortable: true  },
+  { title: 'المندوب',  key: 'representativeName', sortable: false },
+  { title: 'المنطقة', key: 'territoryName',      sortable: false },
+  { title: 'التاريخ',      key: 'routeDate',          sortable: true  },
+  { title: 'الحالة',    key: 'status',             sortable: true  },
+  { title: 'التحسين', key: 'isOptimized',        sortable: false },
+  { title: 'الإجراء',    key: 'actions',            sortable: false, align: 'end' },
 ]
 
 // ── Drawer state ───────────────────────────────────────────────────────────────
@@ -90,9 +91,9 @@ const viewDetails = route => {
 // ── Delete — SweetAlert2 confirmation before firing DELETE ────────────────────
 const onDelete = async route => {
   const confirmed = await confirmAction({
-    title: `Delete route "${route.name}"?`,
-    text: 'This will permanently remove the route and all its stops. This cannot be undone.',
-    confirmText: 'Delete',
+    title: `حذف المسار "${route.name}"؟`,
+    text: 'سيؤدي هذا إلى حذف المسار وكل محطاته نهائيًا. لا يمكن التراجع عن هذا الإجراء.',
+    confirmText: 'حذف',
     icon: 'warning',
   })
   if (!confirmed) return
@@ -104,7 +105,7 @@ const formatDate = value => {
   if (!value) return '—'
   const d = new Date(value)
 
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(INTL_LOCALE, {
     year: 'numeric', month: 'short', day: '2-digit',
   }).format(d)
 }
@@ -126,7 +127,7 @@ onMounted(fetchAllRoutes)
             prepend-icon="tabler-plus"
             @click="openCreate"
           >
-            New Route
+            مسار جديد
           </VBtn>
         </template>
       </VCardItem>
@@ -140,7 +141,7 @@ onMounted(fetchAllRoutes)
           >
             <AppSelect
               v-model="selectedStatus"
-              placeholder="Filter by Status"
+              placeholder="تصفية حسب الحالة"
               :items="ROUTE_STATUSES"
               item-title="title"
               item-value="value"
@@ -154,8 +155,8 @@ onMounted(fetchAllRoutes)
           >
             <RepresentativeSelect
               v-model="selectedRepresentativeId"
-              label="Sales Rep"
-              placeholder="Filter by Representative"
+              label="المندوب"
+              placeholder="تصفية حسب المندوب"
               clearable
             />
           </VCol>
@@ -165,7 +166,7 @@ onMounted(fetchAllRoutes)
           >
             <AppDateTimePicker
               v-model="selectedRouteDate"
-              placeholder="Filter by Date (YYYY-MM-DD)"
+              placeholder="تصفية حسب التاريخ (سنة-شهر-يوم)"
               :config="{ dateFormat: 'Y-m-d' }"
               clearable
             />
@@ -195,7 +196,7 @@ onMounted(fetchAllRoutes)
           :loading="isListLoading"
           @click="fetchAllRoutes"
         >
-          Refresh
+          تحديث
         </VBtn>
       </VCardText>
 
@@ -235,7 +236,7 @@ onMounted(fetchAllRoutes)
               color="secondary"
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
-              No routes found.
+              لا توجد مسارات.
             </p>
           </div>
         </template>
@@ -284,14 +285,14 @@ onMounted(fetchAllRoutes)
               size="14"
               class="me-1"
             />
-            {{ item.isOptimized ? 'Optimized' : 'Not Optimized' }}
+            {{ item.isOptimized ? 'مُحسَّن' : 'غير مُحسَّن' }}
           </VChip>
         </template>
 
         <template #item.actions="{ item }">
           <div class="d-flex justify-end gap-1">
             <template v-if="canManageRoutes">
-              <VTooltip text="Edit Route">
+              <VTooltip text="تعديل المسار">
                 <template #activator="{ props: tp }">
                   <IconBtn
                     v-bind="tp"
@@ -302,7 +303,7 @@ onMounted(fetchAllRoutes)
                 </template>
               </VTooltip>
             
-              <VTooltip text="Delete Route">
+              <VTooltip text="حذف المسار">
                 <template #activator="{ props: tp }">
                   <IconBtn
                     v-bind="tp"
@@ -315,7 +316,7 @@ onMounted(fetchAllRoutes)
                 </template>
               </VTooltip>
             </template>
-            <VTooltip text="View Details">
+            <VTooltip text="عرض التفاصيل">
               <template #activator="{ props: tp }">
                 <IconBtn
                   v-bind="tp"

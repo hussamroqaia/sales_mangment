@@ -27,20 +27,20 @@ import {
 
 // ─── Status constants (shared across components) ──────────────────────────────
 export const PRODUCT_STATUSES = [
-  { title: 'Active',       value: 'ACTIVE'       },
-  { title: 'Discontinued', value: 'DISCONTINUED' },
+  { title: 'نشط',    value: 'ACTIVE'       },
+  { title: 'موقوف',  value: 'DISCONTINUED' },
 ]
 
 // ─── Unit of Measure options (used to populate the form dropdown) ─────────────
 export const PRODUCT_UNITS = [
-  { title: 'Piece',  value: 'PIECE'  },
-  { title: 'Box',    value: 'BOX'    },
-  { title: 'Carton', value: 'CARTON' },
-  { title: 'Kg',     value: 'KG'     },
-  { title: 'Gram',   value: 'GRAM'   },
-  { title: 'Liter',  value: 'LITER'  },
-  { title: 'Pack',   value: 'PACK'   },
-  { title: 'Dozen',  value: 'DOZEN'  },
+  { title: 'قطعة',   value: 'PIECE'  },
+  { title: 'علبة',   value: 'BOX'    },
+  { title: 'كرتونة', value: 'CARTON' },
+  { title: 'كيلوغرام', value: 'KG'   },
+  { title: 'غرام',   value: 'GRAM'   },
+  { title: 'لتر',    value: 'LITER'  },
+  { title: 'حزمة',   value: 'PACK'   },
+  { title: 'دزينة',  value: 'DOZEN'  },
 ]
 
 export const resolveStatusVariant = status =>
@@ -98,7 +98,7 @@ export const useProducts = () => {
       totalProducts.value = data?.totalElements ?? 0
     } catch (error) {
       const message = error?.response?.data?.message
-      listError.value = message || 'Failed to load products.'
+      listError.value = message || 'تعذّر تحميل المنتجات.'
       showSnackbar(listError.value, 'error')
     } finally {
       isListLoading.value = false
@@ -133,7 +133,7 @@ export const useProducts = () => {
       editingProduct.value = data
     } catch (error) {
       const message = error?.response?.data?.message
-      detailError.value = message || `Failed to load product #${id}.`
+      detailError.value = message || `تعذّر تحميل المنتج رقم ${id}.`
       showSnackbar(detailError.value, 'error')
     } finally {
       isDetailLoading.value = false
@@ -145,16 +145,16 @@ export const useProducts = () => {
     isSubmitting.value = true
     try {
       await createProductService(payload)
-      showSnackbar('Product created successfully.')
+      showSnackbar('تم إنشاء المنتج بنجاح.')
       page.value = 1
       await fetchAllProducts()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to create product.', 'error')
+      showSnackbar(message || 'تعذّر إنشاء المنتج.', 'error')
 
-      return { success: false, error: message || 'Failed to create product.' }
+      return { success: false, error: message || 'تعذّر إنشاء المنتج.' }
     } finally {
       isSubmitting.value = false
     }
@@ -165,15 +165,15 @@ export const useProducts = () => {
     isSubmitting.value = true
     try {
       await updateProductService(id, payload)
-      showSnackbar('Product updated successfully.')
+      showSnackbar('تم تحديث المنتج بنجاح.')
       await fetchAllProducts()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to update product.', 'error')
+      showSnackbar(message || 'تعذّر تحديث المنتج.', 'error')
 
-      return { success: false, error: message || 'Failed to update product.' }
+      return { success: false, error: message || 'تعذّر تحديث المنتج.' }
     } finally {
       isSubmitting.value = false
     }
@@ -189,14 +189,14 @@ export const useProducts = () => {
       const idx = products.value.findIndex(p => p.id === id)
       if (idx !== -1) products.value[idx] = { ...products.value[idx], status }
 
-      showSnackbar('Product status updated.')
+      showSnackbar('تم تحديث حالة المنتج.')
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to update status.', 'error')
+      showSnackbar(message || 'تعذّر تحديث الحالة.', 'error')
 
-      return { success: false, error: message || 'Failed to update status.' }
+      return { success: false, error: message || 'تعذّر تحديث الحالة.' }
     } finally {
       isSubmitting.value = false
     }
@@ -207,7 +207,7 @@ export const useProducts = () => {
     isSubmitting.value = true
     try {
       await deleteProductService(id)
-      showSnackbar('Product deleted successfully.')
+      showSnackbar('تم حذف المنتج بنجاح.')
 
       // If we just deleted the last row on a page > 1, step back a page
       // (the page watcher will refetch); otherwise refetch the current page.
@@ -220,9 +220,9 @@ export const useProducts = () => {
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to delete product.', 'error')
+      showSnackbar(message || 'تعذّر حذف المنتج.', 'error')
 
-      return { success: false, error: message || 'Failed to delete product.' }
+      return { success: false, error: message || 'تعذّر حذف المنتج.' }
     } finally {
       isSubmitting.value = false
     }

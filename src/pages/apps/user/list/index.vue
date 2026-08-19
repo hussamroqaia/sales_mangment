@@ -7,6 +7,7 @@ definePage({
 })
 import AddNewUserDrawer from '@/views/apps/user/list/AddNewUserDrawer.vue'
 import UserDetailDialog from '@/views/apps/user/list/UserDetailDialog.vue'
+import { INTL_LOCALE } from '@/utils/locale'
 import {
   useUsers,
   resolveRoleVariant,
@@ -42,11 +43,11 @@ const {
 
 // ── Table Headers ─────────────────────────────────────────────────────────────
 const headers = [
-  { title: 'User',    key: 'name',      sortable: true  },
-  { title: 'Role',    key: 'role',      sortable: true  },
-  { title: 'Status',  key: 'status',    sortable: true  },
-  { title: 'Created', key: 'createdAt', sortable: true  },
-  { title: 'Actions', key: 'actions',   sortable: false, align: 'end' },
+  { title: 'المستخدم',    key: 'name',      sortable: true  },
+  { title: 'الدور',    key: 'role',      sortable: true  },
+  { title: 'الحالة',  key: 'status',    sortable: true  },
+  { title: 'تاريخ الإنشاء', key: 'createdAt', sortable: true  },
+  { title: 'الإجراءات', key: 'actions',   sortable: false, align: 'end' },
 ]
 
 // ── Drawer & Dialog State ─────────────────────────────────────────────────────
@@ -78,7 +79,7 @@ const onResetPassword = async (id, newPassword) => {
 const formatDate = dateStr => {
   if (!dateStr) return '—'
 
-  return new Date(dateStr).toLocaleDateString('en-US', {
+  return new Date(dateStr).toLocaleDateString(INTL_LOCALE, {
     year:  'numeric',
     month: 'short',
     day:   'numeric',
@@ -102,7 +103,7 @@ onMounted(fetchAllUsers)
           <VCardText class="d-flex justify-space-between align-center">
             <div>
               <div class="text-body-2 text-medium-emphasis mb-1">
-                Total Users
+                إجمالي المستخدمين
               </div>
               <h4 class="text-h4">
                 {{ counts.total }}
@@ -132,7 +133,7 @@ onMounted(fetchAllUsers)
           <VCardText class="d-flex justify-space-between align-center">
             <div>
               <div class="text-body-2 text-medium-emphasis mb-1">
-                Active
+                نشط
               </div>
               <h4 class="text-h4">
                 {{ counts.active }}
@@ -162,7 +163,7 @@ onMounted(fetchAllUsers)
           <VCardText class="d-flex justify-space-between align-center">
             <div>
               <div class="text-body-2 text-medium-emphasis mb-1">
-                Inactive
+                غير نشط
               </div>
               <h4 class="text-h4">
                 {{ counts.inactive }}
@@ -192,7 +193,7 @@ onMounted(fetchAllUsers)
           <VCardText class="d-flex justify-space-between align-center">
             <div>
               <div class="text-body-2 text-medium-emphasis mb-1">
-                Suspended
+                موقوف
               </div>
               <h4 class="text-h4">
                 {{ counts.suspended }}
@@ -218,7 +219,7 @@ onMounted(fetchAllUsers)
     <VCard>
       <!-- Filters -->
       <VCardItem class="pb-2">
-        <VCardTitle>User Management</VCardTitle>
+        <VCardTitle>إدارة المستخدمين</VCardTitle>
       </VCardItem>
 
       <VCardText>
@@ -229,7 +230,7 @@ onMounted(fetchAllUsers)
           >
             <AppSelect
               v-model="selectedRole"
-              placeholder="Filter by Role"
+              placeholder="تصفية حسب الدور"
               :items="USER_ROLES"
               item-title="title"
               item-value="value"
@@ -244,7 +245,7 @@ onMounted(fetchAllUsers)
           >
             <AppSelect
               v-model="selectedStatus"
-              placeholder="Filter by Status"
+              placeholder="تصفية حسب الحالة"
               :items="USER_STATUSES"
               item-title="title"
               item-value="value"
@@ -277,7 +278,7 @@ onMounted(fetchAllUsers)
         <div style="inline-size: 15.625rem;">
           <AppTextField
             v-model="searchQuery"
-            placeholder="Search by name or email…"
+            placeholder="ابحث بالاسم أو البريد الإلكتروني…"
             prepend-inner-icon="tabler-search"
             clearable
           />
@@ -288,7 +289,7 @@ onMounted(fetchAllUsers)
           prepend-icon="tabler-plus"
           @click="isAddDrawerOpen = true"
         >
-          Add User
+          إضافة مستخدم
         </VBtn>
       </VCardText>
 
@@ -338,8 +339,8 @@ onMounted(fetchAllUsers)
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
               {{ searchQuery || selectedRole || selectedStatus
-                ? 'No users match your filters'
-                : 'No users found. Create your first user.' }}
+                ? 'لا يوجد مستخدمون مطابقون لعوامل التصفية'
+                : 'لا يوجد مستخدمون. أنشئ أول مستخدم.' }}
             </p>
             <VBtn
               v-if="!searchQuery && !selectedRole && !selectedStatus"
@@ -347,7 +348,7 @@ onMounted(fetchAllUsers)
               size="small"
               @click="isAddDrawerOpen = true"
             >
-              Add User
+              إضافة مستخدم
             </VBtn>
           </div>
         </template>
@@ -409,7 +410,7 @@ onMounted(fetchAllUsers)
         <template #item.actions="{ item }">
           <div class="d-flex justify-end gap-1">
             <!-- View / Edit -->
-            <VTooltip text="View Details">
+            <VTooltip text="عرض التفاصيل">
               <template #activator="{ props: tooltipProps }">
                 <IconBtn
                   v-bind="tooltipProps"
@@ -438,7 +439,7 @@ onMounted(fetchAllUsers)
                         size="16"
                       />
                     </template>
-                    <VListItemTitle>View Details</VListItemTitle>
+                    <VListItemTitle>عرض التفاصيل</VListItemTitle>
                   </VListItem>
 
                   <VDivider class="my-1" />

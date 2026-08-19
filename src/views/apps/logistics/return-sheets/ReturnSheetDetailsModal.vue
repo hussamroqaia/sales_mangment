@@ -6,6 +6,7 @@
  * (Product Name, SKU, Quantity).
  */
 
+import { INTL_LOCALE } from '@/utils/locale'
 import {
   RETURN_SHEET_STATUSES,
   resolveReturnStatusVariant,
@@ -40,7 +41,7 @@ const formatDate = value => {
   if (!value) return '—'
   const d = new Date(value)
 
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(INTL_LOCALE, {
     year: 'numeric', month: 'short', day: '2-digit',
   }).format(d)
 }
@@ -60,7 +61,7 @@ const formatDate = value => {
             icon="tabler-truck-return"
             size="22"
           />
-          Return Sheet
+          كشف المرتجعات
           <span
             v-if="props.sheet?.id"
             class="text-medium-emphasis"
@@ -93,7 +94,7 @@ const formatDate = value => {
               sm="4"
             >
               <div class="text-body-2 text-medium-emphasis">
-                Representative
+                المندوب
               </div>
               <div class="text-body-1 font-weight-medium">
                 {{ props.sheet.representativeName || `Rep #${props.sheet.representativeId}` || '—' }}
@@ -104,7 +105,7 @@ const formatDate = value => {
               sm="4"
             >
               <div class="text-body-2 text-medium-emphasis">
-                Return Date
+                تاريخ الإرجاع
               </div>
               <div class="text-body-1 font-weight-medium">
                 {{ formatDate(props.sheet.returnDate) }}
@@ -115,7 +116,7 @@ const formatDate = value => {
               sm="4"
             >
               <div class="text-body-2 text-medium-emphasis">
-                Status
+                الحالة
               </div>
               <VChip
                 :color="resolveReturnStatusVariant(props.sheet.status)"
@@ -133,13 +134,13 @@ const formatDate = value => {
             <thead>
               <tr>
                 <th class="text-left">
-                  Product
+                  المنتج
                 </th>
                 <th class="text-left">
-                  SKU
+                  رمز الصنف (SKU)
                 </th>
                 <th class="text-end">
-                  Quantity
+                  الكمية
                 </th>
               </tr>
             </thead>
@@ -161,7 +162,7 @@ const formatDate = value => {
                   colspan="3"
                   class="text-center text-medium-emphasis py-6"
                 >
-                  No lines on this return sheet.
+                  لا توجد أسطر في كشف المرتجعات هذا.
                 </td>
               </tr>
             </tbody>
@@ -177,7 +178,7 @@ const formatDate = value => {
           color="secondary"
           @click="emit('update:isDialogOpen', false)"
         >
-          Close
+          إغلاق
         </VBtn>
       </VCardActions>
     </VCard>

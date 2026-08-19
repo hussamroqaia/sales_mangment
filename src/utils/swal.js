@@ -9,7 +9,7 @@
  *
  * Usage:
  *   import { confirmAction } from '@/utils/swal'
- *   const ok = await confirmAction({ title: 'Load Van?', text: '…', confirmText: 'Load' })
+ *   const ok = await confirmAction({ title: 'تحميل المركبة؟', text: '…', confirmText: 'تحميل' })
  *   if (ok) { ... }
  */
 
@@ -33,16 +33,16 @@ const themedSwal = Swal.mixin({
  * @param {Object}  opts
  * @param {string}  opts.title        - Dialog title
  * @param {string}  [opts.text]       - Body text
- * @param {string}  [opts.confirmText='Confirm']
- * @param {string}  [opts.cancelText='Cancel']
+ * @param {string}  [opts.confirmText='تأكيد']
+ * @param {string}  [opts.cancelText='إلغاء']
  * @param {'warning'|'question'|'info'|'success'|'error'} [opts.icon='warning']
  * @returns {Promise<boolean>}
  */
 export const confirmAction = async ({
   title,
   text = '',
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText = 'تأكيد',
+  cancelText = 'إلغاء',
   icon = 'warning',
 } = {}) => {
   const result = await themedSwal.fire({
@@ -59,7 +59,7 @@ export const confirmAction = async ({
 }
 
 /** Lightweight success toast (top-end, auto-dismiss). */
-export const toastSuccess = (title = 'Done') =>
+export const toastSuccess = (title = 'تم') =>
   themedSwal.fire({
     toast: true,
     position: 'top-end',

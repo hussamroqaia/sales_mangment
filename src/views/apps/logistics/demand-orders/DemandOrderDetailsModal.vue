@@ -6,6 +6,7 @@
  * (Product Name, SKU, Requested Qty, Fulfilled Qty) in a simple table.
  */
 
+import { INTL_LOCALE } from '@/utils/locale'
 import {
   DEMAND_ORDER_STATUSES,
   resolveDemandStatusVariant,
@@ -40,7 +41,7 @@ const formatDate = value => {
   if (!value) return '—'
   const d = new Date(value)
 
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(INTL_LOCALE, {
     year: 'numeric', month: 'short', day: '2-digit',
   }).format(d)
 }
@@ -60,7 +61,7 @@ const formatDate = value => {
             icon="tabler-truck-delivery"
             size="22"
           />
-          Demand Order
+          طلب التزويد
           <span
             v-if="props.order?.id"
             class="text-medium-emphasis"
@@ -95,7 +96,7 @@ const formatDate = value => {
               sm="4"
             >
               <div class="text-body-2 text-medium-emphasis">
-                Representative
+                المندوب
               </div>
               <div class="text-body-1 font-weight-medium">
                 {{ props.order.representativeName || `Rep #${props.order.representativeId}` || '—' }}
@@ -106,7 +107,7 @@ const formatDate = value => {
               sm="4"
             >
               <div class="text-body-2 text-medium-emphasis">
-                Order Date
+                تاريخ الطلب
               </div>
               <div class="text-body-1 font-weight-medium">
                 {{ formatDate(props.order.orderDate) }}
@@ -117,7 +118,7 @@ const formatDate = value => {
               sm="4"
             >
               <div class="text-body-2 text-medium-emphasis">
-                Status
+                الحالة
               </div>
               <VChip
                 :color="resolveDemandStatusVariant(props.order.status)"
@@ -136,16 +137,16 @@ const formatDate = value => {
             <thead>
               <tr>
                 <th class="text-left">
-                  Product
+                  المنتج
                 </th>
                 <th class="text-left">
-                  SKU
+                  رمز الصنف (SKU)
                 </th>
                 <th class="text-end">
-                  Requested Qty
+                  الكمية المطلوبة
                 </th>
                 <th class="text-end">
-                  Fulfilled Qty
+                  الكمية المُلبّاة
                 </th>
               </tr>
             </thead>
@@ -170,7 +171,7 @@ const formatDate = value => {
                   colspan="4"
                   class="text-center text-medium-emphasis py-6"
                 >
-                  No lines on this order.
+                  لا توجد أسطر في هذا الطلب.
                 </td>
               </tr>
             </tbody>
@@ -186,7 +187,7 @@ const formatDate = value => {
           color="secondary"
           @click="emit('update:isDialogOpen', false)"
         >
-          Close
+          إغلاق
         </VBtn>
       </VCardActions>
     </VCard>

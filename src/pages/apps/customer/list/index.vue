@@ -31,6 +31,7 @@ import { fetchTerritories } from '@/services/territory.service'
 import CustomerFormDrawer from '@/views/apps/customer/CustomerFormDrawer.vue'
 import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
+import { INTL_LOCALE } from '@/utils/locale'
 
 // ── Auth ───────────────────────────────────────────────────────────────────────
 const { userData } = useAuth()
@@ -63,12 +64,12 @@ const {
 
 // ── Table Headers ──────────────────────────────────────────────────────────────
 const headers = [
-  { title: 'Customer',  key: 'name',        sortable: true  },
-  { title: 'Category',  key: 'category',    sortable: true  },
-  { title: 'Territory', key: 'territoryName', sortable: false },
-  { title: 'Phone',     key: 'phone',       sortable: false },
-  { title: 'Status',    key: 'status',      sortable: true  },
-  { title: 'Actions',   key: 'actions',     sortable: false, align: 'end' },
+  { title: 'العميل',  key: 'name',        sortable: true  },
+  { title: 'الفئة',  key: 'category',    sortable: true  },
+  { title: 'المنطقة', key: 'territoryName', sortable: false },
+  { title: 'رقم الهاتف',     key: 'phone',       sortable: false },
+  { title: 'الحالة',    key: 'status',      sortable: true  },
+  { title: 'الإجراءات',   key: 'actions',     sortable: false, align: 'end' },
 ]
 
 // ── Territory filter autocomplete — server-side search + scroll pagination ───────────
@@ -224,7 +225,7 @@ const onChangeStatus = async (customer, newStatus) => {
 const formatDate = dateStr => {
   if (!dateStr) return '—'
 
-  return new Date(dateStr).toLocaleDateString('en-US', {
+  return new Date(dateStr).toLocaleDateString(INTL_LOCALE, {
     year: 'numeric', month: 'short', day: 'numeric',
   })
 }
@@ -267,7 +268,7 @@ onMounted(async () => {
           <VCardText class="d-flex justify-space-between align-center">
             <div>
               <div class="text-body-2 text-medium-emphasis mb-1">
-                Total Customers
+                إجمالي العملاء
               </div>
               <h4 class="text-h4">
                 {{ totalCustomers }}
@@ -292,7 +293,7 @@ onMounted(async () => {
     <!-- ── Main Card ─────────────────────────────────────────────────────── -->
     <VCard>
       <VCardItem class="pb-2">
-        <VCardTitle>Customer Management</VCardTitle>
+        <VCardTitle>إدارة العملاء</VCardTitle>
       </VCardItem>
 
       <!-- Filters -->
@@ -309,7 +310,7 @@ onMounted(async () => {
             -->
             <VAutocomplete
               v-model="selectedTerritory"
-              placeholder="Filter by Territory"
+              placeholder="تصفية حسب المنطقة"
               :items="filterTerritoryItems"
               item-title="title"
               item-value="value"
@@ -340,7 +341,7 @@ onMounted(async () => {
                     v-else-if="filterTerritoryPage >= filterTerritoryTotalPages"
                     class="text-caption text-disabled"
                   >
-                    All territories loaded
+                    تم تحميل كل المناطق
                   </span>
                 </div>
               </template>
@@ -349,7 +350,7 @@ onMounted(async () => {
               <template #no-data>
                 <VListItem>
                   <VListItemTitle class="text-medium-emphasis">
-                    {{ isFilterTerritoryLoading ? 'Loading…' : 'No territories found' }}
+                    {{ isFilterTerritoryLoading ? 'Loading…' : 'لا توجد مناطق' }}
                   </VListItemTitle>
                 </VListItem>
               </template>
@@ -363,7 +364,7 @@ onMounted(async () => {
           >
             <AppSelect
               v-model="selectedStatus"
-              placeholder="Filter by Status"
+              placeholder="تصفية حسب الحالة"
               :items="CUSTOMER_STATUSES"
               item-title="title"
               item-value="value"
@@ -396,7 +397,7 @@ onMounted(async () => {
         <div style="inline-size: 15.625rem;">
           <AppTextField
             v-model="searchQuery"
-            placeholder="Search customers…"
+            placeholder="ابحث عن عميل…"
             prepend-inner-icon="tabler-search"
             clearable
           />
@@ -408,7 +409,7 @@ onMounted(async () => {
           prepend-icon="tabler-plus"
           @click="openCreate"
         >
-          Add Customer
+          إضافة عميل
         </VBtn>
       </VCardText>
 
@@ -452,9 +453,9 @@ onMounted(async () => {
               color="secondary"
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
-              No customers found.
+              لا يوجد عملاء.
               <span v-if="!searchQuery && !selectedStatus && !selectedTerritory && isAdmin">
-                Create your first customer to get started.
+                أنشئ أول عميل للبدء.
               </span>
             </p>
             <VBtn
@@ -463,7 +464,7 @@ onMounted(async () => {
               size="small"
               @click="openCreate"
             >
-              Add Customer
+              إضافة عميل
             </VBtn>
           </div>
         </template>
@@ -550,7 +551,7 @@ onMounted(async () => {
         <template #item.actions="{ item }">
           <div class="d-flex justify-end gap-1">
             <!-- View details — all roles -->
-            <VTooltip text="View Details">
+            <VTooltip text="عرض التفاصيل">
               <template #activator="{ props: tp }">
                 <IconBtn
                   v-bind="tp"
@@ -564,7 +565,7 @@ onMounted(async () => {
             <!-- Edit — Admin only -->
             <VTooltip
               v-if="isAdmin"
-              text="Edit Customer"
+              text="تعديل العميل"
             >
               <template #activator="{ props: tp }">
                 <IconBtn
@@ -616,7 +617,7 @@ onMounted(async () => {
                         />
                       </template>
                       <VListItemTitle class="text-error">
-                        Delete
+                        حذف
                       </VListItemTitle>
                     </VListItem>
                   </template>
@@ -632,7 +633,7 @@ onMounted(async () => {
               variant="tonal"
               label
             >
-              View only
+              عرض فقط
             </VChip>
           </div>
         </template>
@@ -677,7 +678,7 @@ onMounted(async () => {
               size="18"
             />
           </VAvatar>
-          <span>Customer Details</span>
+          <span>تفاصيل العميل</span>
           <VSpacer />
           <IconBtn @click="isDetailDialogOpen = false">
             <VIcon icon="tabler-x" />
@@ -706,7 +707,7 @@ onMounted(async () => {
             <!-- Name -->
             <VCol cols="12">
               <p class="text-caption text-medium-emphasis mb-1">
-                Customer Name
+                اسم العميل
               </p>
               <p class="text-body-1 font-weight-medium mb-0">
                 {{ viewingCustomer.name }}
@@ -723,7 +724,7 @@ onMounted(async () => {
               sm="6"
             >
               <p class="text-caption text-medium-emphasis mb-1">
-                Status
+                الحالة
               </p>
               <VChip
                 :color="resolveStatusVariant(viewingCustomer.status)"
@@ -740,7 +741,7 @@ onMounted(async () => {
               sm="6"
             >
               <p class="text-caption text-medium-emphasis mb-1">
-                Category
+                الفئة
               </p>
               <div class="d-flex align-center gap-1">
                 <VIcon
@@ -764,7 +765,7 @@ onMounted(async () => {
               sm="6"
             >
               <p class="text-caption text-medium-emphasis mb-1">
-                Territory
+                المنطقة
               </p>
               <VChip
                 v-if="viewingCustomer.territoryName"
@@ -792,7 +793,7 @@ onMounted(async () => {
               sm="6"
             >
               <p class="text-caption text-medium-emphasis mb-1">
-                Phone
+                رقم الهاتف
               </p>
               <p class="text-body-2 mb-0">
                 {{ viewingCustomer.phone || '—' }}
@@ -806,7 +807,7 @@ onMounted(async () => {
             <!-- Address -->
             <VCol cols="12">
               <p class="text-caption text-medium-emphasis mb-1">
-                Address
+                العنوان
               </p>
               <p class="text-body-2 mb-0">
                 {{ viewingCustomer.address || '—' }}
@@ -824,7 +825,7 @@ onMounted(async () => {
                   size="13"
                   class="me-1"
                 />
-                Location
+                الموقع
                 <span class="ms-2 font-weight-regular">
                   ({{ viewingCustomer.latitude }}, {{ viewingCustomer.longitude }})
                 </span>
@@ -855,7 +856,7 @@ onMounted(async () => {
                   @click.stop="detailMapLayer = detailMapLayer === 'satellite' ? 'street' : 'satellite'"
                 >
                   <span style="font-size:14px;">{{ detailMapLayer === 'satellite' ? '🗺️' : '🛰️' }}</span>
-                  {{ detailMapLayer === 'satellite' ? 'Street' : 'Satellite' }}
+                  {{ detailMapLayer === 'satellite' ? 'خريطة' : 'قمر صناعي' }}
                 </button>
 
                 <LMap
@@ -886,7 +887,7 @@ onMounted(async () => {
               sm="6"
             >
               <p class="text-caption text-medium-emphasis mb-1">
-                Created
+                تاريخ الإنشاء
               </p>
               <p class="text-body-2 mb-0">
                 {{ formatDate(viewingCustomer.createdAt) }}
@@ -898,7 +899,7 @@ onMounted(async () => {
               sm="6"
             >
               <p class="text-caption text-medium-emphasis mb-1">
-                Last Updated
+                آخر تحديث
               </p>
               <p class="text-body-2 mb-0">
                 {{ formatDate(viewingCustomer.updatedAt) }}
@@ -916,14 +917,14 @@ onMounted(async () => {
             variant="tonal"
             @click="isDetailDialogOpen = false; openEdit(viewingCustomer)"
           >
-            Edit
+            تعديل
           </VBtn>
           <VBtn
             variant="tonal"
             color="secondary"
             @click="isDetailDialogOpen = false"
           >
-            Close
+            إغلاق
           </VBtn>
         </VCardActions>
       </VCard>
@@ -942,18 +943,18 @@ onMounted(async () => {
             color="error"
             size="24"
           />
-          Delete Customer
+          حذف العميل
         </VCardTitle>
 
         <VDivider />
 
         <VCardText class="pa-4">
           <p class="mb-1">
-            Are you sure you want to delete
+            هل أنت متأكد من حذف
             <strong>{{ customerToDelete?.name }}</strong>?
           </p>
           <p class="text-medium-emphasis text-body-2 mb-0">
-            This action cannot be undone.
+            لا يمكن التراجع عن هذا الإجراء.
           </p>
         </VCardText>
 
@@ -964,7 +965,7 @@ onMounted(async () => {
             :disabled="isSubmitting"
             @click="onCancelDelete"
           >
-            Cancel
+            إلغاء
           </VBtn>
           <VBtn
             color="error"
@@ -975,7 +976,7 @@ onMounted(async () => {
               icon="tabler-trash"
               start
             />
-            Delete
+            حذف
           </VBtn>
         </VCardActions>
       </VCard>

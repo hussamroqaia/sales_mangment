@@ -83,7 +83,7 @@ onMounted(loadConfig)
           color="secondary"
         />
         <p class="text-body-1 text-medium-emphasis mb-0">
-          Your account does not have access to system configuration.
+          حسابك لا يملك صلاحية الوصول إلى إعدادات النظام.
         </p>
       </VCardText>
     </VCard>
@@ -91,11 +91,11 @@ onMounted(loadConfig)
     <template v-else>
       <VCard>
         <VCardItem class="pb-2">
-          <VCardTitle>System Configuration</VCardTitle>
+          <VCardTitle>إعدادات النظام</VCardTitle>
           <VCardSubtitle>
             {{ canWriteConfig
-              ? 'Operational settings read by the backend at runtime'
-              : 'Operational settings — read-only for your role' }}
+              ? 'إعدادات تشغيلية يقرأها الخادم أثناء التشغيل'
+              : 'إعدادات تشغيلية — للعرض فقط حسب صلاحيات دورك' }}
           </VCardSubtitle>
 
           <template #append>
@@ -107,7 +107,7 @@ onMounted(loadConfig)
               :loading="isLoading"
               @click="loadConfig"
             >
-              Refresh
+              تحديث
             </VBtn>
           </template>
         </VCardItem>
@@ -133,12 +133,12 @@ onMounted(loadConfig)
               <th>Setting</th>
               <th>Value</th>
               <th>Note</th>
-              <th>Last updated</th>
+              <th>آخر تحديث</th>
               <th
                 v-if="canWriteConfig"
                 class="text-end"
               >
-                Action
+                الإجراء
               </th>
             </tr>
           </thead>
@@ -173,7 +173,7 @@ onMounted(loadConfig)
                   color="secondary"
                   label
                 >
-                  Not set
+                  غير محدَّد
                 </VChip>
               </td>
 
@@ -196,7 +196,7 @@ onMounted(loadConfig)
                   prepend-icon="tabler-pencil"
                   @click="openEdit(setting)"
                 >
-                  Edit
+                  تعديل
                 </VBtn>
               </td>
             </tr>
@@ -205,7 +205,7 @@ onMounted(loadConfig)
       </VCard>
 
       <!--
-        Keys the backend holds that this build does not recognise. Read-only:
+        مفاتيح موجودة في الخادم ولا يتعرّف عليها هذا الإصدار. للعرض فقط:
         the UI will not write a key it cannot describe. 
       -->
       <VCard
@@ -213,9 +213,9 @@ onMounted(loadConfig)
         class="mt-6"
       >
         <VCardItem class="pb-2">
-          <VCardTitle>Unrecognised settings</VCardTitle>
+          <VCardTitle>إعدادات غير معروفة</VCardTitle>
           <VCardSubtitle>
-            Stored in the backend but not known to this version of the app — shown for visibility only.
+            مخزّنة في الخادم وغير معروفة لهذا الإصدار من التطبيق — تُعرض للاطّلاع فقط.
           </VCardSubtitle>
         </VCardItem>
 
@@ -226,7 +226,7 @@ onMounted(loadConfig)
               <th>Value</th>
               <th>Type</th>
               <th>Note</th>
-              <th>Last updated</th>
+              <th>آخر تحديث</th>
             </tr>
           </thead>
           <tbody>
@@ -260,7 +260,7 @@ onMounted(loadConfig)
 
           <AppTextField
             v-model="form.value"
-            :label="editingSetting?.unit ? `Value (${editingSetting.unit})` : 'Value'"
+            :label="editingSetting?.unit ? `القيمة (${editingSetting.unit})` : 'القيمة'"
             :error-messages="valueError ? [valueError] : []"
             :hint="editingSetting?.hint"
             persistent-hint
@@ -268,7 +268,7 @@ onMounted(loadConfig)
 
           <AppTextarea
             v-model="form.description"
-            label="Note (optional)"
+            label="ملاحظة (اختياري)"
             rows="2"
             class="mt-4"
             :counter="500"
@@ -291,7 +291,7 @@ onMounted(loadConfig)
             :disabled="isSaving"
             @click="isEditOpen = false"
           >
-            Cancel
+            إلغاء
           </VBtn>
           <VBtn
             color="primary"
@@ -299,7 +299,7 @@ onMounted(loadConfig)
             :disabled="!canSubmit"
             @click="submit"
           >
-            Save
+            حفظ
           </VBtn>
         </VCardActions>
       </VCard>

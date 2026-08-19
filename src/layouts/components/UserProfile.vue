@@ -2,6 +2,8 @@
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
 // Use the centralized auth composable so logout fires the real API.
+import { resolveRoleTitle } from '@/composables/useUsers'
+
 const { logout, userData: authUserData, isLoading } = useAuth()
 
 // Keep the cookie ref as well for the template (same source of truth).
@@ -14,6 +16,17 @@ const userData = authUserData
 const userProfileList = [
   { type: 'divider' },
 ]
+
+// The session cookie stores the backend role verbatim (`SALES_MANAGER`); the
+// menu shows its Arabic label; resolveRoleTitle falls back to the raw value
+// for a role the options list does not cover.
+const roleLabel = computed(() => {
+  const role = userData.value?.role
+
+  if (!role) return ''
+
+  return resolveRoleTitle(role)
+})
 </script>
 
 <template>
@@ -81,8 +94,8 @@ const userProfileList = [
                   <!-- API returns `name`; fall back to email if missing -->
                   {{ userData?.name || userData?.fullName || userData?.email }}
                 </h6>
-                <VListItemSubtitle class="text-capitalize text-disabled">
-                  {{ userData?.role }}
+                <VListItemSubtitle class="text-disabled">
+                  {{ roleLabel }}
                 </VListItemSubtitle>
               </div>
             </div>
@@ -134,7 +147,7 @@ const userProfileList = [
                 :disabled="isLoading"
                 @click="logout"
               >
-                Logout
+                تسجيل الخروج
               </VBtn>
             </div>
           </PerfectScrollbar>

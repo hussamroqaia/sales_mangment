@@ -27,16 +27,16 @@ import {
 
 // ─── Role / Status display helpers (shared across components) ─────────────────
 export const USER_ROLES = [
-  { title: 'Admin',             value: 'ADMIN'             },
-  { title: 'Sales Manager',     value: 'SALES_MANAGER'     },
-  { title: 'Sales Rep',         value: 'SALES_REP'         },
-  { title: 'Warehouse Manager', value: 'WAREHOUSE_MANAGER' },
+  { title: 'مدير النظام',     value: 'ADMIN'             },
+  { title: 'مدير المبيعات',   value: 'SALES_MANAGER'     },
+  { title: 'مندوب المبيعات',  value: 'SALES_REP'         },
+  { title: 'مدير المستودع',   value: 'WAREHOUSE_MANAGER' },
 ]
 
 export const USER_STATUSES = [
-  { title: 'Active',    value: 'ACTIVE'    },
-  { title: 'Inactive',  value: 'INACTIVE'  },
-  { title: 'Suspended', value: 'SUSPENDED' },
+  { title: 'نشط',       value: 'ACTIVE'    },
+  { title: 'غير نشط',   value: 'INACTIVE'  },
+  { title: 'موقوف',     value: 'SUSPENDED' },
 ]
 
 export const resolveRoleVariant = role => {
@@ -121,7 +121,7 @@ export const useUsers = () => {
       counts.value         = data?.counts ?? { active: 0, inactive: 0, suspended: 0, total: 0 }
     } catch (error) {
       const message = error?.response?.data?.message
-      listError.value = message || 'Failed to load users.'
+      listError.value = message || 'تعذّر تحميل المستخدمين.'
       showSnackbar(listError.value, 'error')
     } finally {
       isListLoading.value = false
@@ -156,7 +156,7 @@ export const useUsers = () => {
       selectedUser.value = data
     } catch (error) {
       const message = error?.response?.data?.message
-      detailError.value = message || `Failed to load user #${id}.`
+      detailError.value = message || `تعذّر تحميل المستخدم رقم ${id}.`
       showSnackbar(detailError.value, 'error')
     } finally {
       isDetailLoading.value = false
@@ -168,7 +168,7 @@ export const useUsers = () => {
     isSubmitting.value = true
     try {
       await createUserService(payload)
-      showSnackbar('User created successfully.')
+      showSnackbar('تم إنشاء المستخدم بنجاح.')
       // Refetch first page to show the new user
       page.value = 1
       await fetchAllUsers()
@@ -176,9 +176,9 @@ export const useUsers = () => {
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to create user.', 'error')
+      showSnackbar(message || 'تعذّر إنشاء المستخدم.', 'error')
 
-      return { success: false, error: message || 'Failed to create user.' }
+      return { success: false, error: message || 'تعذّر إنشاء المستخدم.' }
     } finally {
       isSubmitting.value = false
     }
@@ -200,14 +200,14 @@ export const useUsers = () => {
 
       // Also refresh counts from the server since a status change affects them
       await fetchAllUsers()
-      showSnackbar('User status updated successfully.')
+      showSnackbar('تم تحديث حالة المستخدم بنجاح.')
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to update status.', 'error')
+      showSnackbar(message || 'تعذّر تحديث الحالة.', 'error')
 
-      return { success: false, error: message || 'Failed to update status.' }
+      return { success: false, error: message || 'تعذّر تحديث الحالة.' }
     } finally {
       isSubmitting.value = false
     }
@@ -218,14 +218,14 @@ export const useUsers = () => {
     isSubmitting.value = true
     try {
       await resetUserPasswordService(id, newPassword)
-      showSnackbar('Password reset successfully.')
+      showSnackbar('تمت إعادة تعيين كلمة المرور بنجاح.')
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to reset password.', 'error')
+      showSnackbar(message || 'تعذّر إعادة تعيين كلمة المرور.', 'error')
 
-      return { success: false, error: message || 'Failed to reset password.' }
+      return { success: false, error: message || 'تعذّر إعادة تعيين كلمة المرور.' }
     } finally {
       isSubmitting.value = false
     }

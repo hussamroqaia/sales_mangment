@@ -14,13 +14,14 @@
  */
 
 import { fetchVisits, fetchVisitById } from '@/services/visit.service'
+import { INTL_LOCALE } from '@/utils/locale'
 
 // ─── Status constants ─────────────────────────────────────────────────────────
 // API values are preserved verbatim; only the labels are human-friendly.
 export const VISIT_STATUSES = [
-  { title: 'In Progress', value: 'IN_PROGRESS' },
-  { title: 'Completed',   value: 'COMPLETED'   },
-  { title: 'Missed',      value: 'MISSED'      },
+  { title: 'قيد التنفيذ', value: 'IN_PROGRESS' },
+  { title: 'مكتملة',      value: 'COMPLETED'   },
+  { title: 'فائتة',       value: 'MISSED'      },
 ]
 
 export const resolveVisitStatusVariant = status => {
@@ -46,7 +47,7 @@ export const formatVisitDateTime = value => {
 
   const d = new Date(value)
 
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(INTL_LOCALE, {
     year: 'numeric', month: 'short', day: '2-digit',
     hour: '2-digit', minute: '2-digit',
   }).format(d)
@@ -152,7 +153,7 @@ export const useVisits = () => {
     } catch (error) {
       if (requestId !== latestRequestId) return
 
-      listError.value = error?.response?.data?.message || 'Failed to load visits.'
+      listError.value = error?.response?.data?.message || 'تعذّر تحميل الزيارات.'
       visits.value    = []
       showSnackbar(listError.value, 'error')
     } finally {
@@ -240,11 +241,11 @@ export const useVisits = () => {
       detailStatus.value = status ?? null
 
       if (status === 403)
-        detailError.value = 'You do not have permission to view this visit.'
+        detailError.value = 'ليس لديك صلاحية لعرض هذه الزيارة.'
       else if (status === 404)
-        detailError.value = `Visit #${id} was not found.`
+        detailError.value = `الزيارة رقم ${id} غير موجودة.`
       else
-        detailError.value = error?.response?.data?.message || `Failed to load visit #${id}.`
+        detailError.value = error?.response?.data?.message || `تعذّر تحميل الزيارة رقم ${id}.`
     } finally {
       isDetailLoading.value = false
     }

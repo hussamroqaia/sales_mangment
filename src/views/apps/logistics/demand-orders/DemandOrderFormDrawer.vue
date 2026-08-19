@@ -79,10 +79,10 @@ watch(
 // ── Validators ──────────────────────────────────────────────────────────────
 const qtyRules = [
   v => {
-    if (v === null || v === undefined || v === '') return 'Required'
-    if (!Number.isInteger(Number(v))) return 'Whole number'
+    if (v === null || v === undefined || v === '') return 'مطلوب'
+    if (!Number.isInteger(Number(v))) return 'رقم صحيح'
 
-    return Number(v) >= 1 || 'Min 1'
+    return Number(v) >= 1 || 'الحد الأدنى 1'
   },
 ]
 
@@ -117,7 +117,7 @@ const onSubmit = () => {
     @update:model-value="emit('update:isDrawerOpen', $event)"
   >
     <AppDrawerHeaderSection
-      title="New Demand Order"
+      title="طلب تزويد جديد"
       @cancel="closeDrawer"
     />
 
@@ -145,7 +145,7 @@ const onSubmit = () => {
 
               <VCol cols="12">
                 <div class="d-flex align-center justify-space-between mb-1">
-                  <span class="text-body-1 font-weight-medium">Order Lines</span>
+                  <span class="text-body-1 font-weight-medium">أسطر الطلب</span>
                   <VBtn
                     size="small"
                     variant="tonal"
@@ -153,7 +153,7 @@ const onSubmit = () => {
                     :disabled="props.isSubmitting"
                     @click="addLine"
                   >
-                    Add Line
+                    إضافة سطر
                   </VBtn>
                 </div>
                 <VDivider class="mb-3" />
@@ -171,7 +171,7 @@ const onSubmit = () => {
                       v-model="line.productId"
                       :rules="[requiredValidator]"
                       :disabled="props.isSubmitting"
-                      label="Product"
+                      label="المنتج"
                       @select="p => onProductSelect(line, p)"
                     />
                   </div>
@@ -179,7 +179,7 @@ const onSubmit = () => {
                     <AppTextField
                       v-model="line.requestedQty"
                       :rules="qtyRules"
-                      label="Requested Qty"
+                      label="الكمية المطلوبة"
                       type="number"
                       min="1"
                       step="1"
@@ -202,7 +202,7 @@ const onSubmit = () => {
                 cols="12"
               >
                 <span class="text-caption text-disabled">
-                  Each line must have a product selected.
+                  يجب اختيار منتج في كل سطر.
                 </span>
               </VCol>
 
@@ -214,7 +214,7 @@ const onSubmit = () => {
                   :loading="props.isSubmitting"
                   :disabled="props.isSubmitting || !hasValidLines"
                 >
-                  Create Draft
+                  إنشاء مسودة
                 </VBtn>
                 <VBtn
                   type="button"
@@ -223,7 +223,7 @@ const onSubmit = () => {
                   :disabled="props.isSubmitting"
                   @click="closeDrawer"
                 >
-                  Cancel
+                  إلغاء
                 </VBtn>
               </VCol>
             </VRow>

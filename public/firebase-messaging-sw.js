@@ -44,6 +44,19 @@ try {
   console.warn('[SW] Could not load /firebase-config.js — will wait for postMessage config', e.message)
 }
 
+// ─── Arabic wording for backend notifications ────────────────────────────────
+// Sets self.NOTIFICATION_TEXT. Mirrors src/utils/notificationText.js so an OS
+// notification reads the same as the in-app one. If it fails to load, the
+// helpers below fall back to the backend's own text rather than blanking out.
+try {
+  importScripts('/notification-text.js')
+} catch (e) {
+  console.warn('[SW] Could not load /notification-text.js — notifications will show backend wording', e.message)
+}
+
+const translateTitle = value => (self.NOTIFICATION_TEXT ? self.NOTIFICATION_TEXT.title(value) : value)
+const translateMessage = value => (self.NOTIFICATION_TEXT ? self.NOTIFICATION_TEXT.message(value) : value)
+
 // ─── Runtime state ────────────────────────────────────────────────────────────
 let _initialized = false
 
@@ -76,13 +89,16 @@ function setupBackgroundHandler() {
   messaging.onBackgroundMessage(payload => {
     console.info('[SW] Background message received')
 
-    const notificationTitle = payload.notification?.title
-      || payload.data?.title
-      || 'New Notification'
+    const notificationTitle = translateTitle(
+      payload.notification?.title
+      || payload.data?.title,
+    ) || 'إشعار جديد'
 
-    const notificationBody = payload.notification?.body
+    const notificationBody = translateMessage(
+      payload.notification?.body
       || payload.data?.body
-      || ''
+      || '',
+    )
 
     const notificationIcon = payload.notification?.icon
       || payload.data?.icon

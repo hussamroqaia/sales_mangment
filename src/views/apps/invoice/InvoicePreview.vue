@@ -110,7 +110,7 @@ const confirmReject = async () => {
 // endpoint, one authenticated request per artifact.
 const epodArtifacts = computed(() => selectedInvoice.value?.epodArtifacts ?? [])
 
-const epodLabel = type => (type === 'SIGNATURE' ? 'Customer Signature' : 'Delivery Photo')
+const epodLabel = type => (type === 'SIGNATURE' ? 'توقيع العميل' : 'صورة التسليم')
 
 const loadAllEpod = async () => {
   for (const artifact of epodArtifacts.value)
@@ -119,12 +119,12 @@ const loadAllEpod = async () => {
 
 // ── Lines ─────────────────────────────────────────────────────────────────────
 const lineHeaders = [
-  { title: 'Product',  key: 'productName', sortable: false },
-  { title: 'SKU',      key: 'sku',         sortable: false },
-  { title: 'Qty',      key: 'quantity',    sortable: false, align: 'end' },
-  { title: 'Price',    key: 'price',       sortable: false, align: 'end' },
-  { title: 'Discount', key: 'discount',    sortable: false, align: 'end' },
-  { title: 'Subtotal', key: 'subtotal',    sortable: false, align: 'end' },
+  { title: 'المنتج',  key: 'productName', sortable: false },
+  { title: 'رمز الصنف',      key: 'sku',         sortable: false },
+  { title: 'الكمية',      key: 'quantity',    sortable: false, align: 'end' },
+  { title: 'السعر',    key: 'price',       sortable: false, align: 'end' },
+  { title: 'الخصم', key: 'discount',    sortable: false, align: 'end' },
+  { title: 'المجموع الفرعي', key: 'subtotal',    sortable: false, align: 'end' },
 ]
 
 const lines = computed(() => selectedInvoice.value?.lines ?? [])
@@ -172,7 +172,7 @@ onBeforeUnmount(clearSelected)
           prepend-icon="tabler-arrow-left"
           :to="{ name: 'apps-invoice-list' }"
         >
-          Back to Invoices
+          العودة إلى الفواتير
         </VBtn>
       </VCardText>
     </VCard>
@@ -217,7 +217,7 @@ onBeforeUnmount(clearSelected)
                   :loading="isPdfLoading"
                   @click="downloadPdf(selectedInvoice.id)"
                 >
-                  Download PDF
+                  تنزيل PDF
                 </VBtn>
 
                 <!--
@@ -233,7 +233,7 @@ onBeforeUnmount(clearSelected)
                     :disabled="isReviewing"
                     @click="openRejectDialog"
                   >
-                    Reject
+                    رفض
                   </VBtn>
                   <VBtn
                     color="success"
@@ -257,7 +257,7 @@ onBeforeUnmount(clearSelected)
                   sm="6"
                 >
                   <h6 class="text-h6 mb-2">
-                    Customer
+                    العميل
                   </h6>
                   <p class="text-body-1 mb-1">
                     {{ selectedInvoice.customerName || `Customer #${selectedInvoice.customerId}` }}
@@ -272,7 +272,7 @@ onBeforeUnmount(clearSelected)
                   sm="6"
                 >
                   <h6 class="text-h6 mb-2">
-                    Representative
+                    المندوب
                   </h6>
                   <p class="text-body-1 mb-1">
                     {{ selectedInvoice.representativeName || `Rep #${selectedInvoice.representativeId}` }}
@@ -296,7 +296,7 @@ onBeforeUnmount(clearSelected)
             >
               <template #no-data>
                 <div class="py-6 text-center text-body-2 text-medium-emphasis">
-                  This invoice has no line items.
+                  لا توجد أصناف في هذه الفاتورة.
                 </div>
               </template>
 
@@ -334,8 +334,8 @@ onBeforeUnmount(clearSelected)
           <!-- ePOD -->
           <VCard class="mt-6">
             <VCardItem>
-              <VCardTitle>Proof of Delivery</VCardTitle>
-              <VCardSubtitle>Captured by the representative at delivery</VCardSubtitle>
+              <VCardTitle>إثبات التسليم</VCardTitle>
+              <VCardSubtitle>تم التقاطه بواسطة المندوب عند التسليم</VCardSubtitle>
             </VCardItem>
 
             <VCardText>
@@ -352,7 +352,7 @@ onBeforeUnmount(clearSelected)
                 v-if="!epodArtifacts.length"
                 class="text-body-2 text-medium-emphasis"
               >
-                No proof-of-delivery artifacts are attached to this invoice.
+                لا توجد مرفقات إثبات تسليم لهذه الفاتورة.
               </div>
 
               <VRow v-else>
@@ -384,7 +384,7 @@ onBeforeUnmount(clearSelected)
                     v-else
                     class="text-body-2 text-medium-emphasis"
                   >
-                    Preview unavailable.
+                    المعاينة غير متاحة.
                   </div>
 
                   <div class="text-body-2 text-medium-emphasis mt-2">
@@ -412,7 +412,7 @@ onBeforeUnmount(clearSelected)
             <VCardText class="d-flex flex-column gap-3">
               <div>
                 <p class="text-body-2 text-medium-emphasis mb-1">
-                  Reviewed by
+                  روجعت بواسطة
                 </p>
                 <p class="text-body-1 mb-0">
                   {{ selectedInvoice.reviewedByName || '—' }}
@@ -421,7 +421,7 @@ onBeforeUnmount(clearSelected)
 
               <div v-if="selectedInvoice.rejectionReason">
                 <p class="text-body-2 text-medium-emphasis mb-1">
-                  Rejection reason
+                  سبب الرفض
                 </p>
                 <VAlert
                   type="error"
@@ -445,7 +445,7 @@ onBeforeUnmount(clearSelected)
 
               <div>
                 <p class="text-body-2 text-medium-emphasis mb-1">
-                  Created
+                  تاريخ الإنشاء
                 </p>
                 <p class="text-body-1 mb-0">
                   {{ formatInvoiceTimestamp(selectedInvoice.createdAt) }}
@@ -454,7 +454,7 @@ onBeforeUnmount(clearSelected)
 
               <div>
                 <p class="text-body-2 text-medium-emphasis mb-1">
-                  Last updated
+                  آخر تحديث
                 </p>
                 <p class="text-body-1 mb-0">
                   {{ formatInvoiceTimestamp(selectedInvoice.updatedAt) }}
@@ -472,7 +472,7 @@ onBeforeUnmount(clearSelected)
                 prepend-icon="tabler-arrow-left"
                 @click="router.push({ name: 'apps-invoice-list' })"
               >
-                Back to Invoices
+                العودة إلى الفواتير
               </VBtn>
             </VCardText>
           </VCard>
@@ -485,10 +485,10 @@ onBeforeUnmount(clearSelected)
       v-model="isApproveDialogOpen"
       max-width="480"
     >
-      <VCard title="Approve this invoice?">
+      <VCard title="الموافقة على هذه الفاتورة؟">
         <VCardText>
-          Approving marks invoice #{{ selectedInvoice?.id }} as clean revenue.
-          This is final — an approved invoice cannot be reviewed again.
+          الموافقة على الفاتورة رقم {{ selectedInvoice?.id }} تعتمدها كإيراد مؤكّد.
+          هذا الإجراء نهائي — لا يمكن مراجعة الفاتورة بعد الموافقة عليها.
         </VCardText>
 
         <VAlert
@@ -507,7 +507,7 @@ onBeforeUnmount(clearSelected)
             :disabled="isReviewing"
             @click="isApproveDialogOpen = false"
           >
-            Cancel
+            إلغاء
           </VBtn>
           <VBtn
             color="success"
@@ -526,17 +526,17 @@ onBeforeUnmount(clearSelected)
       v-model="isRejectDialogOpen"
       max-width="560"
     >
-      <VCard title="Reject this invoice?">
+      <VCard title="رفض هذه الفاتورة؟">
         <VCardText>
           <p class="mb-4">
-            Rejecting invoice #{{ selectedInvoice?.id }} is final. The stock stays
-            deducted — a correction must be issued as a new invoice.
+            رفض الفاتورة رقم {{ selectedInvoice?.id }} إجراء نهائي. تبقى الكمية مخصومة
+            من المخزون — وأي تصحيح يتطلّب إصدار فاتورة جديدة.
           </p>
 
           <AppTextarea
             v-model="rejectionReason"
-            label="Rejection reason"
-            placeholder="Explain why this invoice is being rejected"
+            label="سبب الرفض"
+            placeholder="اذكر سبب رفض هذه الفاتورة"
             rows="3"
             :counter="REJECTION_REASON_MAX_LENGTH"
             :error-messages="rejectionReason && !isReasonValid
@@ -561,7 +561,7 @@ onBeforeUnmount(clearSelected)
             :disabled="isReviewing"
             @click="isRejectDialogOpen = false"
           >
-            Cancel
+            إلغاء
           </VBtn>
           <VBtn
             color="error"
@@ -569,7 +569,7 @@ onBeforeUnmount(clearSelected)
             :disabled="isReviewing || !isReasonValid"
             @click="confirmReject"
           >
-            Reject
+            رفض
           </VBtn>
         </VCardActions>
       </VCard>

@@ -28,10 +28,14 @@ import {
 
 // ─── Status constants ─────────────────────────────────────────────────────────
 export const ROUTE_STATUSES = [
-  { title: 'Planned',     value: 'PLANNED'     },
-  { title: 'Active',      value: 'ACTIVE'      },
-  { title: 'Completed',   value: 'COMPLETED'   },
+  { title: 'مُخطَّط',    value: 'PLANNED'   },
+  { title: 'نشط',       value: 'ACTIVE'    },
+  { title: 'مكتمل',     value: 'COMPLETED' },
 ]
+
+/** Arabic display label for a route status; falls back to the raw API value. */
+export const routeStatusTitle = status =>
+  ROUTE_STATUSES.find(s => s.value === status)?.title ?? status ?? '—'
 
 export const resolveRouteStatusVariant = status => {
   switch (status?.toUpperCase()) {
@@ -95,7 +99,7 @@ export const useRoutes = () => {
       routes.value      = data?.content       ?? []
       totalRoutes.value = data?.totalElements ?? 0
     } catch (error) {
-      listError.value = error?.response?.data?.message || 'Failed to load routes.'
+      listError.value = error?.response?.data?.message || 'تعذّر تحميل المسارات.'
       showSnackbar(listError.value, 'error')
     } finally {
       isListLoading.value = false
@@ -119,7 +123,7 @@ export const useRoutes = () => {
     try {
       selectedRoute.value = await fetchRouteById(id)
     } catch (error) {
-      detailError.value = error?.response?.data?.message || `Failed to load route #${id}.`
+      detailError.value = error?.response?.data?.message || `تعذّر تحميل المسار رقم ${id}.`
       showSnackbar(detailError.value, 'error')
     } finally {
       isDetailLoading.value = false
@@ -135,7 +139,7 @@ export const useRoutes = () => {
     isSubmitting.value = true
     try {
       await createRouteService(payload)
-      showSnackbar('Route created successfully.')
+      showSnackbar('تم إنشاء المسار بنجاح.')
       page.value = 1
       await fetchAllRoutes()
 
@@ -143,9 +147,9 @@ export const useRoutes = () => {
     } catch (error) {
       const message = error?.response?.data?.message
 
-      showSnackbar(message || 'Failed to create route.', 'error')
+      showSnackbar(message || 'تعذّر إنشاء المسار.', 'error')
 
-      return { success: false, error: message || 'Failed to create route.' }
+      return { success: false, error: message || 'تعذّر إنشاء المسار.' }
     } finally {
       isSubmitting.value = false
     }
@@ -157,7 +161,7 @@ export const useRoutes = () => {
     try {
       const updated = await updateRouteService(id, payload)
 
-      showSnackbar('Route updated successfully.')
+      showSnackbar('تم تحديث المسار بنجاح.')
       
       // Update the local list and details if they match
       if (selectedRoute.value?.id == id) {
@@ -174,9 +178,9 @@ export const useRoutes = () => {
     } catch (error) {
       const message = error?.response?.data?.message
 
-      showSnackbar(message || 'Failed to update route.', 'error')
+      showSnackbar(message || 'تعذّر تحديث المسار.', 'error')
 
-      return { success: false, error: message || 'Failed to update route.' }
+      return { success: false, error: message || 'تعذّر تحديث المسار.' }
     } finally {
       isSubmitting.value = false
     }
@@ -188,16 +192,16 @@ export const useRoutes = () => {
     try {
       const res = await deleteRouteService(id)
 
-      showSnackbar(res?.message || 'Route deleted successfully.')
+      showSnackbar(res?.message || 'تم حذف المسار بنجاح.')
       await fetchAllRoutes()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
 
-      showSnackbar(message || 'Failed to delete route.', 'error')
+      showSnackbar(message || 'تعذّر حذف المسار.', 'error')
 
-      return { success: false, error: message || 'Failed to delete route.' }
+      return { success: false, error: message || 'تعذّر حذف المسار.' }
     } finally {
       isSubmitting.value = false
     }
@@ -211,15 +215,15 @@ export const useRoutes = () => {
 
       // Update the local detail state with the optimized route
       selectedRoute.value = updated
-      showSnackbar('Route optimized successfully!')
+      showSnackbar('تم تحسين المسار بنجاح.')
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
 
-      showSnackbar(message || 'Failed to optimize route.', 'error')
+      showSnackbar(message || 'تعذّر تحسين المسار.', 'error')
 
-      return { success: false, error: message || 'Failed to optimize route.' }
+      return { success: false, error: message || 'تعذّر تحسين المسار.' }
     } finally {
       isOptimizing.value = false
     }
@@ -237,15 +241,15 @@ export const useRoutes = () => {
         await fetchAllRoutes()
       }
       
-      showSnackbar(`Route status updated to ${status}.`)
+      showSnackbar(`تم تحديث حالة المسار إلى "${routeStatusTitle(status)}".`)
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
 
-      showSnackbar(message || 'Failed to update route status.', 'error')
+      showSnackbar(message || 'تعذّر تحديث حالة المسار.', 'error')
 
-      return { success: false, error: message || 'Failed to update route status.' }
+      return { success: false, error: message || 'تعذّر تحديث حالة المسار.' }
     } finally {
       isSubmitting.value = false
     }
@@ -272,15 +276,15 @@ export const useRoutes = () => {
       if (selectedRoute.value?.id == id) {
         selectedRoute.value = updated
       }
-      showSnackbar(updated?.message || 'Customers assigned successfully.')
+      showSnackbar(updated?.message || 'تم إسناد العملاء بنجاح.')
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
 
-      showSnackbar(message || 'Failed to assign customers.', 'error')
+      showSnackbar(message || 'تعذّر إسناد العملاء.', 'error')
 
-      return { success: false, error: message || 'Failed to assign customers.' }
+      return { success: false, error: message || 'تعذّر إسناد العملاء.' }
     } finally {
       isSubmitting.value = false
     }
@@ -295,15 +299,15 @@ export const useRoutes = () => {
       if (selectedRoute.value?.id == routeId) {
         selectedRoute.value = updated
       }
-      showSnackbar(updated?.message || 'Customer removed successfully.')
+      showSnackbar(updated?.message || 'تمت إزالة العميل بنجاح.')
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
 
-      showSnackbar(message || 'Failed to remove customer.', 'error')
+      showSnackbar(message || 'تعذّرت إزالة العميل.', 'error')
 
-      return { success: false, error: message || 'Failed to remove customer.' }
+      return { success: false, error: message || 'تعذّرت إزالة العميل.' }
     } finally {
       isSubmitting.value = false
     }
@@ -318,15 +322,15 @@ export const useRoutes = () => {
       if (selectedRoute.value?.id == routeId) {
         selectedRoute.value = updated
       }
-      showSnackbar(updated?.message || 'Stop order updated successfully.')
+      showSnackbar(updated?.message || 'تم تحديث ترتيب المحطات بنجاح.')
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
 
-      showSnackbar(message || 'Failed to reorder stops.', 'error')
+      showSnackbar(message || 'تعذّر إعادة ترتيب المحطات.', 'error')
 
-      return { success: false, error: message || 'Failed to reorder stops.' }
+      return { success: false, error: message || 'تعذّر إعادة ترتيب المحطات.' }
     } finally {
       isSubmitting.value = false
     }

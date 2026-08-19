@@ -1,6 +1,8 @@
 <script setup>
 import { useNotifications } from '@/composables/useNotifications'
 import { fetchNotifications } from '@/services/notification.service'
+import { INTL_LOCALE, countAr, formatRelativeArabic } from '@/utils/locale'
+import { translateNotificationMessage, translateNotificationTitle } from '@/utils/notificationText'
 
 definePage({
   meta: {
@@ -52,7 +54,7 @@ const loadPage = async (page = 0) => {
     currentPage.value = page
   } catch (err) {
     console.warn('[Notifications Page] Failed to load:', err.message)
-    error.value = 'Failed to load notifications. Please try again.'
+    error.value = 'تعذّر تحميل الإشعارات. الرجاء المحاولة مرة أخرى.'
   } finally {
     loading.value = false
   }
@@ -61,27 +63,23 @@ const loadPage = async (page = 0) => {
 // ── Notification shape normalizer (same logic as composable) ──────────────
 const normalizeNotification = raw => {
   const isRead = raw.read ?? raw.isRead ?? raw.isSeen ?? false
-  const body = raw.message ?? raw.body ?? raw.subtitle ?? ''
-  const title = raw.title ?? 'Notification'
+  const body = translateNotificationMessage(raw.message ?? raw.body ?? raw.subtitle ?? '')
+  const title = translateNotificationTitle(raw.title) ?? 'إشعار'
 
   let time = ''
   if (raw.createdAt) {
     try {
       const diffMs = Date.now() - new Date(raw.createdAt)
       if (diffMs > 24 * 60 * 60 * 1000) {
-        time = new Intl.DateTimeFormat('en', {
+        time = new Intl.DateTimeFormat(INTL_LOCALE, {
           month: 'short',
           day: 'numeric',
           year: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
         }).format(new Date(raw.createdAt))
-      } else if (diffMs > 60 * 60 * 1000) {
-        time = `${Math.floor(diffMs / (60 * 60 * 1000))}h ago`
-      } else if (diffMs > 60 * 1000) {
-        time = `${Math.floor(diffMs / (60 * 1000))}m ago`
       } else {
-        time = 'Just now'
+        time = formatRelativeArabic(raw.createdAt)
       }
     } catch {
       time = raw.createdAt
@@ -137,13 +135,13 @@ onMounted(() => {
         <div class="d-flex align-center justify-space-between mb-6">
           <div>
             <h4 class="text-h4 font-weight-semibold">
-              Notifications
+              الإشعارات
             </h4>
             <p
               v-if="totalElements"
               class="text-body-1 text-disabled mb-0"
             >
-              {{ totalElements }} total notification{{ totalElements !== 1 ? 's' : '' }}
+              {{ countAr(totalElements, { one: 'إشعار', two: 'إشعاران', few: 'إشعارات', many: 'إشعارًا', other: 'إشعار' }) }} إجمالًا
             </p>
           </div>
 
@@ -155,7 +153,7 @@ onMounted(() => {
             :loading="loading"
             @click="onMarkAllRead"
           >
-            Mark all as read
+            تعليم الكل كمقروء
           </VBtn>
         </div>
       </VCol>
@@ -173,7 +171,7 @@ onMounted(() => {
         class="mb-4"
       />
       <h5 class="text-h5 text-disabled mb-2">
-        Failed to load notifications
+        تعذّر تحميل الإشعارات
       </h5>
       <p class="text-body-2 text-disabled mb-4">
         {{ error }}
@@ -182,7 +180,7 @@ onMounted(() => {
         color="primary"
         @click="retry"
       >
-        Try Again
+        إعادة المحاولة
       </VBtn>
     </VCard>
 
@@ -230,10 +228,10 @@ onMounted(() => {
         class="mb-4"
       />
       <h5 class="text-h5 text-disabled mb-2">
-        No notifications
+        لا توجد إشعارات
       </h5>
       <p class="text-body-2 text-disabled">
-        You're all caught up! New notifications will appear here.
+        لا يوجد جديد حاليًا. ستظهر الإشعارات الجديدة هنا.
       </p>
     </VCard>
 

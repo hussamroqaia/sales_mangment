@@ -21,6 +21,7 @@
  *    geolocation capture anywhere in this module.
  */
 
+import { INTL_LOCALE } from '@/utils/locale'
 import {
   fetchLatestLocations,
   fetchRepresentativeTrail,
@@ -132,7 +133,7 @@ export const formatTrackingDateTime = value => {
 
   const d = new Date(value)
 
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(INTL_LOCALE, {
     year: 'numeric', month: 'short', day: '2-digit',
     hour: '2-digit', minute: '2-digit',
   }).format(d)
@@ -144,7 +145,7 @@ export const formatTrackingTime = value => {
 
   const d = new Date(value)
 
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(INTL_LOCALE, {
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   }).format(d)
 }
@@ -364,9 +365,9 @@ export const useTracking = () => {
       const status = error?.response?.status
 
       if (status === 403)
-        latestError.value = 'You do not have permission to view representative locations.'
+        latestError.value = 'ليس لديك صلاحية لعرض مواقع المندوبين.'
       else
-        latestError.value = error?.response?.data?.message || 'Failed to load representative locations.'
+        latestError.value = error?.response?.data?.message || 'تعذّر تحميل مواقع المندوبين.'
 
       if (!silent) locationsById.value = new Map()
     } finally {
@@ -441,7 +442,7 @@ export const useTracking = () => {
     const date = toApiDate(selectedDate.value)
 
     if (!repId || !date) {
-      trailError.value = 'Select a representative and a date first.'
+      trailError.value = 'الرجاء اختيار المندوب والتاريخ أولًا.'
 
       return
     }
@@ -489,9 +490,9 @@ export const useTracking = () => {
       const status = error?.response?.status
 
       if (status === 403)
-        trailError.value = 'You do not have permission to view this representative\'s trail.'
+        trailError.value = 'ليس لديك صلاحية لعرض مسار هذا المندوب.'
       else
-        trailError.value = error?.response?.data?.message || 'Failed to load the representative trail.'
+        trailError.value = error?.response?.data?.message || 'تعذّر تحميل مسار المندوب.'
 
       trail.value = []
       hasLoadedTrail.value = true

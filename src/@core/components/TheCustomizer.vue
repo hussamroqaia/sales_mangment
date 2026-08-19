@@ -7,7 +7,6 @@ import {
   staticPrimaryDarkenColor,
 } from '@/plugins/vuetify/theme'
 import {
-  Direction,
   Layout,
   Skins,
   Theme,
@@ -27,8 +26,6 @@ import borderSkin from '@images/customizer-icons/border-light.svg'
 import collapsed from '@images/customizer-icons/collapsed-light.svg'
 import compact from '@images/customizer-icons/compact-light.svg'
 import defaultSkin from '@images/customizer-icons/default-light.svg'
-import ltrSvg from '@images/customizer-icons/ltr-light.svg'
-import rtlSvg from '@images/customizer-icons/rtl-light.svg'
 import wideSvg from '@images/customizer-icons/wide-light.svg'
 
 const isNavDrawerOpen = ref(false)
@@ -86,17 +83,17 @@ const themeMode = computed(() => {
     {
       bgImage: 'tabler-sun',
       value: Theme.Light,
-      label: 'Light',
+      label: 'فاتح',
     },
     {
       bgImage: 'tabler-moon-stars',
       value: Theme.Dark,
-      label: 'Dark',
+      label: 'داكن',
     },
     {
       bgImage: 'tabler-device-desktop-analytics',
       value: Theme.System,
-      label: 'System',
+      label: 'النظام',
     },
   ]
 })
@@ -107,12 +104,12 @@ const themeSkin = computed(() => {
     {
       bgImage: defaultSkin,
       value: Skins.Default,
-      label: 'Default',
+      label: 'افتراضي',
     },
     {
       bgImage: borderSkin,
       value: Skins.Bordered,
-      label: 'Bordered',
+      label: 'محدَّد بإطار',
     },
   ]
 })
@@ -125,17 +122,17 @@ const layouts = computed(() => {
     {
       bgImage: defaultSkin,
       value: Layout.Vertical,
-      label: 'Vertical',
+      label: 'عمودي',
     },
     {
       bgImage: collapsed,
       value: Layout.Collapsed,
-      label: 'Collapsed',
+      label: 'مطوي',
     },
     {
       bgImage: horizontalLight,
       value: Layout.Horizontal,
-      label: 'Horizontal',
+      label: 'أفقي',
     },
   ]
 })
@@ -161,55 +158,22 @@ const contentWidth = computed(() => {
     {
       bgImage: compact,
       value: ContentWidth.Boxed,
-      label: 'Compact',
+      label: 'مضغوط',
     },
     {
       bgImage: wideSvg,
       value: ContentWidth.Fluid,
-      label: 'Wide',
+      label: 'عريض',
     },
   ]
-})
-
-// 👉 Direction
-const currentDir = ref(configStore.isAppRTL ? 'rtl' : 'ltr')
-
-const direction = computed(() => {
-  return [
-    {
-      bgImage: ltrSvg,
-      value: Direction.Ltr,
-      label: 'Left to right',
-    },
-    {
-      bgImage: rtlSvg,
-      value: Direction.Rtl,
-      label: 'Right to left',
-    },
-  ]
-})
-
-watch(currentDir, () => {
-  if (currentDir.value === 'rtl')
-    configStore.isAppRTL = true
-  else
-    configStore.isAppRTL = false
 })
 
 // check if any value set in cookie
 const isCookieHasAnyValue = ref(false)
-const { locale } = useI18n({ useScope: 'global' })
-
-const isActiveLangRTL = computed(() => {
-  const lang = themeConfig.app.i18n.langConfig.find(l => l.i18nLang === locale.value)
-  
-  return lang?.isRTL ?? false
-})
 
 watch([
   () => vuetifyTheme.current.value.colors.primary,
   configStore.$state,
-  locale,
 ], () => {
   const initialConfigValue = [
     staticPrimaryColor,
@@ -219,7 +183,6 @@ watch([
     themeConfig.verticalNav.isVerticalNavSemiDark,
     themeConfig.verticalNav.isVerticalNavCollapsed,
     themeConfig.app.contentWidth,
-    isActiveLangRTL.value,
     themeConfig.app.contentLayoutNav,
   ]
 
@@ -231,11 +194,9 @@ watch([
     configStore.isVerticalNavSemiDark,
     configStore.isVerticalNavCollapsed,
     configStore.appContentWidth,
-    configStore.isAppRTL,
     configStore.appContentLayoutNav,
   ]
 
-  currentDir.value = configStore.isAppRTL ? 'rtl' : 'ltr'
   isCookieHasAnyValue.value = JSON.stringify(themeConfigValue) !== JSON.stringify(initialConfigValue)
 }, {
   deep: true,
@@ -256,7 +217,6 @@ const resetCustomizer = async () => {
     configStore.isVerticalNavSemiDark = themeConfig.verticalNav.isVerticalNavSemiDark
     configStore.appContentLayoutNav = themeConfig.app.contentLayoutNav
     configStore.appContentWidth = themeConfig.app.contentWidth
-    configStore.isAppRTL = isActiveLangRTL.value
     configStore.isVerticalNavCollapsed = themeConfig.verticalNav.isVerticalNavCollapsed
     useStorage(namespaceConfig('initial-loader-color'), null).value = staticPrimaryColor
     currentLayout.value = themeConfig.app.contentLayoutNav
@@ -301,10 +261,10 @@ const resetCustomizer = async () => {
       <div class="customizer-heading d-flex align-center justify-space-between">
         <div>
           <h6 class="text-h6">
-            Theme Customizer
+            تخصيص المظهر
           </h6>
           <p class="text-body-2 mb-0">
-            Customize & Preview in Real Time
+            خصّص الواجهة وعاين التغييرات مباشرة
           </p>
         </div>
 
@@ -355,13 +315,13 @@ const resetCustomizer = async () => {
       >
         <!-- SECTION Theming -->
         <CustomizerSection
-          title="Theming"
+          title="المظهر"
           :divider="false"
         >
           <!-- 👉 Primary Color -->
           <div class="d-flex flex-column gap-2">
             <h6 class="text-h6">
-              Primary Color
+              اللون الأساسي
             </h6>
 
             <div
@@ -433,7 +393,7 @@ const resetCustomizer = async () => {
           <!-- 👉 Theme -->
           <div class="d-flex flex-column gap-2">
             <h6 class="text-h6">
-              Theme
+              السمة
             </h6>
 
             <CustomRadiosWithImage
@@ -465,7 +425,7 @@ const resetCustomizer = async () => {
           <!-- 👉 Skin -->
           <div class="d-flex flex-column gap-2">
             <h6 class="text-h6">
-              Skins
+              النمط
             </h6>
 
             <CustomRadiosWithImage
@@ -489,7 +449,7 @@ const resetCustomizer = async () => {
               for="customizer-semi-dark"
               class="text-h6 text-high-emphasis"
             >
-              Semi Dark Menu
+              قائمة شبه داكنة
             </VLabel>
 
             <div>
@@ -504,11 +464,11 @@ const resetCustomizer = async () => {
         <!-- !SECTION -->
 
         <!-- SECTION LAYOUT -->
-        <CustomizerSection title="Layout">
+        <CustomizerSection title="التخطيط">
           <!-- 👉 Layouts -->
           <div class="d-flex flex-column gap-2">
             <h6 class="text-base font-weight-medium">
-              Layout
+              التخطيط
             </h6>
 
             <CustomRadiosWithImage
@@ -526,7 +486,7 @@ const resetCustomizer = async () => {
           <!-- 👉 Content Width -->
           <div class="d-flex flex-column gap-2">
             <h6 class="text-base font-weight-medium">
-              Content
+              عرض المحتوى
             </h6>
 
             <CustomRadiosWithImage
@@ -537,24 +497,6 @@ const resetCustomizer = async () => {
             >
               <template #label="item">
                 <span class="text-sm text-medium-emphasis">{{ item.label }}</span>
-              </template>
-            </CustomRadiosWithImage>
-          </div>
-
-          <!-- 👉 Direction -->
-          <div class="d-flex flex-column gap-2">
-            <h6 class="text-base font-weight-medium">
-              Direction
-            </h6>
-
-            <CustomRadiosWithImage
-              :key="currentDir"
-              v-model:selected-radio="currentDir"
-              :radio-content="direction"
-              :grid-column="{ cols: '4' }"
-            >
-              <template #label="item">
-                <span class="text-sm text-medium-emphasis">{{ item?.label }}</span>
               </template>
             </CustomRadiosWithImage>
           </div>

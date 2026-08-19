@@ -9,7 +9,7 @@ import { layoutConfig } from '@themeConfig'
 // a valid cookie name: RFC 6265 forbids spaces, and browsers silently drop a
 // `document.cookie` write whose name contains one. `app.title` is a display
 // string ("Sales Management"), hence the whitespace collapse.
-export const namespaceConfig = str => `${layoutConfig.app.title.replace(/\s+/g, '-')}-${str}`
+export const namespaceConfig = str => `${layoutConfig.app.storageNamespace.replace(/\s+/g, '-')}-${str}`
 export const cookieRef = (key, defaultValue) => {
   return useCookie(namespaceConfig(key), { default: () => defaultValue })
 }
@@ -92,11 +92,18 @@ export const useLayoutConfigStore = defineStore('layoutConfig', () => {
 
 
   // 👉 RTL
-  // const isAppRTL = ref(layoutConfig.app.isRTL)
-  const isAppRTL = ref(false)
+  // The app is Arabic only, so the direction is a constant rather than a
+  // user-facing preference. The ref stays (a lot of layout code reads it) but
+  // it is pinned to `true` and the dir attribute is set eagerly, before the
+  // first paint, so nothing renders LTR for a frame.
+  const isAppRTL = ref(true)
 
-  watch(isAppRTL, val => {
-    _setDirAttr(val ? 'rtl' : 'ltr')
+  _setDirAttr('rtl')
+
+  watch(isAppRTL, () => {
+    // Direction is not switchable; keep the DOM authoritative regardless of
+    // anything that still writes to this ref.
+    _setDirAttr('rtl')
   })
 
 

@@ -17,7 +17,6 @@ declare module 'vue' {
     CustomizerSection: typeof import('./src/@core/components/CustomizerSection.vue')['default']
     CustomRadiosWithImage: typeof import('./src/@core/components/app-form-elements/CustomRadiosWithImage.vue')['default']
     ErrorHeader: typeof import('./src/components/ErrorHeader.vue')['default']
-    I18n: typeof import('./src/@core/components/I18n.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ScrollToTop: typeof import('./src/@core/components/ScrollToTop.vue')['default']

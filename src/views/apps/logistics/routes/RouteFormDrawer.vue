@@ -255,7 +255,7 @@ const onSubmit = () => {
     @update:model-value="emit('update:isDrawerOpen', $event)"
   >
     <AppDrawerHeaderSection
-      title="New Route"
+      title="مسار جديد"
       @cancel="closeDrawer"
     />
 
@@ -285,8 +285,8 @@ const onSubmit = () => {
               <VCol cols="12">
                 <VAutocomplete
                   v-model="form.territoryId"
-                  label="Territory"
-                  placeholder="Select territory…"
+                  label="المنطقة"
+                  placeholder="اختر المنطقة…"
                   :items="territoryItems"
                   item-title="title"
                   item-value="value"
@@ -318,7 +318,7 @@ const onSubmit = () => {
                         v-else-if="territoryPage >= territoryTotalPages"
                         class="text-caption text-disabled"
                       >
-                        All territories loaded
+                        تم تحميل كل المناطق
                       </span>
                     </div>
                   </template>
@@ -327,7 +327,7 @@ const onSubmit = () => {
                   <template #no-data>
                     <VListItem>
                       <VListItemTitle class="text-medium-emphasis">
-                        {{ isTerritoryLoading ? 'Loading…' : 'No territories found' }}
+                        {{ isTerritoryLoading ? 'Loading…' : 'لا توجد مناطق' }}
                       </VListItemTitle>
                     </VListItem>
                   </template>
@@ -338,14 +338,14 @@ const onSubmit = () => {
               <VCol cols="12">
                 <VAutocomplete
                   v-model="form.customerIds"
-                  label="Customers"
-                  placeholder="Select customers for this route…"
+                  label="العملاء"
+                  placeholder="اختر عملاء هذا المسار…"
                   :items="customerItems"
                   item-title="title"
                   item-value="value"
                   :loading="isCustomerLoading"
                   :disabled="props.isSubmitting || !form.territoryId"
-                  :rules="[v => (v && v.length > 0) || 'At least one customer is required']"
+                  :rules="[v => (v && v.length > 0) || 'يجب اختيار عميل واحد على الأقل']"
                   multiple
                   chips
                   closable-chips
@@ -374,7 +374,7 @@ const onSubmit = () => {
                         v-else-if="customerPage >= customerTotalPages"
                         class="text-caption text-disabled"
                       >
-                        All customers loaded
+                        تم تحميل كل العملاء
                       </span>
                     </div>
                   </template>
@@ -382,7 +382,7 @@ const onSubmit = () => {
                   <template #no-data>
                     <VListItem>
                       <VListItemTitle class="text-medium-emphasis">
-                        {{ !form.territoryId ? 'Select a territory first' : (isCustomerLoading ? 'Loading…' : 'No customers found in this territory') }}
+                        {{ !form.territoryId ? 'اختر المنطقة أولًا' : (isCustomerLoading ? 'Loading…' : 'لا يوجد عملاء في هذه المنطقة') }}
                       </VListItemTitle>
                     </VListItem>
                   </template>
@@ -393,8 +393,8 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.name"
-                  label="Route Name"
-                  placeholder="e.g. Route 29"
+                  label="اسم المسار"
+                  placeholder="مثال: المسار 29"
                   :rules="[requiredValidator]"
                   :disabled="props.isSubmitting"
                 />
@@ -404,8 +404,8 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppDateTimePicker
                   v-model="form.routeDate"
-                  label="Route Date"
-                  placeholder="Select date"
+                  label="تاريخ المسار"
+                  placeholder="اختر التاريخ"
                   :rules="[requiredValidator]"
                   :disabled="props.isSubmitting"
                   :config="{ dateFormat: 'Y-m-d' }"
@@ -420,7 +420,7 @@ const onSubmit = () => {
                   :loading="props.isSubmitting"
                   :disabled="props.isSubmitting"
                 >
-                  Create Route
+                  إنشاء المسار
                 </VBtn>
                 <VBtn
                   type="button"
@@ -429,7 +429,7 @@ const onSubmit = () => {
                   :disabled="props.isSubmitting"
                   @click="closeDrawer"
                 >
-                  Cancel
+                  إلغاء
                 </VBtn>
               </VCol>
             </VRow>

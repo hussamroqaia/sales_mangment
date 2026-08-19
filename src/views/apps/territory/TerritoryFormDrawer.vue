@@ -27,7 +27,7 @@ const refScrollbar = ref()   // PerfectScrollbar — used to reset scroll on ope
 
 // Determine mode
 const isEditMode = computed(() => !!props.territory?.id)
-const drawerTitle = computed(() => (isEditMode.value ? 'Edit Territory' : 'Add Territory'))
+const drawerTitle = computed(() => (isEditMode.value ? 'تعديل المنطقة' : 'إضافة منطقة'))
 
 // Form state
 const form = ref({ name: '', description: '' })
@@ -131,8 +131,8 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="form.name"
                   :rules="[requiredValidator]"
-                  label="Territory Name"
-                  placeholder="e.g. North Region"
+                  label="اسم المنطقة"
+                  placeholder="مثال: المنطقة الشمالية"
                   :disabled="props.isSubmitting"
                 />
               </VCol>
@@ -142,8 +142,8 @@ const onSubmit = () => {
                 <AppTextarea
                   v-model="form.description"
                   :rules="[requiredValidator]"
-                  label="Description"
-                  placeholder="Describe the territory's coverage area…"
+                  label="الوصف"
+                  placeholder="صف نطاق تغطية هذه المنطقة…"
                   rows="4"
                   :disabled="props.isSubmitting"
                 />
@@ -157,7 +157,7 @@ const onSubmit = () => {
                   :loading="props.isSubmitting"
                   :disabled="props.isSubmitting"
                 >
-                  {{ isEditMode ? 'Save Changes' : 'Create Territory' }}
+                  {{ isEditMode ? 'حفظ التغييرات' : 'إنشاء المنطقة' }}
                 </VBtn>
                 <VBtn
                   type="button"
@@ -166,7 +166,7 @@ const onSubmit = () => {
                   :disabled="props.isSubmitting"
                   @click="closeDrawer"
                 >
-                  Cancel
+                  إلغاء
                 </VBtn>
               </VCol>
             </VRow>

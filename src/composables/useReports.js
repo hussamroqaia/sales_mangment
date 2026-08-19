@@ -27,13 +27,14 @@ import {
   runReport,
 } from '@/services/report.service'
 import { useAuth } from '@/composables/useAuth'
+import { INTL_LOCALE } from '@/utils/locale'
 
 // ─── Category → roles, mirroring the backend @PreAuthorize annotations ────────
 export const REPORT_CATEGORIES = {
-  sales: { title: 'Sales',     icon: 'tabler-chart-line', roles: ['admin', 'sales_manager'] },
-  customers: { title: 'Customers', icon: 'tabler-users-group', roles: ['admin', 'sales_manager'] },
-  routes: { title: 'Routes',    icon: 'tabler-route',      roles: ['admin', 'sales_manager'] },
-  inventory: { title: 'Inventory', icon: 'tabler-packages',   roles: ['admin', 'warehouse_manager'] },
+  sales: { title: 'المبيعات',  icon: 'tabler-chart-line', roles: ['admin', 'sales_manager'] },
+  customers: { title: 'العملاء',   icon: 'tabler-users-group', roles: ['admin', 'sales_manager'] },
+  routes: { title: 'المسارات',  icon: 'tabler-route',      roles: ['admin', 'sales_manager'] },
+  inventory: { title: 'المخزون',   icon: 'tabler-packages',   roles: ['admin', 'warehouse_manager'] },
 }
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
@@ -45,15 +46,15 @@ const DATE_KEY    = /(?:date|at)$/i
 
 export const formatReportCell = (key, value) => {
   if (value === null || value === undefined) return '—'
-  if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+  if (typeof value === 'boolean') return value ? 'نعم' : 'لا'
 
   if (typeof value === 'number') {
     if (PERCENT_KEY.test(key)) return `${value.toFixed(1)}%`
 
     if (NUMERIC_KEY.test(key))
-      return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      return value.toLocaleString(INTL_LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-    return value.toLocaleString('en-US')
+    return value.toLocaleString(INTL_LOCALE)
   }
 
   // ISO date (YYYY-MM-DD) or instant — rendered via the browser locale, but only
@@ -62,7 +63,7 @@ export const formatReportCell = (key, value) => {
     const d = new Date(value.length === 10 ? `${value}T00:00:00` : value)
 
     if (!Number.isNaN(d.getTime()))
-      return new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: '2-digit' }).format(d)
+      return new Intl.DateTimeFormat(INTL_LOCALE, { year: 'numeric', month: 'short', day: '2-digit' }).format(d)
   }
 
   if (typeof value === 'object') return JSON.stringify(value)
@@ -71,20 +72,116 @@ export const formatReportCell = (key, value) => {
 }
 
 /**
- * `representativeName` → `Representative Name`.
+ * Column label for a report record field.
  *
  * The backend JSON reports return typed DTOs (not the export-only ReportTable),
  * so there is no column-label metadata to use — the record component names ARE
- * the contract. Splitting camelCase gives a faithful label for every field in
- * all 11 reports; the acronym pass only rescues the two that would otherwise
- * read as `Sku` and `... Id`.
+ * the contract. Every field the 11 reports emit is mapped to Arabic below.
+ *
+ * A field that is not in the map (a new one added backend-side) falls back to a
+ * readable camelCase split rather than rendering blank, so an unmapped column is
+ * visible-but-English instead of broken. Add it here when that happens.
  */
+export const REPORT_FIELD_LABELS = {
+  // identity / shared
+  id: 'المعرّف',
+  name: 'الاسم',
+  code: 'الرمز',
+  status: 'الحالة',
+  date: 'التاريخ',
+  createdAt: 'تاريخ الإنشاء',
+  updatedAt: 'تاريخ التحديث',
+
+  // representative / user
+  representativeId: 'معرّف المندوب',
+  representativeName: 'المندوب',
+  repName: 'المندوب',
+  userId: 'معرّف المستخدم',
+  userName: 'المستخدم',
+  email: 'البريد الإلكتروني',
+  phone: 'رقم الهاتف',
+  role: 'الدور',
+
+  // customer
+  customerId: 'معرّف العميل',
+  customerName: 'العميل',
+  customerCode: 'رمز العميل',
+  customerType: 'نوع العميل',
+  territoryId: 'معرّف المنطقة',
+  territoryName: 'المنطقة',
+
+  // product / inventory
+  productId: 'معرّف المنتج',
+  productName: 'المنتج',
+  sku: 'رمز الصنف (SKU)',
+  category: 'الفئة',
+  unit: 'الوحدة',
+  quantity: 'الكمية',
+  quantityOnHand: 'الكمية المتوفرة',
+  quantitySold: 'الكمية المباعة',
+  quantityReturned: 'الكمية المرتجعة',
+  quantityReceived: 'الكمية المستلمة',
+  minimumQuantity: 'الحد الأدنى',
+  minimumStock: 'الحد الأدنى للمخزون',
+  currentStock: 'المخزون الحالي',
+  openingStock: 'مخزون أول المدة',
+  closingStock: 'مخزون آخر المدة',
+  stockValue: 'قيمة المخزون',
+  ageInDays: 'العمر (بالأيام)',
+  daysInStock: 'أيام البقاء في المخزون',
+  movementType: 'نوع الحركة',
+  lastMovementDate: 'تاريخ آخر حركة',
+  turnoverRate: 'معدل الدوران',
+
+  // sales / invoice
+  invoiceId: 'معرّف الفاتورة',
+  invoiceNumber: 'رقم الفاتورة',
+  invoiceDate: 'تاريخ الفاتورة',
+  invoiceCount: 'عدد الفواتير',
+  totalAmount: 'الإجمالي',
+  totalSales: 'إجمالي المبيعات',
+  totalRevenue: 'إجمالي الإيرادات',
+  totalValue: 'القيمة الإجمالية',
+  totalQuantity: 'إجمالي الكمية',
+  subtotal: 'المجموع الفرعي',
+  discount: 'الخصم',
+  price: 'السعر',
+  unitPrice: 'سعر الوحدة',
+  averageOrderValue: 'متوسط قيمة الطلب',
+  cost: 'التكلفة',
+
+  // routes / visits
+  routeId: 'معرّف المسار',
+  routeName: 'المسار',
+  routeDate: 'تاريخ المسار',
+  visitId: 'معرّف الزيارة',
+  visitDate: 'تاريخ الزيارة',
+  visitStatus: 'حالة الزيارة',
+  plannedVisits: 'الزيارات المخطّطة',
+  completedVisits: 'الزيارات المكتملة',
+  missedVisits: 'الزيارات الفائتة',
+  totalVisits: 'إجمالي الزيارات',
+  completionRate: 'نسبة الإنجاز',
+  checkInTime: 'وقت الوصول',
+  checkOutTime: 'وقت المغادرة',
+  durationMinutes: 'المدة (بالدقائق)',
+  notes: 'ملاحظات',
+
+  // fill rate
+  requestedQuantity: 'الكمية المطلوبة',
+  fulfilledQuantity: 'الكمية المُلبّاة',
+  fillRate: 'نسبة التلبية',
+}
+
 const ACRONYMS = /\b(sku|id)\b/gi
 
-export const humaniseKey = key => key
+/** Fallback for a field the map does not cover: `stockValue` → `Stock Value`. */
+const splitCamelCase = key => key
   .replace(/([a-z\d])([A-Z])/g, '$1 $2')
   .replace(/^./, c => c.toUpperCase())
   .replace(ACRONYMS, match => match.toUpperCase())
+
+export const humaniseKey = key => REPORT_FIELD_LABELS[key] ?? splitCamelCase(key)
 
 // ─── Composable ───────────────────────────────────────────────────────────────
 export const useReports = () => {
@@ -204,7 +301,7 @@ export const useReports = () => {
       // looking like a result.
       reportData.value = null
       hasRun.value     = true
-      runError.value   = error?.response?.data?.message || 'Failed to run this report.'
+      runError.value   = error?.response?.data?.message || 'تعذّر تشغيل هذا التقرير.'
     } finally {
       if (runId === latestRunId) {
         isRunning.value = false
@@ -268,7 +365,7 @@ export const useReports = () => {
       }
     } catch (error) {
       exportError.value = await readReportBlobError(error)
-        || `Failed to export this report as ${format.toUpperCase()}.`
+        || `تعذّر تصدير التقرير بصيغة ${format.toUpperCase()}.`
     } finally {
       exportingFormat.value = null
     }

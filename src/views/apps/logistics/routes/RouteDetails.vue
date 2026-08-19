@@ -34,6 +34,7 @@ import { fetchCustomers } from '@/services/customer.service'
 import RouteEditDrawer from '@/views/apps/logistics/routes/RouteEditDrawer.vue'
 import { useAuth } from '@/composables/useAuth'
 import { confirmAction } from '@/utils/swal'
+import { INTL_LOCALE } from '@/utils/locale'
 
 const { userData } = useAuth()
 const ROUTE_MANAGER_ROLES = ['admin', 'sales_manager']
@@ -219,7 +220,7 @@ const buildRoute = async () => {
       .bindPopup(
         `<div>
           <strong>Stop ${stop.sequenceNumber}: ${stop.customerName}</strong><br>
-          <span>${stop.customerAddress || 'No address'}</span>
+          <span>${stop.customerAddress || 'لا يوجد عنوان'}</span>
         </div>`,
       )
 
@@ -296,7 +297,7 @@ const formatDate = value => {
   if (!value) return '—'
   const d = new Date(value)
 
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(INTL_LOCALE, {
     year: 'numeric', month: 'short', day: '2-digit',
   }).format(d)
 }
@@ -417,9 +418,9 @@ const onEditSubmit = async ({ id, payload }) => {
 // ── Remove Customer ───────────────────────────────────────────────────────────
 const onRemoveCustomer = async customerId => {
   const confirmed = await confirmAction({
-    title: 'Remove customer?',
-    text: 'Are you sure you want to remove this stop from the route?',
-    confirmText: 'Remove',
+    title: 'إزالة العميل؟',
+    text: 'هل أنت متأكد من إزالة هذه المحطة من المسار؟',
+    confirmText: 'إزالة',
     icon: 'warning',
   })
 
@@ -442,7 +443,7 @@ const onRemoveCustomer = async customerId => {
           size="48"
           color="primary"
         />
-        <span class="ms-4 text-body-1 text-medium-emphasis">Loading route details…</span>
+        <span class="ms-4 text-body-1 text-medium-emphasis">جارٍ تحميل تفاصيل المسار…</span>
       </div>
     </VCard>
 
@@ -464,7 +465,7 @@ const onRemoveCustomer = async customerId => {
         prepend-icon="tabler-arrow-left"
         @click="goBack"
       >
-        Back to Routes
+        العودة إلى المسارات
       </VBtn>
     </VCard>
 
@@ -497,7 +498,7 @@ const onRemoveCustomer = async customerId => {
               :disabled="isSubmitting"
               @click="openEdit"
             >
-              Edit Route
+              تعديل المسار
             </VBtn>
 
             <!-- Update Status Menu -->
@@ -509,7 +510,7 @@ const onRemoveCustomer = async customerId => {
               :loading="isSubmitting"
               :disabled="isSubmitting"
             >
-              Update Status
+              تحديث الحالة
               <VMenu activator="parent">
                 <VList>
                   <VListItem
@@ -537,7 +538,7 @@ const onRemoveCustomer = async customerId => {
                 size="18"
                 class="me-1"
               />
-              Successfully Optimized
+              تم التحسين بنجاح
             </VChip>
             <VBtn
               v-if="!selectedRoute.isOptimized"
@@ -547,7 +548,7 @@ const onRemoveCustomer = async customerId => {
               :disabled="isOptimizing"
               @click="onOptimize"
             >
-              Optimize Route
+              تحسين المسار
             </VBtn>
           </template>
         </VCardItem>
@@ -561,7 +562,7 @@ const onRemoveCustomer = async customerId => {
               sm="3"
             >
               <div class="text-caption text-disabled mb-1">
-                Representative
+                المندوب
               </div>
               <div class="text-body-1 font-weight-medium">
                 {{ selectedRoute.representativeName || `Rep #${selectedRoute.representativeId}` }}
@@ -572,7 +573,7 @@ const onRemoveCustomer = async customerId => {
               sm="3"
             >
               <div class="text-caption text-disabled mb-1">
-                Territory
+                المنطقة
               </div>
               <div class="text-body-1 font-weight-medium">
                 {{ selectedRoute.territoryName || `Territory #${selectedRoute.territoryId}` }}
@@ -583,7 +584,7 @@ const onRemoveCustomer = async customerId => {
               sm="3"
             >
               <div class="text-caption text-disabled mb-1">
-                Date
+                التاريخ
               </div>
               <div class="text-body-1 font-weight-medium">
                 {{ formatDate(selectedRoute.routeDate) }}
@@ -594,7 +595,7 @@ const onRemoveCustomer = async customerId => {
               sm="3"
             >
               <div class="text-caption text-disabled mb-1">
-                Status
+                الحالة
               </div>
               <VChip
                 :color="resolveRouteStatusVariant(selectedRoute.status)"
@@ -617,7 +618,7 @@ const onRemoveCustomer = async customerId => {
               size="20"
               class="me-2"
             />
-            Add Customers
+            إضافة عملاء
           </VCardTitle>
         </VCardItem>
 
@@ -631,8 +632,8 @@ const onRemoveCustomer = async customerId => {
             >
               <VAutocomplete
                 v-model="selectedCustomerIds"
-                label="Customers"
-                placeholder="Search customers in this territory…"
+                label="العملاء"
+                placeholder="ابحث عن عملاء في هذه المنطقة…"
                 :items="customerItems"
                 item-title="title"
                 item-value="value"
@@ -666,7 +667,7 @@ const onRemoveCustomer = async customerId => {
                       v-else-if="customerPage >= customerTotalPages"
                       class="text-caption text-disabled"
                     >
-                      All customers loaded
+                      تم تحميل كل العملاء
                     </span>
                   </div>
                 </template>
@@ -674,7 +675,7 @@ const onRemoveCustomer = async customerId => {
                 <template #no-data>
                   <VListItem>
                     <VListItemTitle class="text-medium-emphasis">
-                      {{ isCustomerLoading ? 'Loading…' : 'No customers found in this territory' }}
+                      {{ isCustomerLoading ? 'Loading…' : 'لا يوجد عملاء في هذه المنطقة' }}
                     </VListItemTitle>
                   </VListItem>
                 </template>
@@ -714,7 +715,7 @@ const onRemoveCustomer = async customerId => {
                   size="20"
                   class="me-2"
                 />
-                Route Stops ({{ sortedStops.length }})
+                محطات المسار ({{ sortedStops.length }})
               </VCardTitle>
               <template #append>
                 <template v-if="canManageRoutes && sortedStops.length > 1">
@@ -726,7 +727,7 @@ const onRemoveCustomer = async customerId => {
                     prepend-icon="tabler-arrows-sort"
                     @click="startReorder"
                   >
-                    Reorder
+                    إعادة الترتيب
                   </VBtn>
                   <template v-else>
                     <VBtn
@@ -738,7 +739,7 @@ const onRemoveCustomer = async customerId => {
                       class="me-2"
                       @click="saveOrder"
                     >
-                      Save Order
+                      حفظ الترتيب
                     </VBtn>
                     <VBtn
                       variant="text"
@@ -748,7 +749,7 @@ const onRemoveCustomer = async customerId => {
                       :disabled="isSubmitting"
                       @click="cancelReorder"
                     >
-                      Cancel
+                      إلغاء
                     </VBtn>
                   </template>
                 </template>
@@ -764,7 +765,7 @@ const onRemoveCustomer = async customerId => {
                   size="40"
                   color="secondary"
                 />
-                <span class="text-body-2 text-medium-emphasis">No stops assigned to this route.</span>
+                <span class="text-body-2 text-medium-emphasis">لا توجد محطات مسندة إلى هذا المسار.</span>
               </div>
             </VCardText>
 
@@ -852,7 +853,7 @@ const onRemoveCustomer = async customerId => {
                         size="14"
                         class="me-1"
                       />
-                      {{ stop.customerAddress || 'No address' }}
+                      {{ stop.customerAddress || 'لا يوجد عنوان' }}
                     </div>
                     <div
                       v-if="stop.latitude && stop.longitude"
@@ -880,7 +881,7 @@ const onRemoveCustomer = async customerId => {
                   size="20"
                   class="me-2"
                 />
-                Route Map
+                خريطة المسار
               </VCardTitle>
             </VCardItem>
 

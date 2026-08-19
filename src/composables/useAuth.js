@@ -16,6 +16,8 @@
 import { useAbility } from '@casl/vue'
 import { loginUser, logoutUser, changePassword as changePasswordService } from '@/services/auth.service'
 import { useNotifications } from '@/composables/useNotifications'
+import { resolveApiError, translateBackendMessage } from '@/utils/apiErrors'
+import { countAr } from '@/utils/locale'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_ATTEMPTS = 5
@@ -230,7 +232,7 @@ export const useAuth = () => {
     syncLockout()
 
     if (isLockedOut.value) {
-      loginError.value = `Too many failed attempts. Please try again in ${lockoutRemainingFormatted.value}.`
+      loginError.value = `تم تجاوز عدد المحاولات المسموح بها. الرجاء المحاولة بعد ${lockoutRemainingFormatted.value}.`
 
       return
     }
@@ -243,7 +245,7 @@ export const useAuth = () => {
 
       // ── Block Sales Reps from web login ───────────────────────────────
       if (data.role?.toUpperCase() === 'SALES_REP') {
-        loginError.value = 'Access denied. Sales Representatives are not permitted to log into the web dashboard.'
+        loginError.value = 'لا يُسمح لمندوبي المبيعات بتسجيل الدخول إلى لوحة التحكم. استخدم تطبيق الهاتف.'
         
         // Optionally logout the session on the backend since loginUser succeeded
         try {
@@ -296,7 +298,7 @@ export const useAuth = () => {
       // ── Single-Session Eviction (conflict from another login) ─────────
       // Some backends return 409 or a specific message for session conflicts
       if (status === 409 || message?.toLowerCase().includes('session')) {
-        loginError.value = 'Your account is already logged in on another device. Please try again.'
+        loginError.value = 'حسابك مسجّل الدخول حاليًا على جهاز آخر. الرجاء المحاولة مرة أخرى.'
 
         return
       }
@@ -330,15 +332,15 @@ export const useAuth = () => {
         const remaining = MAX_ATTEMPTS - getLockoutState().attempts
 
         if (isLockedOut.value) {
-          loginError.value = message || `Account locked after ${MAX_ATTEMPTS} failed attempts. Try again in 15 minutes.`
+          loginError.value = `تم قفل الحساب بعد ${MAX_ATTEMPTS} محاولات فاشلة. الرجاء المحاولة بعد 15 دقيقة.`
         } else {
           const attemptsLeft = remaining > 0 ? remaining : 0
-          let errorMsg = message || 'Invalid email or password.'
-          
-          // Ensure it ends with a period if we are appending
-          if (attemptsLeft > 0 && !errorMsg.toLowerCase().includes('attempt')) {
+          let errorMsg = translateBackendMessage(message) || 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
+
+          // Append the remaining-attempts hint so the lockout is never a surprise.
+          if (attemptsLeft > 0) {
             if (!errorMsg.endsWith('.')) errorMsg += '.'
-            errorMsg += ` ${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining.`
+            errorMsg += ` ${countAr(attemptsLeft, { one: 'محاولة متبقية', two: 'محاولتان متبقيتان', few: 'محاولات متبقية', many: 'محاولة متبقية', other: 'محاولة متبقية' })}.`
           }
           
           loginError.value = errorMsg
@@ -348,7 +350,7 @@ export const useAuth = () => {
       }
 
       // ── Network / Server error ────────────────────────────────────────
-      loginError.value = message || 'Login failed. Please check your connection and try again.'
+      loginError.value = resolveApiError(error, 'تعذّر تسجيل الدخول. تحقّق من اتصالك ثم حاول مرة أخرى.')
     } finally {
       isLoading.value = false
     }
@@ -434,16 +436,16 @@ export const useAuth = () => {
         return { success: true }
       }
 
-      return { success: false, error: result.message || 'Password change failed.' }
+      return { success: false, error: translateBackendMessage(result.message) || 'تعذّر تغيير كلمة المرور.' }
     } catch (error) {
       const message = error?.response?.data?.message
 
       // Handle common change-password errors
       if (error?.response?.status === 400) {
-        return { success: false, error: message || 'Current password is incorrect.' }
+        return { success: false, error: translateBackendMessage(message) || 'كلمة المرور الحالية غير صحيحة.' }
       }
 
-      return { success: false, error: message || 'Failed to update password. Please try again.' }
+      return { success: false, error: resolveApiError(error, 'تعذّر تحديث كلمة المرور. الرجاء المحاولة مرة أخرى.') }
     } finally {
       isLoading.value = false
     }

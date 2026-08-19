@@ -28,6 +28,7 @@ import {
   resolveStatusVariant,
 } from '@/composables/useProducts'
 import { useAuth } from '@/composables/useAuth'
+import { INTL_LOCALE } from '@/utils/locale'
 
 // ── Auth — role guard for mutating actions ───────────────────────────────────
 const { userData } = useAuth()
@@ -59,14 +60,14 @@ const {
 
 // ── Table Headers ──────────────────────────────────────────────────────────────
 const headers = [
-  { title: 'Product',    key: 'name',          sortable: true  },
-  { title: 'SKU',        key: 'sku',           sortable: true  },
-  { title: 'Barcode',    key: 'barcode',       sortable: false },
-  { title: 'Price',      key: 'price',         sortable: true  },
-  { title: 'Unit',       key: 'unitOfMeasure', sortable: false },
-  { title: 'Min Stock',  key: 'minStockLevel', sortable: true  },
-  { title: 'Status',     key: 'status',        sortable: true  },
-  { title: 'Actions',    key: 'actions',       sortable: false, align: 'end' },
+  { title: 'المنتج',    key: 'name',          sortable: true  },
+  { title: 'رمز الصنف',        key: 'sku',           sortable: true  },
+  { title: 'الباركود',    key: 'barcode',       sortable: false },
+  { title: 'السعر',      key: 'price',         sortable: true  },
+  { title: 'الوحدة',       key: 'unitOfMeasure', sortable: false },
+  { title: 'الحد الأدنى',  key: 'minStockLevel', sortable: true  },
+  { title: 'الحالة',     key: 'status',        sortable: true  },
+  { title: 'الإجراءات',    key: 'actions',       sortable: false, align: 'end' },
 ]
 
 // ── Drawer State ───────────────────────────────────────────────────────────────
@@ -137,7 +138,7 @@ const onCancelDelete = () => {
 const formatPrice = value => {
   if (value === null || value === undefined) return '—'
 
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat(INTL_LOCALE, {
     style: 'currency',
     currency: 'USD',
   }).format(value)
@@ -160,7 +161,7 @@ onMounted(fetchAllProducts)
           <VCardText class="d-flex justify-space-between align-center">
             <div>
               <div class="text-body-2 text-medium-emphasis mb-1">
-                Total Products
+                إجمالي المنتجات
               </div>
               <h4 class="text-h4">
                 {{ totalProducts }}
@@ -185,7 +186,7 @@ onMounted(fetchAllProducts)
     <!-- ── Main Card ─────────────────────────────────────────────────────────── -->
     <VCard>
       <VCardItem class="pb-2">
-        <VCardTitle>Product Management</VCardTitle>
+        <VCardTitle>إدارة المنتجات</VCardTitle>
       </VCardItem>
 
       <!-- Filters -->
@@ -198,7 +199,7 @@ onMounted(fetchAllProducts)
           >
             <AppTextField
               v-model="searchQuery"
-              placeholder="Search by name, SKU or barcode…"
+              placeholder="ابحث بالاسم أو رمز الصنف أو الباركود…"
               prepend-inner-icon="tabler-search"
               clearable
               @click:clear="searchQuery = ''"
@@ -212,7 +213,7 @@ onMounted(fetchAllProducts)
           >
             <AppSelect
               v-model="selectedStatus"
-              placeholder="Filter by Status"
+              placeholder="تصفية حسب الحالة"
               :items="PRODUCT_STATUSES"
               item-title="title"
               item-value="value"
@@ -247,7 +248,7 @@ onMounted(fetchAllProducts)
           prepend-icon="tabler-plus"
           @click="openCreate"
         >
-          Add Product
+          إضافة منتج
         </VBtn>
       </VCardText>
 
@@ -296,11 +297,11 @@ onMounted(fetchAllProducts)
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
               <template v-if="searchQuery || selectedStatus">
-                No products match your filters.
+                لا توجد منتجات مطابقة لعوامل التصفية.
               </template>
               <template v-else>
-                No products found.
-                <span v-if="isAdmin">Create your first product to get started.</span>
+                لا توجد منتجات.
+                <span v-if="isAdmin">أنشئ أول منتج للبدء.</span>
               </template>
             </p>
             <VBtn
@@ -309,7 +310,7 @@ onMounted(fetchAllProducts)
               size="small"
               @click="openCreate"
             >
-              Add Product
+              إضافة منتج
             </VBtn>
           </div>
         </template>
@@ -378,7 +379,7 @@ onMounted(fetchAllProducts)
             <!-- Edit — Admin only -->
             <VTooltip
               v-if="isAdmin"
-              text="Edit Product"
+              text="تعديل المنتج"
             >
               <template #activator="{ props: tp }">
                 <IconBtn
@@ -430,7 +431,7 @@ onMounted(fetchAllProducts)
                       />
                     </template>
                     <VListItemTitle class="text-error">
-                      Delete
+                      حذف
                     </VListItemTitle>
                   </VListItem>
                 </VList>
@@ -445,7 +446,7 @@ onMounted(fetchAllProducts)
               variant="tonal"
               label
             >
-              View only
+              عرض فقط
             </VChip>
           </div>
         </template>
@@ -483,18 +484,18 @@ onMounted(fetchAllProducts)
             color="error"
             size="24"
           />
-          Delete Product
+          حذف المنتج
         </VCardTitle>
 
         <VDivider />
 
         <VCardText class="pa-4">
           <p class="mb-1">
-            Are you sure you want to delete
+            هل أنت متأكد من حذف
             <strong>{{ productToDelete?.name }}</strong>?
           </p>
           <p class="text-medium-emphasis text-body-2 mb-0">
-            This action cannot be undone.
+            لا يمكن التراجع عن هذا الإجراء.
           </p>
         </VCardText>
 
@@ -505,7 +506,7 @@ onMounted(fetchAllProducts)
             :disabled="isSubmitting"
             @click="onCancelDelete"
           >
-            Cancel
+            إلغاء
           </VBtn>
           <VBtn
             color="error"
@@ -516,7 +517,7 @@ onMounted(fetchAllProducts)
               icon="tabler-trash"
               start
             />
-            Delete
+            حذف
           </VBtn>
         </VCardActions>
       </VCard>

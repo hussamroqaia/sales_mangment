@@ -30,7 +30,7 @@ const refScrollbar = ref()   // PerfectScrollbar container — used to reset scr
 
 // ── Mode detection ─────────────────────────────────────────────────────────────
 const isEditMode    = computed(() => !!props.customer?.id)
-const drawerTitle   = computed(() => (isEditMode.value ? 'Edit Customer' : 'Add Customer'))
+const drawerTitle   = computed(() => (isEditMode.value ? 'تعديل العميل' : 'إضافة عميل'))
 
 // ── Form state ─────────────────────────────────────────────────────────────────
 const defaultForm = () => ({
@@ -88,7 +88,7 @@ const searchLocation = async () => {
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5`,
-      { headers: { 'Accept-Language': 'en' } },
+      { headers: { 'Accept-Language': 'ar' } },
     )
     mapSearchResults.value = await res.json()
   } catch {
@@ -357,8 +357,8 @@ const onTerritoryMenuUpdate = isOpen => {
                 <AppTextField
                   v-model="form.name"
                   :rules="[requiredValidator]"
-                  label="Customer Name"
-                  placeholder="e.g. Al Farhan Pharmacy"
+                  label="اسم العميل"
+                  placeholder="مثال: صيدلية الفرحان"
                   :disabled="props.isSubmitting"
                 />
               </VCol>
@@ -375,8 +375,8 @@ const onTerritoryMenuUpdate = isOpen => {
                 <VAutocomplete
                   v-model="form.territoryId"
                   :rules="[requiredValidator]"
-                  label="Territory"
-                  placeholder="Search territories…"
+                  label="المنطقة"
+                  placeholder="ابحث عن منطقة…"
                   :items="territoryItems"
                   item-title="title"
                   item-value="value"
@@ -407,7 +407,7 @@ const onTerritoryMenuUpdate = isOpen => {
                         v-else-if="territoryPage >= territoryTotalPages"
                         class="text-caption text-disabled"
                       >
-                        All territories loaded
+                        تم تحميل كل المناطق
                       </span>
                     </div>
                   </template>
@@ -416,7 +416,7 @@ const onTerritoryMenuUpdate = isOpen => {
                   <template #no-data>
                     <VListItem>
                       <VListItemTitle class="text-medium-emphasis">
-                        {{ isTerritoryLoading ? 'Loading…' : 'No territories found' }}
+                        {{ isTerritoryLoading ? 'Loading…' : 'لا توجد مناطق' }}
                       </VListItemTitle>
                     </VListItem>
                   </template>
@@ -428,8 +428,8 @@ const onTerritoryMenuUpdate = isOpen => {
                 <AppSelect
                   v-model="form.category"
                   :rules="[requiredValidator]"
-                  label="Category"
-                  placeholder="Select Category"
+                  label="الفئة"
+                  placeholder="اختر الفئة"
                   :items="CUSTOMER_CATEGORIES"
                   item-title="title"
                   item-value="value"
@@ -443,9 +443,9 @@ const onTerritoryMenuUpdate = isOpen => {
                   v-model="form.phone"
                   :rules="[
                     requiredValidator,
-                    v => /^\+963\d{9}$/.test((v ?? '').trim()) || 'Phone must start with +963 followed by 9 digits (e.g. +963912345678)',
+                    v => /^\+963\d{9}$/.test((v ?? '').trim()) || 'يجب أن يبدأ رقم الهاتف بـ +963 يليه 9 أرقام (مثال: +963912345678)',
                   ]"
-                  label="Phone"
+                  label="رقم الهاتف"
                   placeholder="+963 9xx xxx xxx"
                   :disabled="props.isSubmitting"
                 />
@@ -456,8 +456,8 @@ const onTerritoryMenuUpdate = isOpen => {
                 <AppTextarea
                   v-model="form.address"
                   :rules="[requiredValidator]"
-                  label="Address"
-                  placeholder="Street, Building, City…"
+                  label="العنوان"
+                  placeholder="الشارع، المبنى، المدينة…"
                   rows="2"
                   :disabled="props.isSubmitting"
                 />
@@ -466,9 +466,9 @@ const onTerritoryMenuUpdate = isOpen => {
               <!-- ── Map ───────────────────────────────────────────────── -->
               <VCol cols="12">
                 <div class="text-body-2 font-weight-medium mb-1">
-                  Location
+                  الموقع
                   <span class="text-caption text-medium-emphasis ms-1">
-                    (Search or click the map to pin coordinates)
+                    (ابحث أو انقر على الخريطة لتحديد الإحداثيات)
                   </span>
                 </div>
 
@@ -476,7 +476,7 @@ const onTerritoryMenuUpdate = isOpen => {
                 <div class="mb-2" style="position: relative;">
                   <AppTextField
                     v-model="mapSearchQuery"
-                    placeholder="Search for a place…"
+                    placeholder="ابحث عن موقع…"
                     prepend-inner-icon="tabler-search"
                     :loading="isMapSearching"
                     clearable
@@ -522,7 +522,7 @@ const onTerritoryMenuUpdate = isOpen => {
                     color="error"
                     @click="markerLatLng = null; form.latitude = null; form.longitude = null"
                   >
-                    Clear
+                    مسح
                   </VBtn>
                 </div>
 
@@ -555,7 +555,7 @@ const onTerritoryMenuUpdate = isOpen => {
                     @click.stop="toggleMapLayer"
                   >
                     <span style="font-size:14px;">{{ mapLayer === 'satellite' ? '🗺️' : '🛰️' }}</span>
-                    {{ mapLayer === 'satellite' ? 'Street' : 'Satellite' }}
+                    {{ mapLayer === 'satellite' ? 'خريطة' : 'قمر صناعي' }}
                   </button>
 
                   <LMap
@@ -588,7 +588,7 @@ const onTerritoryMenuUpdate = isOpen => {
                   :loading="props.isSubmitting"
                   :disabled="props.isSubmitting"
                 >
-                  {{ isEditMode ? 'Save Changes' : 'Create Customer' }}
+                  {{ isEditMode ? 'حفظ التغييرات' : 'إنشاء العميل' }}
                 </VBtn>
                 <VBtn
                   type="button"
@@ -597,7 +597,7 @@ const onTerritoryMenuUpdate = isOpen => {
                   :disabled="props.isSubmitting"
                   @click="closeDrawer"
                 >
-                  Cancel
+                  إلغاء
                 </VBtn>
               </VCol>
             </VRow>

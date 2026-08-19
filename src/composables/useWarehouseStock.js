@@ -85,7 +85,7 @@ export const useWarehouseStock = () => {
       totalStock.value = data?.totalElements ?? 0
     } catch (error) {
       const message = error?.response?.data?.message
-      listError.value = message || 'Failed to load warehouse stock.'
+      listError.value = message || 'تعذّر تحميل مخزون المستودع.'
       showSnackbar(listError.value, 'error')
     } finally {
       isListLoading.value = false
@@ -120,7 +120,7 @@ export const useWarehouseStock = () => {
       selectedStock.value = data
     } catch (error) {
       const message = error?.response?.data?.message
-      detailError.value = message || `Failed to load stock for product #${productId}.`
+      detailError.value = message || `تعذّر تحميل مخزون المنتج رقم ${productId}.`
       showSnackbar(detailError.value, 'error')
     } finally {
       isDetailLoading.value = false
@@ -132,15 +132,15 @@ export const useWarehouseStock = () => {
     isSubmitting.value = true
     try {
       const res = await receiveWarehouseStockService(productId, quantity)
-      showSnackbar(res?.message || 'Stock received.')
+      showSnackbar(res?.message || 'تم استلام الكمية في المخزون.')
       await fetchAllStock()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to receive stock.', 'error')
+      showSnackbar(message || 'تعذّر تسجيل استلام المخزون.', 'error')
 
-      return { success: false, error: message || 'Failed to receive stock.' }
+      return { success: false, error: message || 'تعذّر تسجيل استلام المخزون.' }
     } finally {
       isSubmitting.value = false
     }
@@ -151,15 +151,15 @@ export const useWarehouseStock = () => {
     isSubmitting.value = true
     try {
       const res = await updateWarehouseStockService(productId, quantity)
-      showSnackbar(res?.message || 'Warehouse stock updated.')
+      showSnackbar(res?.message || 'تم تحديث مخزون المستودع.')
       await fetchAllStock()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to update stock.', 'error')
+      showSnackbar(message || 'تعذّر تحديث المخزون.', 'error')
 
-      return { success: false, error: message || 'Failed to update stock.' }
+      return { success: false, error: message || 'تعذّر تحديث المخزون.' }
     } finally {
       isSubmitting.value = false
     }

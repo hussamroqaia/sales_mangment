@@ -57,12 +57,12 @@ const {
 // `sortable` is true only for columns the backend can actually sort on — the
 // computed Duration column must never send `sortBy=duration`.
 const headers = [
-  { title: 'Customer',       key: 'customerName',       sortable: false },
-  { title: 'Representative', key: 'representativeName', sortable: false },
-  { title: 'Route',          key: 'routeName',          sortable: false },
-  { title: 'Status',         key: 'status',             sortable: true  },
-  { title: 'Duration',       key: 'duration',           sortable: false },
-  { title: 'Action',         key: 'actions',            sortable: false, align: 'end' },
+  { title: 'العميل',       key: 'customerName',       sortable: false },
+  { title: 'المندوب', key: 'representativeName', sortable: false },
+  { title: 'المسار',          key: 'routeName',          sortable: false },
+  { title: 'الحالة',         key: 'status',             sortable: true  },
+  { title: 'المدة',       key: 'duration',           sortable: false },
+  { title: 'الإجراء',         key: 'actions',            sortable: false, align: 'end' },
 ]
 
 
@@ -115,8 +115,8 @@ onMounted(fetchAllVisits)
   <section>
     <VCard>
       <VCardItem class="pb-2">
-        <VCardTitle>Visits</VCardTitle>
-        <VCardSubtitle>Monitor sales representative customer visits</VCardSubtitle>
+        <VCardTitle>الزيارات</VCardTitle>
+        <VCardSubtitle>متابعة زيارات المندوبين للعملاء</VCardSubtitle>
       </VCardItem>
 
       <!-- Filters -->
@@ -130,8 +130,8 @@ onMounted(fetchAllVisits)
           >
             <RepresentativeSelect
               v-model="selectedRepresentativeId"
-              label="Representative"
-              placeholder="Filter by Representative"
+              label="المندوب"
+              placeholder="تصفية حسب المندوب"
               clearable
             />
           </VCol>
@@ -144,8 +144,8 @@ onMounted(fetchAllVisits)
             <RouteSelect
               v-model="selectedRouteId"
               :representative-id="selectedRepresentativeId"
-              label="Route"
-              placeholder="Filter by Route"
+              label="المسار"
+              placeholder="تصفية حسب المسار"
               clearable
               @select="onRouteSelect"
             />
@@ -159,8 +159,8 @@ onMounted(fetchAllVisits)
             <CustomerSelect
               v-model="selectedCustomerId"
               :stops="routeStops"
-              label="Customer"
-              placeholder="Filter by Customer"
+              label="العميل"
+              placeholder="تصفية حسب العميل"
               clearable
             />
           </VCol>
@@ -172,8 +172,8 @@ onMounted(fetchAllVisits)
           >
             <VSelect
               v-model="selectedStatus"
-              label="Status"
-              placeholder="Filter by Status"
+              label="الحالة"
+              placeholder="تصفية حسب الحالة"
               :items="VISIT_STATUSES"
               item-title="title"
               item-value="value"
@@ -206,7 +206,7 @@ onMounted(fetchAllVisits)
           prepend-icon="tabler-filter-off"
           @click="onResetFilters"
         >
-          Reset Filters
+          إعادة تعيين عوامل التصفية
         </VBtn>
         <VBtn
           variant="tonal"
@@ -215,7 +215,7 @@ onMounted(fetchAllVisits)
           :loading="isListLoading"
           @click="fetchAllVisits"
         >
-          Refresh
+          تحديث
         </VBtn>
       </VCardText>
 
@@ -255,7 +255,7 @@ onMounted(fetchAllVisits)
               color="secondary"
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
-              No visits found for the selected filters.
+              لا توجد زيارات مطابقة لعوامل التصفية المحددة.
             </p>
           </div>
         </template>
@@ -300,7 +300,7 @@ onMounted(fetchAllVisits)
 
         <template #item.actions="{ item }">
           <div class="d-flex justify-end gap-1">
-            <VTooltip text="View Details">
+            <VTooltip text="عرض التفاصيل">
               <template #activator="{ props: tp }">
                 <IconBtn
                   v-bind="tp"

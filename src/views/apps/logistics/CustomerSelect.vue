@@ -27,11 +27,11 @@ const props = defineProps({
   },
   label: {
     type: String,
-    default: 'Customer',
+    default: 'العميل',
   },
   placeholder: {
     type: String,
-    default: 'Search customers…',
+    default: 'ابحث عن عميل…',
   },
   disabled: {
     type: Boolean,
@@ -206,7 +206,7 @@ onMounted(() => {
           v-else-if="pageIndex >= totalPages && items.length"
           class="text-caption text-disabled"
         >
-          All customers loaded
+          تم تحميل كل العملاء
         </span>
       </div>
     </template>
@@ -214,7 +214,7 @@ onMounted(() => {
     <template #no-data>
       <VListItem>
         <VListItemTitle class="text-medium-emphasis">
-          {{ isLoading ? 'Loading…' : 'No customers found' }}
+          {{ isLoading ? 'Loading…' : 'لا يوجد عملاء' }}
         </VListItemTitle>
       </VListItem>
     </template>

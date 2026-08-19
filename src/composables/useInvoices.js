@@ -17,6 +17,7 @@
  * no service call, no state, and no action here.
  */
 
+import { INTL_LOCALE } from '@/utils/locale'
 import {
   approveInvoice,
   fetchInvoiceById,
@@ -30,10 +31,10 @@ import {
 // ─── Status constants ─────────────────────────────────────────────────────────
 // API values are preserved verbatim; only the labels are human-friendly.
 export const INVOICE_STATUS_OPTIONS = [
-  { title: 'Draft',    value: 'DRAFT'    },
-  { title: 'Sent',     value: 'SENT'     },
-  { title: 'Approved', value: 'APPROVED' },
-  { title: 'Rejected', value: 'REJECTED' },
+  { title: 'مسودة',       value: 'DRAFT'    },
+  { title: 'مرسلة',       value: 'SENT'     },
+  { title: 'موافق عليها', value: 'APPROVED' },
+  { title: 'مرفوضة',      value: 'REJECTED' },
 ]
 
 export const resolveInvoiceStatusVariant = status => {
@@ -66,7 +67,7 @@ export const formatInvoiceDate = value => {
 
   const d = new Date(`${value}T00:00:00`)
 
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(INTL_LOCALE, {
     year: 'numeric', month: 'short', day: '2-digit',
   }).format(d)
 }
@@ -77,7 +78,7 @@ export const formatInvoiceTimestamp = value => {
 
   const d = new Date(value)
 
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(INTL_LOCALE, {
     year: 'numeric', month: 'short', day: '2-digit',
     hour: '2-digit', minute: '2-digit',
   }).format(d)
@@ -170,7 +171,7 @@ export const useInvoices = () => {
     } catch (error) {
       if (requestId !== latestRequestId) return
 
-      listError.value = error?.response?.data?.message || 'Failed to load invoices.'
+      listError.value = error?.response?.data?.message || 'تعذّر تحميل الفواتير.'
       invoices.value  = []
       totalInvoices.value = 0
       showSnackbar(listError.value, 'error')
@@ -257,11 +258,11 @@ export const useInvoices = () => {
       detailStatus.value = status ?? null
 
       if (status === 403)
-        detailError.value = 'You do not have permission to view this invoice.'
+        detailError.value = 'ليس لديك صلاحية لعرض هذه الفاتورة.'
       else if (status === 404)
-        detailError.value = `Invoice #${id} was not found.`
+        detailError.value = `الفاتورة رقم ${id} غير موجودة.`
       else
-        detailError.value = error?.response?.data?.message || `Failed to load invoice #${id}.`
+        detailError.value = error?.response?.data?.message || `تعذّر تحميل الفاتورة رقم ${id}.`
     } finally {
       isDetailLoading.value = false
     }
@@ -283,11 +284,11 @@ export const useInvoices = () => {
 
     try {
       selectedInvoice.value = await approveInvoice(id)
-      showSnackbar('Invoice approved.')
+      showSnackbar('تمت الموافقة على الفاتورة.')
 
       return true
     } catch (error) {
-      reviewError.value = error?.response?.data?.message || 'Failed to approve the invoice.'
+      reviewError.value = error?.response?.data?.message || 'تعذّرت الموافقة على الفاتورة.'
       showSnackbar(reviewError.value, 'error')
 
       // 409 means somebody else already reviewed it — resync so the buttons
@@ -311,7 +312,7 @@ export const useInvoices = () => {
     const trimmed = (reason ?? '').trim()
 
     if (!trimmed) {
-      reviewError.value = 'A rejection reason is required.'
+      reviewError.value = 'سبب الرفض مطلوب.'
 
       return false
     }
@@ -321,11 +322,11 @@ export const useInvoices = () => {
 
     try {
       selectedInvoice.value = await rejectInvoice(id, trimmed)
-      showSnackbar('Invoice rejected.')
+      showSnackbar('تم رفض الفاتورة.')
 
       return true
     } catch (error) {
-      reviewError.value = error?.response?.data?.message || 'Failed to reject the invoice.'
+      reviewError.value = error?.response?.data?.message || 'تعذّر رفض الفاتورة.'
       showSnackbar(reviewError.value, 'error')
 
       if (error?.response?.status === 409) await fetchInvoice(id)
@@ -370,8 +371,8 @@ export const useInvoices = () => {
     } catch (error) {
       const message = await readBlobErrorMessage(error)
         || (error?.response?.status === 409
-          ? 'A draft invoice has no PDF until it is submitted.'
-          : 'Failed to download the invoice PDF.')
+          ? 'لا يمكن تنزيل ملف PDF لفاتورة في حالة مسودة قبل إرسالها.'
+          : 'تعذّر تنزيل ملف الفاتورة.')
 
       showSnackbar(message, 'error')
     } finally {
@@ -401,7 +402,7 @@ export const useInvoices = () => {
       return url
     } catch (error) {
       epodError.value = await readBlobErrorMessage(error)
-        || 'Failed to load the proof-of-delivery file.'
+        || 'تعذّر تحميل ملف إثبات التسليم.'
 
       return null
     } finally {

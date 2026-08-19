@@ -22,11 +22,11 @@ const props = defineProps({
   },
   label: {
     type: String,
-    default: 'Sales Rep',
+    default: 'المندوب',
   },
   placeholder: {
     type: String,
-    default: 'Search sales reps…',
+    default: 'ابحث عن مندوب…',
   },
   rules: {
     type: Array,
@@ -165,7 +165,7 @@ onMounted(() => loadPage(true))
           v-else-if="pageIndex >= totalPages && items.length"
           class="text-caption text-disabled"
         >
-          All representatives loaded
+          تم تحميل كل المندوبين
         </span>
       </div>
     </template>
@@ -173,7 +173,7 @@ onMounted(() => loadPage(true))
     <template #no-data>
       <VListItem>
         <VListItemTitle class="text-medium-emphasis">
-          {{ isLoading ? 'Loading…' : 'No representatives found' }}
+          {{ isLoading ? 'Loading…' : 'لا يوجد مندوبون' }}
         </VListItemTitle>
       </VListItem>
     </template>

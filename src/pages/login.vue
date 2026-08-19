@@ -114,10 +114,10 @@ const onSubmit = () => {
         <!-- Heading -->
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Welcome to <span class="text-capitalize">{{ themeConfig.app.title }}</span>! 👋🏻
+            مرحبًا بك في <span>{{ themeConfig.app.title }}</span> 👋🏻
           </h4>
           <p class="mb-0">
-            Please sign-in to your account and start the adventure
+            سجّل الدخول إلى حسابك للمتابعة
           </p>
         </VCardText>
 
@@ -131,7 +131,7 @@ const onSubmit = () => {
             closable
             icon="tabler-alert-triangle"
           >
-            Your session expired or was ended on another device. Please sign in again.
+            انتهت جلستك أو تم إنهاؤها من جهاز آخر. الرجاء تسجيل الدخول من جديد.
           </VAlert>
 
           <!-- Lockout alert with live countdown -->
@@ -147,16 +147,16 @@ const onSubmit = () => {
                 {{ loginError }}
               </p>
               <p class="mb-0 text-sm">
-                Time remaining: <strong>{{ lockoutRemainingFormatted }}</strong>
+                الوقت المتبقّي: <strong dir="ltr">{{ lockoutRemainingFormatted }}</strong>
               </p>
             </template>
             <template v-else>
               <p class="mb-1 font-weight-medium">
-                Account temporarily locked
+                تم قفل الحساب مؤقتًا
               </p>
               <p class="mb-0 text-sm">
-                Too many failed attempts. Try again in
-                <strong>{{ lockoutRemainingFormatted }}</strong>.
+                تم تجاوز عدد المحاولات المسموح بها. الرجاء المحاولة بعد
+                <strong dir="ltr">{{ lockoutRemainingFormatted }}</strong>.
               </p>
             </template>
           </VAlert>
@@ -186,9 +186,10 @@ const onSubmit = () => {
                   id="login-email"
                   v-model="credentials.email"
                   autofocus
-                  label="Email"
+                  label="البريد الإلكتروني"
                   type="email"
-                  placeholder="johndoe@email.com"
+                  placeholder="name@example.com"
+                  dir="ltr"
                   :rules="[requiredValidator, emailValidator]"
                   :disabled="isLockedOut || isLoading"
                 />
@@ -199,8 +200,9 @@ const onSubmit = () => {
                 <AppTextField
                   id="login-password"
                   v-model="credentials.password"
-                  label="Password"
+                  label="كلمة المرور"
                   placeholder="············"
+                  dir="ltr"
                   :rules="[requiredValidator]"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   autocomplete="current-password"
@@ -213,14 +215,14 @@ const onSubmit = () => {
                 <div class="d-flex align-center justify-space-between flex-wrap my-6">
                   <VCheckbox
                     v-model="credentials.remember"
-                    label="Remember me"
+                    label="تذكّرني"
                     :disabled="isLockedOut || isLoading"
                   />
                   <RouterLink
                     class="text-primary"
                     :to="{ name: 'forgot-password' }"
                   >
-                    Forgot Password?
+                    نسيت كلمة المرور؟
                   </RouterLink>
                 </div>
 
@@ -232,7 +234,7 @@ const onSubmit = () => {
                   :loading="isLoading"
                   :disabled="isLockedOut || isLoading"
                 >
-                  Login
+                  تسجيل الدخول
                 </VBtn>
               </VCol>
             </VRow>

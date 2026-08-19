@@ -81,7 +81,7 @@ export const useTerritories = () => {
       totalTerritories.value = data?.totalElements ?? 0
     } catch (error) {
       const message = error?.response?.data?.message
-      listError.value = message || 'Failed to load territories.'
+      listError.value = message || 'تعذّر تحميل المناطق.'
       showSnackbar(listError.value, 'error')
     } finally {
       isListLoading.value = false
@@ -102,7 +102,7 @@ export const useTerritories = () => {
       editingTerritory.value = data
     } catch (error) {
       const message = error?.response?.data?.message
-      detailError.value = message || `Failed to load territory #${id}.`
+      detailError.value = message || `تعذّر تحميل المنطقة رقم ${id}.`
       showSnackbar(detailError.value, 'error')
     } finally {
       isDetailLoading.value = false
@@ -114,16 +114,16 @@ export const useTerritories = () => {
     isSubmitting.value = true
     try {
       await createTerritoryService(payload)
-      showSnackbar('Territory created successfully.')
+      showSnackbar('تم إنشاء المنطقة بنجاح.')
       page.value = 1
       await fetchAllTerritories()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to create territory.', 'error')
+      showSnackbar(message || 'تعذّر إنشاء المنطقة.', 'error')
 
-      return { success: false, error: message || 'Failed to create territory.' }
+      return { success: false, error: message || 'تعذّر إنشاء المنطقة.' }
     } finally {
       isSubmitting.value = false
     }
@@ -134,15 +134,15 @@ export const useTerritories = () => {
     isSubmitting.value = true
     try {
       await updateTerritoryService(id, payload)
-      showSnackbar('Territory updated successfully.')
+      showSnackbar('تم تحديث المنطقة بنجاح.')
       await fetchAllTerritories()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to update territory.', 'error')
+      showSnackbar(message || 'تعذّر تحديث المنطقة.', 'error')
 
-      return { success: false, error: message || 'Failed to update territory.' }
+      return { success: false, error: message || 'تعذّر تحديث المنطقة.' }
     } finally {
       isSubmitting.value = false
     }
@@ -154,7 +154,7 @@ export const useTerritories = () => {
     isSubmitting.value = true
     try {
       await deleteTerritoryService(id)
-      showSnackbar('Territory deleted successfully.')
+      showSnackbar('تم حذف المنطقة بنجاح.')
 
       // If we just deleted the only item on the last page, go back one page
       if (territories.value.length === 1 && page.value > 1) {
@@ -166,9 +166,9 @@ export const useTerritories = () => {
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to delete territory.', 'error')
+      showSnackbar(message || 'تعذّر حذف المنطقة.', 'error')
 
-      return { success: false, error: message || 'Failed to delete territory.' }
+      return { success: false, error: message || 'تعذّر حذف المنطقة.' }
     } finally {
       isSubmitting.value = false
     }

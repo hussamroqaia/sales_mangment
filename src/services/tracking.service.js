@@ -40,7 +40,7 @@ const BASE = '/tracking'
 // `run()` for why a plain once-per-connection budget is not enough.
 const AUTH_REFRESH_COOLDOWN_MS = 60 * 1000
 
-const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Please log in again.'
+const SESSION_EXPIRED_MESSAGE = 'انتهت صلاحية الجلسة. الرجاء تسجيل الدخول من جديد.'
 
 // ─── GET /tracking/latest ────────────────────────────────────────────────────
 /**
@@ -256,7 +256,7 @@ export const connectLiveTracking = ({
       if (isClosed || error?.name === 'AbortError') return
 
       onError?.({
-        message: 'Live tracking connection failed (network).',
+        message: 'تعذّر الاتصال ببث التتبع المباشر (خطأ في الشبكة).',
         status: null,
         kind: 'network',
       })
@@ -280,7 +280,7 @@ export const connectLiveTracking = ({
         // Terminal: authorisation, not connectivity. Refreshing cannot grant a
         // role, so this must never re-enter the refresh path.
         onError?.({
-          message: 'The server rejected the live tracking stream (403 Forbidden).',
+          message: 'رفض الخادم بث التتبع المباشر (غير مصرّح).',
           status,
           kind: 'permission',
         })
@@ -336,7 +336,7 @@ export const connectLiveTracking = ({
       }
 
       onError?.({
-        message: `Live tracking stream returned HTTP ${status}.`,
+        message: `أعاد بث التتبع المباشر الرمز ${status}.`,
         status,
         kind: 'network',
       })
@@ -350,7 +350,7 @@ export const connectLiveTracking = ({
     if (!contentType.includes('text/event-stream') || !response.body) {
       // e.g. a JSON error envelope or an HTML proxy page served with 200.
       onError?.({
-        message: `Expected an event stream but received "${contentType || 'no content-type'}".`,
+        message: `كان المتوقّع بث أحداث، لكن الوارد "${contentType || 'بدون نوع محتوى'}".`,
         status: response.status,
         kind: 'protocol',
       })
@@ -385,7 +385,7 @@ export const connectLiveTracking = ({
       if (isClosed || error?.name === 'AbortError') return
 
       onError?.({
-        message: 'Live tracking stream was interrupted.',
+        message: 'انقطع بث التتبع المباشر.',
         status: null,
         kind: 'network',
       })

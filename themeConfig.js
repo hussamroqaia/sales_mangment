@@ -9,31 +9,21 @@ import { AppContentLayoutNav, ContentWidth, FooterType, NavbarType } from '@layo
 
 export const { themeConfig, layoutConfig } = defineThemeConfig({
   app: {
-    title: 'Sales Management',
+    title: 'نظام إدارة المبيعات',
+
+    // Cookie/localStorage prefix. Deliberately NOT derived from `title`: the
+    // title is Arabic display copy and cookie names must be US-ASCII. This is
+    // the prefix the app has always written, and index.html reads the initial
+    // loader colours under it before Vue boots — do not change it.
+    storageNamespace: 'Sales-Management',
     logo: h('div', { innerHTML: logo, style: 'line-height:0; color: rgb(var(--v-global-theme-primary))' }),
     contentWidth: ContentWidth.Boxed,
     contentLayoutNav: AppContentLayoutNav.Vertical,
     overlayNavFromBreakpoint: breakpointsVuetifyV3.lg - 1, // 1 for matching with vuetify breakpoint. Docs: https://next.vuetifyjs.com/en/features/display-and-platform/
     i18n: {
+      // Arabic only. `enable` keeps the layout resolving nav titles through
+      // vue-i18n (see plugins/i18n) — there is no second locale and no switcher.
       enable: true,
-      defaultLocale: 'en',
-      langConfig: [
-        {
-          label: 'English',
-          i18nLang: 'en',
-          isRTL: false,
-        },
-        {
-          label: 'French',
-          i18nLang: 'fr',
-          isRTL: false,
-        },
-        {
-          label: 'Arabic',
-          i18nLang: 'ar',
-          isRTL: true,
-        },
-      ],
     },
     theme: 'system',
     skin: Skins.Default,

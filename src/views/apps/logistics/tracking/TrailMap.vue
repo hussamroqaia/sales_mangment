@@ -111,14 +111,14 @@ const drawTrail = () => {
 
   // Popups keep the TRUE coordinates; only the pin position is clamped.
   const clampNote = point => (point.isOutsideMapRange
-    ? '<br><span style="color:#FF9F43;">Beyond the map\'s ±85.05° range</span>'
+    ? '<br><span style="color:#FF9F43;">خارج نطاق ±85.05° للخريطة</span>'
     : '')
 
   // Intermediate points stay small so the start/end stand out.
   points.slice(1, -1).forEach((point, index) => {
     layers.push(
       L.marker(latLngs[index + 1], { icon: createDot() })
-        .bindPopup(`Point ${index + 2} · ${formatTrackingTime(point.recordedAt)}${clampNote(point)}`),
+        .bindPopup(`النقطة ${index + 2} · ${formatTrackingTime(point.recordedAt)}${clampNote(point)}`),
     )
   })
 

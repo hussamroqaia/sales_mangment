@@ -74,8 +74,8 @@ const duration = computed(() => formatVisitDuration(
 const mapPoints = computed(() => {
   const points = []
 
-  if (checkInLocation.value) points.push({ ...checkInLocation.value, label: 'Check-in', color: '#28C76F' })
-  if (checkOutLocation.value) points.push({ ...checkOutLocation.value, label: 'Check-out', color: '#EA5455' })
+  if (checkInLocation.value) points.push({ ...checkInLocation.value, label: 'تسجيل الوصول', color: '#28C76F' })
+  if (checkOutLocation.value) points.push({ ...checkOutLocation.value, label: 'تسجيل المغادرة', color: '#EA5455' })
 
   return points
 })
@@ -164,7 +164,7 @@ const openRoute = () => {
           size="48"
           color="primary"
         />
-        <span class="ms-4 text-body-1 text-medium-emphasis">Loading visit details…</span>
+        <span class="ms-4 text-body-1 text-medium-emphasis">جارٍ تحميل تفاصيل الزيارة…</span>
       </div>
     </VCard>
 
@@ -186,7 +186,7 @@ const openRoute = () => {
         prepend-icon="tabler-arrow-left"
         @click="goBack"
       >
-        Back to Visits
+        العودة إلى الزيارات
       </VBtn>
     </VCard>
 
@@ -234,7 +234,7 @@ const openRoute = () => {
               sm="3"
             >
               <div class="text-caption text-disabled mb-1">
-                Customer
+                العميل
               </div>
               <div class="text-body-1 font-weight-medium">
                 {{ selectedVisit.customerName || `Customer #${selectedVisit.customerId}` }}
@@ -246,7 +246,7 @@ const openRoute = () => {
               sm="3"
             >
               <div class="text-caption text-disabled mb-1">
-                Representative
+                المندوب
               </div>
               <div class="text-body-1 font-weight-medium">
                 {{ selectedVisit.representativeName || `Rep #${selectedVisit.representativeId}` }}
@@ -258,7 +258,7 @@ const openRoute = () => {
               sm="3"
             >
               <div class="text-caption text-disabled mb-1">
-                Route
+                المسار
               </div>
               <VBtn
                 v-if="canOpenRoute && selectedVisit.routeId"
@@ -283,7 +283,7 @@ const openRoute = () => {
               sm="3"
             >
               <div class="text-caption text-disabled mb-1">
-                Duration
+                المدة
               </div>
               <div class="text-body-1 font-weight-medium">
                 {{ duration }}
@@ -299,7 +299,7 @@ const openRoute = () => {
               sm="6"
             >
               <div class="text-caption text-disabled mb-1">
-                Created At
+                تاريخ الإنشاء
               </div>
               <div class="text-body-2">
                 {{ formatVisitDateTime(selectedVisit.createdAt) }}
@@ -310,7 +310,7 @@ const openRoute = () => {
               sm="6"
             >
               <div class="text-caption text-disabled mb-1">
-                Updated At
+                تاريخ التحديث
               </div>
               <div class="text-body-2">
                 {{ formatVisitDateTime(selectedVisit.updatedAt) }}
@@ -334,7 +334,7 @@ const openRoute = () => {
                   size="20"
                   class="me-2"
                 />
-                Visit Timeline
+                المخطط الزمني للزيارة
               </VCardTitle>
             </VCardItem>
 
@@ -351,7 +351,7 @@ const openRoute = () => {
                   size="x-small"
                 >
                   <div class="text-body-1 font-weight-medium">
-                    Check-in
+                    تسجيل الوصول
                   </div>
                   <div class="text-body-2 text-medium-emphasis">
                     {{ formatVisitDateTime(selectedVisit.checkInTime) }}
@@ -371,7 +371,7 @@ const openRoute = () => {
                   size="x-small"
                 >
                   <div class="text-body-1 font-weight-medium">
-                    Check-out
+                    تسجيل المغادرة
                   </div>
                   <div class="text-body-2 text-medium-emphasis">
                     {{ formatVisitDateTime(selectedVisit.checkOutTime) }}
@@ -403,7 +403,7 @@ const openRoute = () => {
                   size="20"
                   class="me-2"
                 />
-                Visit Location
+                موقع الزيارة
               </VCardTitle>
             </VCardItem>
 
@@ -418,7 +418,7 @@ const openRoute = () => {
                 size="40"
                 color="secondary"
               />
-              <span class="text-body-2 text-medium-emphasis">No location recorded for this visit.</span>
+              <span class="text-body-2 text-medium-emphasis">لم يُسجَّل موقع لهذه الزيارة.</span>
             </VCardText>
 
             <VCardText

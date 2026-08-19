@@ -23,6 +23,7 @@
 
 import { fetchInventoryDashboard, fetchSalesDashboard } from '@/services/dashboard.service'
 import { useAuth } from '@/composables/useAuth'
+import { INTL_LOCALE } from '@/utils/locale'
 
 const SALES_DASHBOARD_ROLES     = ['admin', 'sales_manager']
 const INVENTORY_DASHBOARD_ROLES = ['admin', 'warehouse_manager']
@@ -43,7 +44,7 @@ export const formatDashboardAmount = value => {
 
   return Number.isNaN(n)
     ? '—'
-    : n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : n.toLocaleString(INTL_LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 /** Integer count. 0 is valid data, so only null/undefined become '—'. */
@@ -52,7 +53,7 @@ export const formatDashboardCount = value => {
 
   const n = Number(value)
 
-  return Number.isNaN(n) ? '—' : n.toLocaleString('en-US')
+  return Number.isNaN(n) ? '—' : n.toLocaleString(INTL_LOCALE)
 }
 
 /** Percentage, one decimal. 0 % is valid data. */
@@ -109,7 +110,7 @@ export const useDashboard = () => {
       // dressed up as business data.
       salesDashboard.value = null
       salesError.value = error?.response?.data?.message
-        || 'Failed to load the sales dashboard.'
+        || 'تعذّر تحميل لوحة مؤشرات المبيعات.'
     } finally {
       isSalesLoading.value = false
     }
@@ -126,7 +127,7 @@ export const useDashboard = () => {
     } catch (error) {
       inventoryDashboard.value = null
       inventoryError.value = error?.response?.data?.message
-        || 'Failed to load the inventory dashboard.'
+        || 'تعذّر تحميل لوحة مؤشرات المخزون.'
     } finally {
       isInventoryLoading.value = false
     }

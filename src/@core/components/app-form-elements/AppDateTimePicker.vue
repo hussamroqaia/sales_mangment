@@ -1,5 +1,6 @@
 <script setup>
 import FlatPickr from 'vue-flatpickr-component'
+import { Arabic } from 'flatpickr/dist/l10n/ar'
 import { useTheme } from 'vuetify'
 import {
   VField,
@@ -69,10 +70,25 @@ if (compAttrs.config && compAttrs.config.inline) {
   isInlinePicker.value = compAttrs.config.inline
   Object.assign(compAttrs, { altInputClass: 'inlinePicker' })
 }
+
+/*
+  The app is Arabic/RTL, so the calendar gets flatpickr's Arabic l10n (month and
+  weekday names, `rtl: true`, Saturday as the first day of the week).
+
+  Two things are deliberately NOT localised:
+    - `dateFormat` stays whatever the call site passes (`Y-m-d`), because that
+      string is the value bound to v-model and sent to the backend.
+    - the l10n's own Arabic-Indic digit handling is left alone; flatpickr writes
+      Latin digits, which is what the rest of the UI shows (see utils/locale.js).
+
+  In RTL the previous/next arrows swap sides visually, so the icons are swapped
+  here to keep "previous month" pointing away from the reading direction.
+*/
 compAttrs.config = {
+  locale: { ...Arabic, rangeSeparator: ' إلى ' },
   ...compAttrs.config,
-  prevArrow: '<i class="tabler-chevron-left v-icon" style="font-size: 20px; height: 20px; width: 20px;"></i>',
-  nextArrow: '<i class="tabler-chevron-right v-icon" style="font-size: 20px; height: 20px; width: 20px;"></i>',
+  prevArrow: '<i class="tabler-chevron-right v-icon" style="font-size: 20px; height: 20px; width: 20px;"></i>',
+  nextArrow: '<i class="tabler-chevron-left v-icon" style="font-size: 20px; height: 20px; width: 20px;"></i>',
 }
 
 const onClear = el => {
@@ -98,9 +114,33 @@ const updateThemeClassInCalendar = () => {
   refFlatPicker.value.fp.calendarContainer.classList.add(`v-theme--${ vuetifyTheme.global.name.value }`)
 }
 
+/*
+  Keep the calendar's year/time spinners on Latin digits.
+
+  Chrome renders the value of an `input[type=number]` using the document
+  locale, so under `<html lang="ar">` flatpickr's year box reads ٢٠٢٦ while the
+  day cells — plain spans — read 2026. The rest of the UI uses Latin digits
+  deliberately (see utils/locale.js), and a `lang` attribute on the input does
+  not override the document locale, so the inputs are switched to `type="text"`
+  with `inputmode="numeric"`: the value is unchanged and flatpickr's own
+  increment/decrement arrows and key handlers keep working, only the browser's
+  number-localisation stops applying.
+*/
+const useLatinDigitsInCalendar = () => {
+  const container = refFlatPicker.value?.fp?.calendarContainer
+  if (!container)
+    return
+
+  container.querySelectorAll('input.numInput[type="number"]').forEach(input => {
+    input.type = 'text'
+    input.setAttribute('inputmode', 'numeric')
+  })
+}
+
 watch(() => configStore.theme, updateThemeClassInCalendar)
 onMounted(() => {
   updateThemeClassInCalendar()
+  useLatinDigitsInCalendar()
 })
 
 const emitModelValue = val => {

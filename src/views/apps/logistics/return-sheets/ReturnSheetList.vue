@@ -17,6 +17,7 @@ import {
   resolveReturnStatusVariant,
 } from '@/composables/useReturnSheets'
 import { confirmAction } from '@/utils/swal'
+import { INTL_LOCALE } from '@/utils/locale'
 
 const {
   sheets,
@@ -42,10 +43,10 @@ const {
 } = useReturnSheets()
 
 const headers = [
-  { title: 'Sales Rep', key: 'representativeName',  sortable: false  },
-  { title: 'Date',   key: 'returnDate',        sortable: true  },
-  { title: 'Status', key: 'status',            sortable: true  },
-  { title: 'Action', key: 'actions',           sortable: false, align: 'end' },
+  { title: 'المندوب', key: 'representativeName',  sortable: false  },
+  { title: 'التاريخ',   key: 'returnDate',        sortable: true  },
+  { title: 'الحالة', key: 'status',            sortable: true  },
+  { title: 'الإجراء', key: 'actions',           sortable: false, align: 'end' },
 ]
 
 const isDrawerOpen = ref(false)
@@ -80,11 +81,11 @@ const onModalToggle = val => {
 
 // ── Complete Return — SweetAlert2 confirmation before POST /complete ──────────
 const onComplete = async sheet => {
-  const repName = sheet.representativeName || `Rep #${sheet.representativeId}`
+  const repName = sheet.representativeName || `مندوب رقم ${sheet.representativeId}`
   const confirmed = await confirmAction({
-    title: `Complete return #${sheet.id}?`,
-    text: `This will move the returned stock back to the warehouse from ${repName}'s van and mark the sheet as COMPLETED. This cannot be undone.`,
-    confirmText: 'Complete Return',
+    title: `إكمال كشف المرتجعات رقم ${sheet.id}؟`,
+    text: `سيتم إرجاع الكمية من مركبة ${repName} إلى المستودع وتحويل حالة الكشف إلى «مكتمل». لا يمكن التراجع عن هذا الإجراء.`,
+    confirmText: 'إكمال الإرجاع',
     icon: 'warning',
   })
   if (!confirmed) return
@@ -95,7 +96,7 @@ const formatDate = value => {
   if (!value) return '—'
   const d = new Date(value)
 
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(INTL_LOCALE, {
     year: 'numeric', month: 'short', day: '2-digit',
   }).format(d)
 }
@@ -110,7 +111,7 @@ onMounted(fetchAllSheets)
   <section>
     <VCard>
       <VCardItem class="pb-2">
-        <VCardTitle>Return Sheets</VCardTitle>
+        <VCardTitle>كشوف المرتجعات</VCardTitle>
         <template #append>
           <div class="d-flex align-center gap-4">
             <VBtn
@@ -119,13 +120,13 @@ onMounted(fetchAllSheets)
               prepend-icon="tabler-wand"
               @click="isAutoCreateModalOpen = true"
             >
-              Auto-Create
+              إنشاء تلقائي
             </VBtn>
             <VBtn
               prepend-icon="tabler-plus"
               @click="openCreate"
             >
-              New Return Sheet
+              كشف مرتجعات جديد
             </VBtn>
           </div>
         </template>
@@ -140,7 +141,7 @@ onMounted(fetchAllSheets)
           >
             <AppSelect
               v-model="selectedStatus"
-              placeholder="Filter by Status"
+              placeholder="تصفية حسب الحالة"
               :items="RETURN_SHEET_STATUSES"
               item-title="title"
               item-value="value"
@@ -154,7 +155,7 @@ onMounted(fetchAllSheets)
           >
             <AppDateTimePicker
               v-model="returnDate"
-              placeholder="Filter by Return Date"
+              placeholder="تصفية حسب تاريخ الإرجاع"
               :config="{ dateFormat: 'Y-m-d' }"
             />
           </VCol>
@@ -164,8 +165,8 @@ onMounted(fetchAllSheets)
           >
             <RepresentativeSelect
               v-model="repIdFilter"
-              label="Filter by Sales Rep"
-              placeholder="Search sales reps…"
+              label="تصفية حسب المندوب"
+              placeholder="ابحث عن مندوب…"
               clearable
             />
           </VCol>
@@ -194,7 +195,7 @@ onMounted(fetchAllSheets)
           :loading="isListLoading"
           @click="fetchAllSheets"
         >
-          Refresh
+          تحديث
         </VBtn>
       </VCardText>
 
@@ -234,7 +235,7 @@ onMounted(fetchAllSheets)
               color="secondary"
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
-              No return sheets found.
+              لا توجد كشوف مرتجعات.
             </p>
           </div>
         </template>
@@ -246,11 +247,11 @@ onMounted(fetchAllSheets)
               color="primary"
               variant="tonal"
             >
-              <span>{{ (item.representativeName || 'Unknown').charAt(0).toUpperCase() }}</span>
+              <span>{{ (item.representativeName || 'غير معروف').charAt(0).toUpperCase() }}</span>
             </VAvatar>
             <div class="d-flex flex-column">
               <span class="text-body-1 font-weight-medium">
-                {{ item.representativeName || 'Unknown Rep' }}
+                {{ item.representativeName || 'مندوب غير معروف' }}
               </span>
             </div>
           </div>
@@ -272,7 +273,7 @@ onMounted(fetchAllSheets)
 
         <template #item.actions="{ item }">
           <div class="d-flex justify-end gap-1">
-            <VTooltip text="View Details">
+            <VTooltip text="عرض التفاصيل">
               <template #activator="{ props: tp }">
                 <IconBtn
                   v-bind="tp"
@@ -286,7 +287,7 @@ onMounted(fetchAllSheets)
             <!-- Complete Return — only when still DRAFT -->
             <VTooltip
               v-if="item.status === 'DRAFT'"
-              text="Complete Return"
+              text="إكمال الإرجاع"
             >
               <template #activator="{ props: tp }">
                 <IconBtn
@@ -333,12 +334,12 @@ onMounted(fetchAllSheets)
       max-width="500"
     >
       <VCard>
-        <VCardTitle class="pt-4 px-6">Auto-Create Return Sheet</VCardTitle>
+        <VCardTitle class="pt-4 px-6">إنشاء كشف مرتجعات تلقائيًا</VCardTitle>
         <VCardText class="pt-2 px-6">
-          Select a Sales Representative to automatically create a return sheet from their current van inventory.
+          اختر مندوب مبيعات لإنشاء كشف مرتجعات تلقائيًا من مخزون مركبته الحالي.
           <RepresentativeSelect
             v-model="autoCreateRepId"
-            label="Sales Rep"
+            label="المندوب"
             class="mt-4"
           />
         </VCardText>
@@ -348,7 +349,7 @@ onMounted(fetchAllSheets)
             color="secondary"
             @click="isAutoCreateModalOpen = false"
           >
-            Cancel
+            إلغاء
           </VBtn>
           <VBtn
             color="primary"
@@ -356,7 +357,7 @@ onMounted(fetchAllSheets)
             :disabled="!autoCreateRepId || isSubmitting"
             @click="onAutoCreate"
           >
-            Auto-Create
+            إنشاء تلقائي
           </VBtn>
         </VCardActions>
       </VCard>

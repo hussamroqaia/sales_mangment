@@ -432,6 +432,20 @@
     "formatConfigTimestamp": true,
     "useSystemConfig": true,
     "validateConfigValue": true,
-    "useNotifications": true
+    "useNotifications": true,
+    "INTL_LOCALE": true,
+    "formatDateShort": true,
+    "formatDateTime": true,
+    "formatNumber": true,
+    "formatTime": true,
+    "countAr": true,
+    "pluralAr": true,
+    "resolveApiError": true,
+    "translateBackendMessage": true,
+    "REPORT_FIELD_LABELS": true,
+    "routeStatusTitle": true,
+    "formatRelativeArabic": true,
+    "translateNotificationMessage": true,
+    "translateNotificationTitle": true
   }
 }

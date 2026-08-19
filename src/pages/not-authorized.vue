@@ -19,22 +19,22 @@ const authThemeMask = useGenerateImageVariant(miscMaskLight, miscMaskDark)
   <div class="misc-wrapper">
     <ErrorHeader
       status-code="401"
-      title="You are not authorized! 🔐"
-      description="You don’t have permission to access this page. Go Home!."
+      title="غير مصرّح لك بالوصول! 🔐"
+      description="ليس لديك صلاحية للوصول إلى هذه الصفحة."
     />
 
     <VBtn
       class="mb-11"
       to="/"
     >
-      Back To Home
+      العودة إلى الصفحة الرئيسية
     </VBtn>
 
     <!-- 👉 Image -->
     <div class="misc-avatar w-100 text-center">
       <VImg
         :src="pages401"
-        alt="not autorized"
+        alt="غير مصرّح بالوصول"
         :max-height="$vuetify.display.smAndDown ? 350 : 500"
         class="mx-auto"
       />

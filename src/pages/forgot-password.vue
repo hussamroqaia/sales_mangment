@@ -71,10 +71,10 @@ definePage({
       >
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Forgot Password? 🔒
+            نسيت كلمة المرور؟ 🔒
           </h4>
           <p class="mb-0">
-            Enter your email and we'll send you instructions to reset your password
+            أدخل بريدك الإلكتروني وسنرسل لك تعليمات إعادة تعيين كلمة المرور
           </p>
         </VCardText>
 
@@ -86,9 +86,10 @@ definePage({
                 <AppTextField
                   v-model="email"
                   autofocus
-                  label="Email"
+                  label="البريد الإلكتروني"
                   type="email"
-                  placeholder="johndoe@email.com"
+                  placeholder="name@example.com"
+                  dir="ltr"
                 />
               </VCol>
 
@@ -98,7 +99,7 @@ definePage({
                   block
                   type="submit"
                 >
-                  Send Reset Link
+                  إرسال رابط إعادة التعيين
                 </VBtn>
               </VCol>
 
@@ -113,7 +114,7 @@ definePage({
                     size="20"
                     class="me-1 flip-in-rtl"
                   />
-                  <span>Back to login</span>
+                  <span>العودة إلى تسجيل الدخول</span>
                 </RouterLink>
               </VCol>
             </VRow>

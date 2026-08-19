@@ -22,11 +22,11 @@ const props = defineProps({
   },
   label: {
     type: String,
-    default: 'Product',
+    default: 'المنتج',
   },
   placeholder: {
     type: String,
-    default: 'Select a product in stock…',
+    default: 'اختر منتجًا من المخزون…',
   },
   rules: {
     type: Array,
@@ -148,7 +148,7 @@ onMounted(() => loadPage(true))
           v-else-if="pageIndex >= totalPages && items.length"
           class="text-caption text-disabled"
         >
-          All products loaded
+          تم تحميل كل المنتجات
         </span>
       </div>
     </template>
@@ -156,7 +156,7 @@ onMounted(() => loadPage(true))
     <template #no-data>
       <VListItem>
         <VListItemTitle class="text-medium-emphasis">
-          {{ isLoading ? 'Loading…' : 'No products in stock' }}
+          {{ isLoading ? 'Loading…' : 'لا توجد منتجات في المخزون' }}
         </VListItemTitle>
       </VListItem>
     </template>

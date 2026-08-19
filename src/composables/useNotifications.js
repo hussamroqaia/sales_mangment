@@ -35,6 +35,8 @@ import {
   fetchUnreadCount,
 } from '@/services/notification.service'
 
+import { INTL_LOCALE, formatRelativeArabic } from '@/utils/locale'
+import { translateNotificationMessage, translateNotificationTitle } from '@/utils/notificationText'
 import {
   initializeFCM,
   subscribeToForegroundMessages,
@@ -69,25 +71,19 @@ const fcmPermission = ref(null)   // 'granted'|'denied'|'default'|'unsupported'|
  */
 const normalizeNotification = raw => {
   const isRead = raw.read ?? raw.isRead ?? raw.isSeen ?? false
-  const body = raw.message ?? raw.body ?? raw.subtitle ?? ''
-  const title = raw.title ?? 'Notification'
+  const body = translateNotificationMessage(raw.message ?? raw.body ?? raw.subtitle ?? '')
+  const title = translateNotificationTitle(raw.title) ?? 'إشعار'
 
-  // Format timestamp
+  // Format timestamp. Anything inside the last 24h reads as a relative Arabic
+  // phrase ("قبل 5 دقائق"); older items get an absolute short date.
   let time = ''
   if (raw.createdAt) {
     try {
       const diffMs = Date.now() - new Date(raw.createdAt)
-      if (diffMs > 24 * 60 * 60 * 1000) {
-        time = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(raw.createdAt))
-      } else if (diffMs > 60 * 60 * 1000) {
-        const hours = Math.floor(diffMs / (60 * 60 * 1000))
-        time = `${hours}h ago`
-      } else if (diffMs > 60 * 1000) {
-        const mins = Math.floor(diffMs / (60 * 1000))
-        time = `${mins}m ago`
-      } else {
-        time = 'Just now'
-      }
+
+      time = diffMs > 24 * 60 * 60 * 1000
+        ? new Intl.DateTimeFormat(INTL_LOCALE, { month: 'short', day: 'numeric' }).format(new Date(raw.createdAt))
+        : formatRelativeArabic(raw.createdAt)
     } catch {
       time = raw.createdAt
     }
@@ -126,7 +122,7 @@ export const useNotifications = () => {
       notifications.value = items.map(normalizeNotification)
     } catch (err) {
       console.warn('[Notifications] Failed to fetch feed:', err.message)
-      error.value = 'Failed to load notifications'
+      error.value = 'تعذّر تحميل الإشعارات'
     } finally {
       loading.value = false
     }
@@ -197,8 +193,10 @@ export const useNotifications = () => {
   const handleForegroundMessage = payload => {
     console.info('[FCM] Foreground message received')
 
-    const title = payload?.notification?.title ?? payload?.data?.title ?? 'New Notification'
-    const body = payload?.notification?.body ?? payload?.data?.body ?? ''
+    // Push payloads are worded by the same backend as the REST feed, so they go
+    // through the same translation layer before reaching the toast.
+    const title = translateNotificationTitle(payload?.notification?.title ?? payload?.data?.title) ?? 'إشعار جديد'
+    const body = translateNotificationMessage(payload?.notification?.body ?? payload?.data?.body ?? '')
 
     // Dispatch custom event so the navbar can show an in-app toast
     window.dispatchEvent(new CustomEvent('app:notification-toast', {

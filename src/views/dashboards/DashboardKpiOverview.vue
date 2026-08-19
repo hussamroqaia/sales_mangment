@@ -46,11 +46,11 @@ const salesTiles = computed(() => {
   const d = salesDashboard.value
 
   return [
-    { title: "Today's Sales",    icon: 'tabler-currency-dollar', value: formatDashboardAmount(d?.todaySalesTotal) },
-    { title: "Today's Invoices", icon: 'tabler-file-invoice',    value: formatDashboardCount(d?.todayInvoiceCount) },
-    { title: 'Month Sales',      icon: 'tabler-chart-line',      value: formatDashboardAmount(d?.monthSalesTotal) },
-    { title: 'Month Invoices',   icon: 'tabler-files',           value: formatDashboardCount(d?.monthInvoiceCount) },
-    { title: 'Active Routes',    icon: 'tabler-route',           value: formatDashboardCount(d?.activeRoutesToday) },
+    { title: 'مبيعات اليوم',      icon: 'tabler-currency-dollar', value: formatDashboardAmount(d?.todaySalesTotal) },
+    { title: 'فواتير اليوم',      icon: 'tabler-file-invoice',    value: formatDashboardCount(d?.todayInvoiceCount) },
+    { title: 'مبيعات الشهر',      icon: 'tabler-chart-line',      value: formatDashboardAmount(d?.monthSalesTotal) },
+    { title: 'فواتير الشهر',      icon: 'tabler-files',           value: formatDashboardCount(d?.monthInvoiceCount) },
+    { title: 'المسارات النشطة',   icon: 'tabler-route',           value: formatDashboardCount(d?.activeRoutesToday) },
   ]
 })
 
@@ -58,10 +58,10 @@ const inventoryTiles = computed(() => {
   const d = inventoryDashboard.value
 
   return [
-    { title: 'Below Minimum', icon: 'tabler-alert-triangle',      value: formatDashboardCount(d?.belowMinimumCount) },
-    { title: 'Aging Stock',   icon: 'tabler-clock-exclamation',   value: formatDashboardCount(d?.agingCount) },
-    { title: 'Total SKUs',    icon: 'tabler-packages',            value: formatDashboardCount(d?.totalSkus) },
-    { title: 'Month Fill Rate', icon: 'tabler-progress-check',    value: formatDashboardPercent(d?.monthFillRatePercent) },
+    { title: 'أقل من الحد الأدنى', icon: 'tabler-alert-triangle',    value: formatDashboardCount(d?.belowMinimumCount) },
+    { title: 'مخزون راكد',         icon: 'tabler-clock-exclamation', value: formatDashboardCount(d?.agingCount) },
+    { title: 'إجمالي الأصناف',     icon: 'tabler-packages',          value: formatDashboardCount(d?.totalSkus) },
+    { title: 'نسبة التلبية للشهر', icon: 'tabler-progress-check',    value: formatDashboardPercent(d?.monthFillRatePercent) },
   ]
 })
 
@@ -75,8 +75,8 @@ onMounted(loadDashboards)
   -->
   <VCard v-if="hasAnyDashboard">
     <VCardItem class="pb-2">
-      <VCardTitle>Overview</VCardTitle>
-      <VCardSubtitle>Live figures from the reporting service</VCardSubtitle>
+      <VCardTitle>نظرة عامة</VCardTitle>
+      <VCardSubtitle>مؤشرات مباشرة من خدمة التقارير</VCardSubtitle>
 
       <template #append>
         <VBtn
@@ -87,7 +87,7 @@ onMounted(loadDashboards)
           :loading="isLoading"
           @click="loadDashboards"
         >
-          Refresh
+          تحديث
         </VBtn>
       </template>
     </VCardItem>
@@ -109,7 +109,7 @@ onMounted(loadDashboards)
               :loading="isSalesLoading"
               @click="loadSalesDashboard"
             >
-              Retry
+              إعادة المحاولة
             </VBtn>
           </template>
         </VAlert>
@@ -190,7 +190,7 @@ onMounted(loadDashboards)
             :loading="isInventoryLoading"
             @click="loadInventoryDashboard"
           >
-            Retry
+            إعادة المحاولة
           </VBtn>
         </template>
       </VAlert>

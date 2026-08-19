@@ -76,12 +76,12 @@ const {
 
 // ── Live connection indicator ─────────────────────────────────────────────────
 const LIVE_STATUS_META = {
-  idle: { color: 'secondary', label: 'Offline', icon: 'tabler-plug-connected-x' },
+  idle: { color: 'secondary', label: 'غير متصل', icon: 'tabler-plug-connected-x' },
   connecting: { color: 'info', label: 'Connecting…', icon: 'tabler-loader' },
-  connected: { color: 'success', label: 'Live', icon: 'tabler-broadcast' },
+  connected: { color: 'success', label: 'مباشر', icon: 'tabler-broadcast' },
   reconnecting: { color: 'warning', label: 'Reconnecting…', icon: 'tabler-refresh' },
-  unavailable: { color: 'error', label: 'Unavailable', icon: 'tabler-plug-connected-x' },
-  disconnected: { color: 'secondary', label: 'Disconnected', icon: 'tabler-plug-connected-x' },
+  unavailable: { color: 'error', label: 'غير متاح', icon: 'tabler-plug-connected-x' },
+  disconnected: { color: 'secondary', label: 'انقطع الاتصال', icon: 'tabler-plug-connected-x' },
 }
 
 const liveMeta = computed(() => LIVE_STATUS_META[liveStatus.value] ?? LIVE_STATUS_META.idle)
@@ -92,11 +92,11 @@ const showLiveBlocker = computed(() => liveStatus.value === 'unavailable')
 
 const liveBlockerText = computed(() => {
   if (liveErrorStatus.value === 403) {
-    return 'Your account does not have permission to access the live tracking stream. '
-      + 'The last known positions are shown below but will not update in real time.'
+    return 'حسابك لا يملك صلاحية الوصول إلى بث التتبع المباشر. '
+      + 'المواقع المعروضة أدناه هي آخر ما تم تسجيله ولن تُحدَّث لحظيًا.'
   }
 
-  return liveError.value || 'The live tracking stream is unavailable.'
+  return liveError.value || 'بث التتبع المباشر غير متاح حاليًا.'
 })
 
 const lastSyncLabel = computed(() =>
@@ -104,17 +104,17 @@ const lastSyncLabel = computed(() =>
 
 // ── Representative overview table ─────────────────────────────────────────────
 const representativeHeaders = [
-  { title: 'Representative', key: 'representativeName', sortable: false },
-  { title: 'Status', key: 'isLive', sortable: false },
-  { title: 'Last Update', key: 'recordedAt', sortable: false },
-  { title: 'Coordinates', key: 'coordinates', sortable: false },
+  { title: 'المندوب', key: 'representativeName', sortable: false },
+  { title: 'الحالة', key: 'isLive', sortable: false },
+  { title: 'آخر تحديث', key: 'recordedAt', sortable: false },
+  { title: 'الإحداثيات', key: 'coordinates', sortable: false },
 ]
 
 // Always the values the API returned — never the clamped map position.
 const coordinateLabel = rep =>
   (rep.hasValidCoordinates
     ? `${Number(rep.latitude).toFixed(5)}, ${Number(rep.longitude).toFixed(5)}`
-    : 'Invalid coordinates')
+    : 'إحداثيات غير صالحة')
 
 // ── Trail ─────────────────────────────────────────────────────────────────────
 const selectedRepresentativeName = ref('')
@@ -148,20 +148,20 @@ onBeforeUnmount(teardown)
       type="warning"
       variant="tonal"
     >
-      You do not have permission to view representative tracking.
+      ليس لديك صلاحية لعرض تتبع المندوبين.
     </VAlert>
 
     <template v-else>
       <!-- ══ Live Tracking ══════════════════════════════════════════════════ -->
       <VCard class="mb-6">
         <VCardItem>
-          <VCardTitle>Live Tracking</VCardTitle>
-          <VCardSubtitle>Current position of every sales representative</VCardSubtitle>
+          <VCardTitle>التتبع المباشر</VCardTitle>
+          <VCardSubtitle>الموقع الحالي لكل مندوب مبيعات</VCardSubtitle>
 
           <template #append>
             <div class="d-flex align-center gap-3 flex-wrap justify-end">
               <div class="text-caption text-disabled text-no-wrap">
-                Last sync: {{ lastSyncLabel }}
+                آخر مزامنة: {{ lastSyncLabel }}
               </div>
 
               <VChip
@@ -183,7 +183,7 @@ onBeforeUnmount(teardown)
                 color="default"
                 size="small"
                 :loading="isLatestLoading"
-                title="Refresh snapshot"
+                title="تحديث البيانات"
                 @click="fetchLatest"
               >
                 <VIcon icon="tabler-refresh" />
@@ -216,7 +216,7 @@ onBeforeUnmount(teardown)
                 prepend-icon="tabler-refresh"
                 @click="restartLive"
               >
-                Retry
+                إعادة المحاولة
               </VBtn>
             </div>
           </VAlert>
@@ -246,7 +246,7 @@ onBeforeUnmount(teardown)
             size="44"
             color="primary"
           />
-          <span class="text-body-2 text-medium-emphasis">Loading representative locations…</span>
+          <span class="text-body-2 text-medium-emphasis">جارٍ تحميل مواقع المندوبين…</span>
         </VCardText>
 
         <!-- Empty snapshot — a valid response, not an error -->
@@ -259,7 +259,7 @@ onBeforeUnmount(teardown)
             size="40"
             color="secondary"
           />
-          <span class="text-body-2 text-medium-emphasis">No representative locations are available yet.</span>
+          <span class="text-body-2 text-medium-emphasis">لا تتوفّر مواقع للمندوبين حتى الآن.</span>
         </VCardText>
 
         <!-- Map + overview -->
@@ -291,14 +291,14 @@ onBeforeUnmount(teardown)
             density="compact"
             class="ma-4 mb-0"
           >
-            {{ outsideMapRangeCount }} position(s) lie beyond the map's ±85.05° latitude limit.
-            Their pins are shown at the nearest drawable point; the table below lists the exact
-            coordinates the API returned.
+            {{ outsideMapRangeCount }} من المواقع خارج حدود خطوط العرض ±85.05° للخريطة.
+            تُرسم علاماتها عند أقرب نقطة ممكنة، ويعرض الجدول أدناه الإحداثيات الفعلية
+            كما وردت من الخادم.
           </VAlert>
 
           <VCardItem class="pb-2">
             <VCardTitle class="text-h6">
-              Representatives
+              المندوبون
             </VCardTitle>
             <VCardSubtitle>
               {{ activeCount }} of {{ representatives.length }} active in the last 15 minutes
@@ -324,7 +324,7 @@ onBeforeUnmount(teardown)
                 size="small"
                 label
               >
-                {{ item.isLive ? 'Active' : 'Inactive' }}
+                {{ item.isLive ? 'نشط' : 'غير نشط' }}
               </VChip>
             </template>
 
@@ -338,7 +338,7 @@ onBeforeUnmount(teardown)
               </span>
               <VTooltip
                 v-if="item.isOutsideMapRange"
-                text="Beyond the map's ±85.05° latitude limit — the pin is drawn at the nearest point the projection allows."
+                text="خارج حدود خطوط العرض ±85.05° للخريطة — تم رسم العلامة عند أقرب نقطة يسمح بها الإسقاط."
               >
                 <template #activator="{ props: tooltipProps }">
                   <VIcon
@@ -355,7 +355,7 @@ onBeforeUnmount(teardown)
             <template #bottom>
               <VDivider />
               <div class="d-flex justify-end pa-4 text-caption text-disabled">
-                Status is derived from the last recorded time using the backend's 15-minute rule.
+                تُحتسب الحالة من وقت آخر تسجيل وفق قاعدة الـ15 دقيقة المعتمدة في الخادم.
               </div>
             </template>
           </VDataTable>
@@ -365,8 +365,8 @@ onBeforeUnmount(teardown)
       <!-- ══ Trail History ══════════════════════════════════════════════════ -->
       <VCard>
         <VCardItem>
-          <VCardTitle>Trail History</VCardTitle>
-          <VCardSubtitle>Recorded movement of one representative on a single day</VCardSubtitle>
+          <VCardTitle>سجلّ المسار</VCardTitle>
+          <VCardSubtitle>حركة مندوب واحد خلال يوم محدّد</VCardSubtitle>
         </VCardItem>
 
         <VDivider />
@@ -380,8 +380,8 @@ onBeforeUnmount(teardown)
             >
               <RepresentativeSelect
                 v-model="selectedRepresentativeId"
-                label="Representative"
-                placeholder="Select a representative"
+                label="المندوب"
+                placeholder="اختر المندوب"
                 clearable
                 @select="onRepresentativeSelect"
               />
@@ -398,8 +398,8 @@ onBeforeUnmount(teardown)
               -->
               <AppDateTimePicker
                 v-model="selectedDate"
-                label="Date"
-                placeholder="YYYY-MM-DD"
+                label="التاريخ"
+                placeholder="سنة-شهر-يوم"
                 :config="{ dateFormat: 'Y-m-d' }"
               />
             </VCol>
@@ -415,7 +415,7 @@ onBeforeUnmount(teardown)
                 prepend-icon="tabler-route"
                 @click="fetchTrail"
               >
-                View Trail
+                عرض المسار
               </VBtn>
 
               <VBtn
@@ -424,7 +424,7 @@ onBeforeUnmount(teardown)
                 color="secondary"
                 @click="clearTrail"
               >
-                Clear
+                مسح
               </VBtn>
             </VCol>
           </VRow>
@@ -453,7 +453,7 @@ onBeforeUnmount(teardown)
             size="44"
             color="primary"
           />
-          <span class="text-body-2 text-medium-emphasis">Loading trail…</span>
+          <span class="text-body-2 text-medium-emphasis">جارٍ تحميل المسار…</span>
         </VCardText>
 
         <!-- Trail empty — a valid response, not an error -->
@@ -467,7 +467,7 @@ onBeforeUnmount(teardown)
             color="secondary"
           />
           <span class="text-body-2 text-medium-emphasis">
-            No tracking data was recorded for this representative on the selected date.
+            لا توجد بيانات تتبع مسجّلة لهذا المندوب في التاريخ المحدد.
           </span>
         </VCardText>
 
@@ -480,7 +480,7 @@ onBeforeUnmount(teardown)
                 md="3"
               >
                 <div class="text-caption text-disabled mb-1">
-                  Representative
+                  المندوب
                 </div>
                 <div class="text-body-1 font-weight-medium">
                   {{ selectedRepresentativeName || `Rep #${selectedRepresentativeId}` }}
@@ -492,7 +492,7 @@ onBeforeUnmount(teardown)
                 md="3"
               >
                 <div class="text-caption text-disabled mb-1">
-                  Recorded Points
+                  النقاط المسجّلة
                 </div>
                 <div class="text-body-1 font-weight-medium">
                   {{ trailSummary.pointCount }}
@@ -504,7 +504,7 @@ onBeforeUnmount(teardown)
                 md="3"
               >
                 <div class="text-caption text-disabled mb-1">
-                  First Recorded
+                  أول تسجيل
                 </div>
                 <div class="text-body-1 font-weight-medium">
                   {{ formatTrackingTime(trailSummary.firstRecordedAt) }}
@@ -516,7 +516,7 @@ onBeforeUnmount(teardown)
                 md="3"
               >
                 <div class="text-caption text-disabled mb-1">
-                  Last Recorded
+                  آخر تسجيل
                 </div>
                 <div class="text-body-1 font-weight-medium">
                   {{ formatTrackingTime(trailSummary.lastRecordedAt) }}
@@ -541,7 +541,7 @@ onBeforeUnmount(teardown)
             color="secondary"
           />
           <span class="text-body-2 text-medium-emphasis">
-            Select a representative and a date, then choose “View Trail”.
+            اختر المندوب والتاريخ، ثم اضغط «عرض المسار».
           </span>
         </VCardText>
       </VCard>

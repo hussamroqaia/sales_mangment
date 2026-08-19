@@ -46,7 +46,7 @@ export const REPORT_DEFINITIONS = {
   salesRepPerformance: {
     key: 'salesRepPerformance',
     category: 'sales',
-    title: 'Representative Performance',
+    title: 'أداء المندوبين',
     path: `${BASE}/sales/rep-performance`,
     filenameSlug: 'rep-performance',
     filters: [REPORT_FILTERS.DATE_RANGE],
@@ -54,7 +54,7 @@ export const REPORT_DEFINITIONS = {
   salesInvoices: {
     key: 'salesInvoices',
     category: 'sales',
-    title: 'Invoices',
+    title: 'الفواتير',
     path: `${BASE}/sales/invoices`,
     filenameSlug: 'invoices',
     filters: [REPORT_FILTERS.DATE_RANGE, REPORT_FILTERS.REPRESENTATIVE, REPORT_FILTERS.CUSTOMER],
@@ -62,7 +62,7 @@ export const REPORT_DEFINITIONS = {
   customerPurchases: {
     key: 'customerPurchases',
     category: 'customers',
-    title: 'Customer Purchases',
+    title: 'مشتريات العملاء',
     path: `${BASE}/customers/purchases`,
     filenameSlug: 'customer-purchases',
 
@@ -72,7 +72,7 @@ export const REPORT_DEFINITIONS = {
   routePerformance: {
     key: 'routePerformance',
     category: 'routes',
-    title: 'Route Performance',
+    title: 'أداء المسارات',
     path: `${BASE}/routes/performance`,
     filenameSlug: 'route-performance',
     filters: [REPORT_FILTERS.DATE_RANGE, REPORT_FILTERS.REPRESENTATIVE],
@@ -80,7 +80,7 @@ export const REPORT_DEFINITIONS = {
   routeMissedVisits: {
     key: 'routeMissedVisits',
     category: 'routes',
-    title: 'Missed Visits',
+    title: 'الزيارات الفائتة',
     path: `${BASE}/routes/missed-visits`,
     filenameSlug: 'missed-visits',
     filters: [REPORT_FILTERS.DATE_RANGE, REPORT_FILTERS.REPRESENTATIVE],
@@ -88,7 +88,7 @@ export const REPORT_DEFINITIONS = {
   inventoryStockLevels: {
     key: 'inventoryStockLevels',
     category: 'inventory',
-    title: 'Stock Levels',
+    title: 'مستويات المخزون',
     path: `${BASE}/inventory/stock-levels`,
     filenameSlug: 'stock-levels',
 
@@ -98,7 +98,7 @@ export const REPORT_DEFINITIONS = {
   inventoryBelowMinimum: {
     key: 'inventoryBelowMinimum',
     category: 'inventory',
-    title: 'Below Minimum',
+    title: 'أقل من الحد الأدنى',
     path: `${BASE}/inventory/below-minimum`,
     filenameSlug: 'below-minimum',
     filters: [],
@@ -106,7 +106,7 @@ export const REPORT_DEFINITIONS = {
   inventoryMovement: {
     key: 'inventoryMovement',
     category: 'inventory',
-    title: 'Movement',
+    title: 'حركة المخزون',
     path: `${BASE}/inventory/movement`,
     filenameSlug: 'movement',
     filters: [REPORT_FILTERS.DATE_RANGE],
@@ -114,7 +114,7 @@ export const REPORT_DEFINITIONS = {
   inventoryFastSlowMoving: {
     key: 'inventoryFastSlowMoving',
     category: 'inventory',
-    title: 'Fast / Slow Moving',
+    title: 'الأصناف سريعة وبطيئة الحركة',
     path: `${BASE}/inventory/fast-slow-moving`,
     filenameSlug: 'fast-slow-moving',
     filters: [REPORT_FILTERS.DATE_RANGE],
@@ -122,7 +122,7 @@ export const REPORT_DEFINITIONS = {
   inventoryAging: {
     key: 'inventoryAging',
     category: 'inventory',
-    title: 'Aging',
+    title: 'أعمار المخزون',
     path: `${BASE}/inventory/aging`,
     filenameSlug: 'aging',
     filters: [],
@@ -130,7 +130,7 @@ export const REPORT_DEFINITIONS = {
   inventoryFillRate: {
     key: 'inventoryFillRate',
     category: 'inventory',
-    title: 'Fill Rate',
+    title: 'نسبة تلبية الطلب',
     path: `${BASE}/inventory/fill-rate`,
     filenameSlug: 'fill-rate',
     filters: [REPORT_FILTERS.DATE_RANGE],

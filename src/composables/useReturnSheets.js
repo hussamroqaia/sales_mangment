@@ -22,8 +22,8 @@ import {
 
 // ─── Status constants ─────────────────────────────────────────────────────────
 export const RETURN_SHEET_STATUSES = [
-  { title: 'Draft',     value: 'DRAFT'     },
-  { title: 'Completed', value: 'COMPLETED' },
+  { title: 'مسودة', value: 'DRAFT'     },
+  { title: 'مكتمل', value: 'COMPLETED' },
 ]
 
 export const resolveReturnStatusVariant = status =>
@@ -89,7 +89,7 @@ export const useReturnSheets = () => {
       sheets.value      = data?.content       ?? []
       totalSheets.value = data?.totalElements ?? 0
     } catch (error) {
-      listError.value = error?.response?.data?.message || 'Failed to load return sheets.'
+      listError.value = error?.response?.data?.message || 'تعذّر تحميل كشوف المرتجعات.'
       showSnackbar(listError.value, 'error')
     } finally {
       isListLoading.value = false
@@ -118,7 +118,7 @@ export const useReturnSheets = () => {
     try {
       selectedSheet.value = await fetchReturnSheetById(id)
     } catch (error) {
-      detailError.value = error?.response?.data?.message || `Failed to load return sheet #${id}.`
+      detailError.value = error?.response?.data?.message || `تعذّر تحميل كشف المرتجعات رقم ${id}.`
       showSnackbar(detailError.value, 'error')
     } finally {
       isDetailLoading.value = false
@@ -130,16 +130,16 @@ export const useReturnSheets = () => {
     isSubmitting.value = true
     try {
       await createReturnSheetService(payload)
-      showSnackbar('Return sheet created successfully.')
+      showSnackbar('تم إنشاء كشف المرتجعات بنجاح.')
       page.value = 1
       await fetchAllSheets()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to create return sheet.', 'error')
+      showSnackbar(message || 'تعذّر إنشاء كشف المرتجعات.', 'error')
 
-      return { success: false, error: message || 'Failed to create return sheet.' }
+      return { success: false, error: message || 'تعذّر إنشاء كشف المرتجعات.' }
     } finally {
       isSubmitting.value = false
     }
@@ -150,15 +150,15 @@ export const useReturnSheets = () => {
     isSubmitting.value = true
     try {
       const res = await completeReturnSheetService(id)
-      showSnackbar(res?.message || 'Return sheet completed.')
+      showSnackbar(res?.message || 'تم إكمال كشف المرتجعات.')
       await fetchAllSheets()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to complete return sheet.', 'error')
+      showSnackbar(message || 'تعذّر إكمال كشف المرتجعات.', 'error')
 
-      return { success: false, error: message || 'Failed to complete return sheet.' }
+      return { success: false, error: message || 'تعذّر إكمال كشف المرتجعات.' }
     } finally {
       isSubmitting.value = false
     }
@@ -169,16 +169,16 @@ export const useReturnSheets = () => {
     isSubmitting.value = true
     try {
       await autoCreateReturnSheetService(representativeId)
-      showSnackbar('Return sheet auto-created successfully.')
+      showSnackbar('تم إنشاء كشف المرتجعات تلقائيًا بنجاح.')
       page.value = 1
       await fetchAllSheets()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to auto-create return sheet.', 'error')
+      showSnackbar(message || 'تعذّر إنشاء كشف المرتجعات تلقائيًا.', 'error')
 
-      return { success: false, error: message || 'Failed to auto-create return sheet.' }
+      return { success: false, error: message || 'تعذّر إنشاء كشف المرتجعات تلقائيًا.' }
     } finally {
       isSubmitting.value = false
     }

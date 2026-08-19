@@ -4,6 +4,7 @@ export const defineThemeConfig = userConfig => {
     layoutConfig: {
       app: {
         title: userConfig.app.title,
+        storageNamespace: userConfig.app.storageNamespace,
         logo: userConfig.app.logo,
         contentWidth: userConfig.app.contentWidth,
         contentLayoutNav: userConfig.app.contentLayoutNav,

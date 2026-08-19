@@ -10,6 +10,7 @@ export const createLayouts = userConfig => {
 
     // Non reactive Values
     layoutConfig.app.title = userConfig.app?.title ?? layoutConfig.app.title
+    layoutConfig.app.storageNamespace = userConfig.app?.storageNamespace ?? layoutConfig.app.storageNamespace
     layoutConfig.app.logo = userConfig.app?.logo ?? layoutConfig.app.logo
     layoutConfig.app.overlayNavFromBreakpoint = userConfig.app?.overlayNavFromBreakpoint ?? layoutConfig.app.overlayNavFromBreakpoint
     layoutConfig.app.i18n.enable = userConfig.app?.i18n?.enable ?? layoutConfig.app.i18n.enable

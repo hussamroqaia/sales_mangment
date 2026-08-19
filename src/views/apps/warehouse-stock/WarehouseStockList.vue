@@ -21,6 +21,7 @@ import {
 } from '@/composables/useWarehouseStock'
 import { useAuth } from '@/composables/useAuth'
 import { fetchProducts } from '@/services/product.service'
+import { INTL_LOCALE } from '@/utils/locale'
 
 // ── Auth — role guard for mutating actions ───────────────────────────────────
 // Both ADMIN and WAREHOUSE_MANAGER get full read/write/add access to stock.
@@ -53,12 +54,12 @@ const {
 
 // ── Table Headers ──────────────────────────────────────────────────────────────
 const headers = [
-  { title: 'Product',     key: 'productName',   sortable: true  },
-  { title: 'Quantity',    key: 'quantity',      sortable: true  },
-  { title: 'Min Stock',   key: 'minStockLevel', sortable: true  },
-  { title: 'Status',      key: 'lowStock',      sortable: true  },
-  { title: 'Last Updated', key: 'lastUpdated',  sortable: true  },
-  { title: 'Actions',     key: 'actions',       sortable: false, align: 'end' },
+  { title: 'المنتج',     key: 'productName',   sortable: true  },
+  { title: 'الكمية',    key: 'quantity',      sortable: true  },
+  { title: 'الحد الأدنى',   key: 'minStockLevel', sortable: true  },
+  { title: 'الحالة',      key: 'lowStock',      sortable: true  },
+  { title: 'آخر تحديث', key: 'lastUpdated',  sortable: true  },
+  { title: 'الإجراءات',     key: 'actions',       sortable: false, align: 'end' },
 ]
 
 // ── Modal State ────────────────────────────────────────────────────────────────
@@ -186,7 +187,7 @@ const formatDate = value => {
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return '—'
 
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(INTL_LOCALE, {
     year: 'numeric',
     month: 'short',
     day: '2-digit',
@@ -273,7 +274,7 @@ onMounted(fetchAllStock)
           <VCardText class="d-flex justify-space-between align-center">
             <div>
               <div class="text-body-2 text-medium-emphasis mb-1">
-                Stock Records
+                سجلات المخزون
               </div>
               <h4 class="text-h4">
                 {{ totalStock }}
@@ -298,7 +299,7 @@ onMounted(fetchAllStock)
     <!-- ── Main Card ─────────────────────────────────────────────────────────── -->
     <VCard>
       <VCardItem class="pb-2">
-        <VCardTitle>Warehouse Stock</VCardTitle>
+        <VCardTitle>مخزون المستودع</VCardTitle>
       </VCardItem>
 
       <!-- Filters -->
@@ -311,8 +312,8 @@ onMounted(fetchAllStock)
           >
             <VAutocomplete
               v-model="productIdFilter"
-              label="Filter by Product"
-              placeholder="Search products…"
+              label="تصفية حسب المنتج"
+              placeholder="ابحث عن منتج…"
               :items="productItems"
               item-title="title"
               item-value="value"
@@ -343,7 +344,7 @@ onMounted(fetchAllStock)
                     v-else-if="productPage >= productTotalPages"
                     class="text-caption text-disabled"
                   >
-                    All products loaded
+                    تم تحميل كل المنتجات
                   </span>
                 </div>
               </template>
@@ -352,7 +353,7 @@ onMounted(fetchAllStock)
               <template #no-data>
                 <VListItem>
                   <VListItemTitle class="text-medium-emphasis">
-                    {{ isProductLoading ? 'Loading…' : 'No products found' }}
+                    {{ isProductLoading ? 'Loading…' : 'لا توجد منتجات' }}
                   </VListItemTitle>
                 </VListItem>
               </template>
@@ -367,7 +368,7 @@ onMounted(fetchAllStock)
           >
             <VSwitch
               v-model="lowStockOnly"
-              label="Show Low Stock Only"
+              label="عرض الأصناف منخفضة المخزون فقط"
               color="warning"
             />
           </VCol>
@@ -399,7 +400,7 @@ onMounted(fetchAllStock)
           prepend-icon="tabler-plus"
           @click="openAddDialog"
         >
-          Add New Item
+          إضافة صنف جديد
         </VBtn>
 
         <!-- Manual refresh -->
@@ -410,7 +411,7 @@ onMounted(fetchAllStock)
           :loading="isListLoading"
           @click="fetchAllStock"
         >
-          Refresh
+          تحديث
         </VBtn>
       </VCardText>
 
@@ -459,10 +460,10 @@ onMounted(fetchAllStock)
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
               <template v-if="lowStockOnly || productIdFilter">
-                No stock records match your filters.
+                لا توجد سجلات مخزون مطابقة لعوامل التصفية.
               </template>
               <template v-else>
-                No warehouse stock records found.
+                لا توجد سجلات مخزون في المستودع.
               </template>
             </p>
           </div>
@@ -521,7 +522,7 @@ onMounted(fetchAllStock)
               size="14"
               start
             />
-            {{ item.lowStock ? 'Low Stock' : 'In Stock' }}
+            {{ item.lowStock ? 'مخزون منخفض' : 'متوفر' }}
           </VChip>
         </template>
 
@@ -535,7 +536,7 @@ onMounted(fetchAllStock)
           <div class="d-flex justify-end gap-1">
             <template v-if="canManageStock">
               <!-- Receive Stock -->
-              <VTooltip text="Receive Stock">
+              <VTooltip text="استلام مخزون">
                 <template #activator="{ props: tp }">
                   <IconBtn
                     v-bind="tp"
@@ -548,7 +549,7 @@ onMounted(fetchAllStock)
               </VTooltip>
 
               <!-- Correct Stock -->
-              <VTooltip text="Correct Stock">
+              <VTooltip text="تصحيح المخزون">
                 <template #activator="{ props: tp }">
                   <IconBtn
                     v-bind="tp"
@@ -569,7 +570,7 @@ onMounted(fetchAllStock)
               variant="tonal"
               label
             >
-              View only
+              عرض فقط
             </VChip>
           </div>
         </template>
@@ -615,7 +616,7 @@ onMounted(fetchAllStock)
               />
             </VAvatar>
           </template>
-          <VCardTitle>Add New Item to Warehouse</VCardTitle>
+          <VCardTitle>إضافة صنف جديد إلى المستودع</VCardTitle>
         </VCardItem>
 
         <VDivider />
@@ -630,9 +631,9 @@ onMounted(fetchAllStock)
               <VCol cols="12">
                 <VAutocomplete
                   v-model="addForm.productId"
-                  :rules="[v => !!v || 'Product is required']"
-                  label="Product"
-                  placeholder="Search products…"
+                  :rules="[v => !!v || 'المنتج مطلوب']"
+                  label="المنتج"
+                  placeholder="ابحث عن منتج…"
                   :items="addProductItems"
                   item-title="title"
                   item-value="value"
@@ -663,7 +664,7 @@ onMounted(fetchAllStock)
                         v-else-if="addProductPage >= addProductTotalPages"
                         class="text-caption text-disabled"
                       >
-                        All products loaded
+                        تم تحميل كل المنتجات
                       </span>
                     </div>
                   </template>
@@ -672,7 +673,7 @@ onMounted(fetchAllStock)
                   <template #no-data>
                     <VListItem>
                       <VListItemTitle class="text-medium-emphasis">
-                        {{ isAddProductLoading ? 'Loading…' : 'No products found' }}
+                        {{ isAddProductLoading ? 'Loading…' : 'لا توجد منتجات' }}
                       </VListItemTitle>
                     </VListItem>
                   </template>
@@ -683,13 +684,13 @@ onMounted(fetchAllStock)
               <VCol cols="12">
                 <AppTextField
                   v-model="addForm.quantity"
-                  label="Quantity to Receive"
+                  label="الكمية المستلمة"
                   :rules="[
-                    v => (v !== null && v !== undefined && v !== '') || 'Quantity is required',
-                    v => Number.isInteger(Number(v)) || 'Must be a whole number',
-                    v => Number(v) >= 1 || 'Enter a value of 1 or greater',
+                    v => (v !== null && v !== undefined && v !== '') || 'الكمية مطلوبة',
+                    v => Number.isInteger(Number(v)) || 'يجب أن يكون رقمًا صحيحًا',
+                    v => Number(v) >= 1 || 'أدخل قيمة أكبر من أو تساوي 1',
                   ]"
-                  hint="This amount will be added to the warehouse stock."
+                  hint="ستُضاف هذه الكمية إلى مخزون المستودع."
                   persistent-hint
                   type="number"
                   min="1"
@@ -709,7 +710,7 @@ onMounted(fetchAllStock)
             :disabled="isAddSubmitting"
             @click="closeAddDialog"
           >
-            Cancel
+            إلغاء
           </VBtn>
           <VBtn
             color="primary"
@@ -721,7 +722,7 @@ onMounted(fetchAllStock)
               icon="tabler-plus"
               start
             />
-            Add to Warehouse
+            إضافة إلى المستودع
           </VBtn>
         </VCardActions>
       </VCard>

@@ -72,7 +72,7 @@ watch(() => props.isSubmitting, (newVal, oldVal) => {
   >
     <!-- Header -->
     <AppDrawerHeaderSection
-      title="Add New User"
+      title="إضافة مستخدم جديد"
       @cancel="closeDrawer"
     />
 
@@ -91,8 +91,8 @@ watch(() => props.isSubmitting, (newVal, oldVal) => {
                 <AppTextField
                   v-model="form.name"
                   :rules="[requiredValidator]"
-                  label="Full Name"
-                  placeholder="John Doe"
+                  label="الاسم الكامل"
+                  placeholder="مثال: أحمد محمد"
                   :disabled="props.isSubmitting"
                 />
               </VCol>
@@ -102,9 +102,9 @@ watch(() => props.isSubmitting, (newVal, oldVal) => {
                 <AppTextField
                   v-model="form.email"
                   :rules="[requiredValidator, emailValidator]"
-                  label="Email"
+                  label="البريد الإلكتروني"
                   type="email"
-                  placeholder="johndoe@email.com"
+                  placeholder="name@example.com"
                   :disabled="props.isSubmitting"
                 />
               </VCol>
@@ -113,8 +113,8 @@ watch(() => props.isSubmitting, (newVal, oldVal) => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.password"
-                  :rules="[requiredValidator, v => (v || '').length >= 8 || 'Password must be at least 8 characters']"
-                  label="Password"
+                  :rules="[requiredValidator, v => (v || '').length >= 8 || 'يجب ألّا تقلّ كلمة المرور عن 8 أحرف']"
+                  label="كلمة المرور"
                   placeholder="············"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   autocomplete="new-password"
@@ -128,8 +128,8 @@ watch(() => props.isSubmitting, (newVal, oldVal) => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.confirmPassword"
-                  :rules="[requiredValidator, v => v === form.password || 'Passwords do not match']"
-                  label="Confirm Password"
+                  :rules="[requiredValidator, v => v === form.password || 'كلمتا المرور غير متطابقتين']"
+                  label="تأكيد كلمة المرور"
                   placeholder="············"
                   :type="isConfirmPasswordVisible ? 'text' : 'password'"
                   autocomplete="new-password"
@@ -143,8 +143,8 @@ watch(() => props.isSubmitting, (newVal, oldVal) => {
               <VCol cols="12">
                 <AppSelect
                   v-model="form.role"
-                  label="Role"
-                  placeholder="Select Role"
+                  label="الدور"
+                  placeholder="اختر الدور"
                   :rules="[requiredValidator]"
                   :items="USER_ROLES"
                   item-title="title"
@@ -161,7 +161,7 @@ watch(() => props.isSubmitting, (newVal, oldVal) => {
                   :loading="props.isSubmitting"
                   :disabled="props.isSubmitting"
                 >
-                  Create User
+                  إنشاء المستخدم
                 </VBtn>
                 <VBtn
                   type="button"
@@ -170,7 +170,7 @@ watch(() => props.isSubmitting, (newVal, oldVal) => {
                   :disabled="props.isSubmitting"
                   @click="closeDrawer"
                 >
-                  Cancel
+                  إلغاء
                 </VBtn>
               </VCol>
             </VRow>

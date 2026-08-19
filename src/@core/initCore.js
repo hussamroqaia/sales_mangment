@@ -1,35 +1,20 @@
 import { useStorage } from '@vueuse/core'
 import { useTheme } from 'vuetify'
 import { useConfigStore } from '@core/stores/config'
-import { cookieRef, namespaceConfig } from '@layouts/stores/config'
-import { themeConfig } from '@themeConfig'
+import { namespaceConfig } from '@layouts/stores/config'
+import { APP_LOCALE } from '@/plugins/i18n'
 
-const _syncAppRtl = () => {
+const _syncAppLocale = () => {
   const configStore = useConfigStore()
-  const storedLang = cookieRef('language', null)
-  const { locale } = useI18n({ useScope: 'global' })
 
-  // TODO: Handle case where i18n can't read persisted value
-  if (locale.value !== storedLang.value && storedLang.value)
-    locale.value = storedLang.value
+  // Arabic only: there is nothing to negotiate or persist. We just stamp the
+  // document so `lang`/`dir` match what Vuetify and the layout already assume.
+  configStore.isAppRTL = true
 
-  // watch and change lang attribute of html on language change
-  watch(locale, val => {
-    // Update lang attribute of html tag
-    if (typeof document !== 'undefined')
-      document.documentElement.setAttribute('lang', val)
-
-    // Store selected language in cookie
-    storedLang.value = val
-
-    // set isAppRtl value based on selected language
-    if (themeConfig.app.i18n.langConfig && themeConfig.app.i18n.langConfig.length) {
-      themeConfig.app.i18n.langConfig.forEach(lang => {
-        if (lang.i18nLang === storedLang.value)
-          configStore.isAppRTL = lang.isRTL
-      })
-    }
-  }, { immediate: true })
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('lang', APP_LOCALE)
+    document.documentElement.setAttribute('dir', 'rtl')
+  }
 }
 
 const _handleSkinChanges = () => {
@@ -73,9 +58,7 @@ const initCore = () => {
   _syncInitialLoaderTheme()
   _handleSkinChanges()
 
-  // ℹ️ We don't want to trigger i18n in SK
-  if (themeConfig.app.i18n.enable)
-    _syncAppRtl()
+  _syncAppLocale()
 }
 
 export default initCore

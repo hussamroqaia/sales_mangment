@@ -8,6 +8,11 @@
 //
 // Ability pairs (action/subject) are identical to the vertical menu on purpose:
 // they mirror the backend's @PreAuthorize split. Keep the two files in sync.
+// ℹ️ Localisation: `title` / `heading` are i18n KEYS, not display copy. The
+// layout renders them through <i18n-t> (see @layouts/utils → getDynamicI18nProps),
+// so each one is looked up in src/plugins/i18n/locales/ar.json and shown in
+// Arabic. Adding an entry here means adding its key to ar.json — an unknown key
+// falls back to rendering itself, which would surface English in the sidebar.
 export default [
   {
     title: 'Dashboard',

@@ -20,6 +20,7 @@ definePage({
 import TerritoryFormDrawer from '@/views/apps/territory/TerritoryFormDrawer.vue'
 import { useTerritories } from '@/composables/useTerritories'
 import { useAuth } from '@/composables/useAuth'
+import { INTL_LOCALE } from '@/utils/locale'
 
 // ── Auth — role guard for mutating actions ────────────────────────────────────
 const { userData } = useAuth()
@@ -48,11 +49,11 @@ const {
 
 // ── Table Headers ──────────────────────────────────────────────────────────────
 const headers = [
-  { title: 'Name',        key: 'name',         sortable: false                },
-  { title: 'Description', key: 'description',  sortable: false                },
-  { title: 'Created',     key: 'createdAt',    sortable: false                },
-  { title: 'Updated',     key: 'updatedAt',    sortable: false                },
-  { title: 'Actions',     key: 'actions',      sortable: false, align: 'end'  },
+  { title: 'الاسم',        key: 'name',         sortable: false                },
+  { title: 'الوصف', key: 'description',  sortable: false                },
+  { title: 'تاريخ الإنشاء',     key: 'createdAt',    sortable: false                },
+  { title: 'تاريخ التحديث',     key: 'updatedAt',    sortable: false                },
+  { title: 'الإجراءات',     key: 'actions',      sortable: false, align: 'end'  },
 ]
 
 // ── Drawer State ───────────────────────────────────────────────────────────────
@@ -104,7 +105,7 @@ const onDelete = territory => {
   isDeleteDialogOpen.value = true
 }
 
-/** Confirmed delete — called when user clicks 'Delete' in the dialog */
+/** Confirmed delete — called when user clicks 'حذف' in the dialog */
 const onConfirmDelete = async () => {
   if (!territoryToDelete.value) return
   isDeleteDialogOpen.value = false
@@ -122,7 +123,7 @@ const onCancelDelete = () => {
 const formatDate = dateStr => {
   if (!dateStr) return '—'
 
-  return new Date(dateStr).toLocaleDateString('en-US', {
+  return new Date(dateStr).toLocaleDateString(INTL_LOCALE, {
     year:  'numeric',
     month: 'short',
     day:   'numeric',
@@ -146,7 +147,7 @@ onMounted(fetchAllTerritories)
           <VCardText class="d-flex justify-space-between align-center">
             <div>
               <div class="text-body-2 text-medium-emphasis mb-1">
-                Total Territories
+                إجمالي المناطق
               </div>
               <h4 class="text-h4">
                 {{ totalTerritories }}
@@ -171,7 +172,7 @@ onMounted(fetchAllTerritories)
     <!-- ── Main Card ────────────────────────────────────────────────────────── -->
     <VCard>
       <VCardItem class="pb-2">
-        <VCardTitle>Territory Management</VCardTitle>
+        <VCardTitle>إدارة المناطق</VCardTitle>
       </VCardItem>
 
       <VDivider />
@@ -195,7 +196,7 @@ onMounted(fetchAllTerritories)
         <!-- Search -->
         <AppTextField
           v-model="search"
-          placeholder="Search territories…"
+          placeholder="ابحث عن منطقة…"
           prepend-inner-icon="tabler-search"
           style="inline-size: 15rem;"
           clearable
@@ -208,7 +209,7 @@ onMounted(fetchAllTerritories)
           prepend-icon="tabler-plus"
           @click="openCreate"
         >
-          Add Territory
+          إضافة منطقة
         </VBtn>
       </VCardText>
 
@@ -255,11 +256,11 @@ onMounted(fetchAllTerritories)
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
               <template v-if="search">
-                No territories match &ldquo;<strong>{{ search }}</strong>&rdquo;.
+                لا توجد مناطق مطابقة لـ &laquo;<strong>{{ search }}</strong>&raquo;.
               </template>
               <template v-else>
-                No territories found.
-                <span v-if="isAdmin">Create your first territory to get started.</span>
+                لا توجد مناطق.
+                <span v-if="isAdmin">أنشئ أول منطقة للبدء.</span>
               </template>
             </p>
             <VBtn
@@ -268,7 +269,7 @@ onMounted(fetchAllTerritories)
               size="small"
               @click="openCreate"
             >
-              Add Territory
+              إضافة منطقة
             </VBtn>
           </div>
         </template>
@@ -322,7 +323,7 @@ onMounted(fetchAllTerritories)
             <!-- Edit — Admin only -->
             <VTooltip
               v-if="isAdmin"
-              text="Edit Territory"
+              text="تعديل المنطقة"
             >
               <template #activator="{ props: tooltipProps }">
                 <IconBtn
@@ -338,7 +339,7 @@ onMounted(fetchAllTerritories)
             <!-- Delete — Admin only -->
             <VTooltip
               v-if="isAdmin"
-              text="Delete Territory"
+              text="حذف المنطقة"
             >
               <template #activator="{ props: tooltipProps }">
                 <IconBtn
@@ -360,7 +361,7 @@ onMounted(fetchAllTerritories)
               variant="tonal"
               label
             >
-              View only
+              عرض فقط
             </VChip>
           </div>
         </template>
@@ -398,18 +399,18 @@ onMounted(fetchAllTerritories)
             color="error"
             size="24"
           />
-          Delete Territory
+          حذف المنطقة
         </VCardTitle>
 
         <VDivider />
 
         <VCardText class="pa-4">
           <p class="mb-1">
-            Are you sure you want to delete
+            هل أنت متأكد من حذف
             <strong>{{ territoryToDelete?.name }}</strong>?
           </p>
           <p class="text-medium-emphasis text-body-2 mb-0">
-            This action cannot be undone.
+            لا يمكن التراجع عن هذا الإجراء.
           </p>
         </VCardText>
 
@@ -420,7 +421,7 @@ onMounted(fetchAllTerritories)
             :disabled="isSubmitting"
             @click="onCancelDelete"
           >
-            Cancel
+            إلغاء
           </VBtn>
           <VBtn
             color="error"
@@ -431,7 +432,7 @@ onMounted(fetchAllTerritories)
               icon="tabler-trash"
               start
             />
-            Delete
+            حذف
           </VBtn>
         </VCardActions>
       </VCard>

@@ -19,6 +19,7 @@ import {
   resolveDemandStatusVariant,
 } from '@/composables/useDemandOrders'
 import { confirmAction } from '@/utils/swal'
+import { INTL_LOCALE } from '@/utils/locale'
 
 const {
   orders,
@@ -44,11 +45,11 @@ const {
 
 // ── Table Headers ──────────────────────────────────────────────────────────────
 const headers = [
-  { title: 'Rep Name',  key: 'representativeName', sortable: false },
-  { title: 'Manager',   key: 'salesManagerName',   sortable: false },
-  { title: 'Date',      key: 'orderDate',          sortable: true  },
-  { title: 'Status',    key: 'status',             sortable: true  },
-  { title: 'Action', key: 'actions',           sortable: false, align: 'end' },
+  { title: 'المندوب',  key: 'representativeName', sortable: false },
+  { title: 'المدير',   key: 'salesManagerName',   sortable: false },
+  { title: 'التاريخ',      key: 'orderDate',          sortable: true  },
+  { title: 'الحالة',    key: 'status',             sortable: true  },
+  { title: 'الإجراء', key: 'actions',           sortable: false, align: 'end' },
 ]
 
 // ── Drawer + Modal state ───────────────────────────────────────────────────────
@@ -74,11 +75,11 @@ const onModalToggle = val => {
 
 // ── Load Van — SweetAlert2 confirmation before firing POST /load ───────────────
 const onLoadVan = async order => {
-  const repName = order.representativeName || `Rep #${order.representativeId}`
+  const repName = order.representativeName || `مندوب رقم ${order.representativeId}`
   const confirmed = await confirmAction({
-    title: `Load Van for ${repName}?`,
-    text: `This will move the requested stock onto ${repName}'s van and mark the order as LOADED. This cannot be undone.`,
-    confirmText: 'Load Van',
+    title: `تحميل مركبة ${repName}؟`,
+    text: `سيتم نقل الكمية المطلوبة إلى مركبة ${repName} وتحويل حالة الطلب إلى «مُحمَّل». لا يمكن التراجع عن هذا الإجراء.`,
+    confirmText: 'تحميل المركبة',
     icon: 'warning',
   })
   if (!confirmed) return
@@ -90,7 +91,7 @@ const formatDate = value => {
   if (!value) return '—'
   const d = new Date(value)
 
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(INTL_LOCALE, {
     year: 'numeric', month: 'short', day: '2-digit',
   }).format(d)
 }
@@ -105,13 +106,13 @@ onMounted(fetchAllOrders)
   <section>
     <VCard>
       <VCardItem class="pb-2">
-        <VCardTitle>Demand Orders</VCardTitle>
+        <VCardTitle>طلبات التزويد</VCardTitle>
         <template #append>
           <VBtn
             prepend-icon="tabler-plus"
             @click="openCreate"
           >
-            New Demand Order
+            طلب تزويد جديد
           </VBtn>
         </template>
       </VCardItem>
@@ -125,7 +126,7 @@ onMounted(fetchAllOrders)
           >
             <AppSelect
               v-model="selectedStatus"
-              placeholder="Filter by Status"
+              placeholder="تصفية حسب الحالة"
               :items="DEMAND_ORDER_STATUSES"
               item-title="title"
               item-value="value"
@@ -139,7 +140,7 @@ onMounted(fetchAllOrders)
           >
             <AppDateTimePicker
               v-model="orderDate"
-              placeholder="Filter by Order Date"
+              placeholder="تصفية حسب تاريخ الطلب"
               :config="{ dateFormat: 'Y-m-d' }"
               clearable
             />
@@ -150,8 +151,8 @@ onMounted(fetchAllOrders)
           >
             <RepresentativeSelect
               v-model="repIdFilter"
-              label="Filter by Sales Rep"
-              placeholder="Search sales reps…"
+              label="تصفية حسب المندوب"
+              placeholder="ابحث عن مندوب…"
               clearable
             />
           </VCol>
@@ -180,7 +181,7 @@ onMounted(fetchAllOrders)
           :loading="isListLoading"
           @click="fetchAllOrders"
         >
-          Refresh
+          تحديث
         </VBtn>
       </VCardText>
 
@@ -220,7 +221,7 @@ onMounted(fetchAllOrders)
               color="secondary"
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
-              No demand orders found.
+              لا توجد طلبات تزويد.
             </p>
           </div>
         </template>
@@ -256,7 +257,7 @@ onMounted(fetchAllOrders)
 
         <template #item.actions="{ item }">
           <div class="d-flex justify-end gap-1">
-            <VTooltip text="View Details">
+            <VTooltip text="عرض التفاصيل">
               <template #activator="{ props: tp }">
                 <IconBtn
                   v-bind="tp"
@@ -270,7 +271,7 @@ onMounted(fetchAllOrders)
             <!-- Load Van — only when not already LOADED -->
             <VTooltip
               v-if="item.status !== 'LOADED'"
-              text="Load Van"
+              text="تحميل المركبة"
             >
               <template #activator="{ props: tp }">
                 <IconBtn

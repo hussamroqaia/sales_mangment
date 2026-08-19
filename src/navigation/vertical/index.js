@@ -1,6 +1,11 @@
 // Vertical navigation — clean project-specific config.
 // Only User Management is exposed. All Vuexy demo nav entries are removed.
 
+// ℹ️ Localisation: `title` / `heading` are i18n KEYS, not display copy. The
+// layout renders them through <i18n-t> (see @layouts/utils → getDynamicI18nProps),
+// so each one is looked up in src/plugins/i18n/locales/ar.json and shown in
+// Arabic. Adding an entry here means adding its key to ar.json — an unknown key
+// falls back to rendering itself, which would surface English in the sidebar.
 export default [
   {
     title: 'Dashboard',

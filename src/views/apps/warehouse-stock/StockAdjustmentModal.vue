@@ -50,18 +50,18 @@ const quantity = ref(null)
 const isReceiveMode = computed(() => props.mode === STOCK_MODES.RECEIVE)
 
 const dialogTitle = computed(() =>
-  isReceiveMode.value ? 'Receive Stock' : 'Correct Stock')
+  isReceiveMode.value ? 'استلام مخزون' : 'تصحيح المخزون')
 
 const submitLabel = computed(() =>
-  isReceiveMode.value ? 'Receive Shipment' : 'Update Stock')
+  isReceiveMode.value ? 'تسجيل استلام شحنة' : 'تحديث المخزون')
 
 const quantityLabel = computed(() =>
-  isReceiveMode.value ? 'Quantity Received' : 'New Quantity')
+  isReceiveMode.value ? 'الكمية المستلمة' : 'الكمية الجديدة')
 
 const quantityHint = computed(() =>
   isReceiveMode.value
-    ? 'This amount will be ADDED to the current on-hand quantity.'
-    : 'This will OVERRIDE the current on-hand quantity (manual correction).')
+    ? 'ستُضاف هذه الكمية إلى الكمية المتوفرة حاليًا.'
+    : 'ستحل هذه الكمية محل الكمية المتوفرة حاليًا (تصحيح يدوي).')
 
 // ── Reset quantity whenever the dialog (re)opens ──────────────────────────────
 watch(
@@ -82,8 +82,8 @@ const quantityRules = computed(() => {
 
   return [
     value => {
-      if (value === null || value === undefined || value === '') return 'Quantity is required'
-      if (!Number.isInteger(Number(value))) return 'Quantity must be a whole number'
+      if (value === null || value === undefined || value === '') return 'الكمية مطلوبة'
+      if (!Number.isInteger(Number(value))) return 'يجب أن تكون الكمية رقمًا صحيحًا'
 
       return Number(value) >= min || `Enter a value of ${min} or greater`
     },
@@ -184,7 +184,7 @@ const onSubmit = () => {
           :disabled="props.isSubmitting"
           @click="closeDialog"
         >
-          Cancel
+          إلغاء
         </VBtn>
         <VBtn
           :color="isReceiveMode ? 'success' : 'primary'"

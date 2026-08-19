@@ -27,7 +27,7 @@ onUnmounted(() => {
 })
 
 const handleToastEvent = event => {
-  toastTitle.value = event.detail?.title ?? 'New Notification'
+  toastTitle.value = event.detail?.title ?? 'إشعار جديد'
   toastBody.value = event.detail?.body ?? ''
   toastVisible.value = true
 }
@@ -87,7 +87,7 @@ const retry = () => {
         size="small"
         @click="toastVisible = false"
       >
-        Close
+        إغلاق
       </VBtn>
     </template>
   </VSnackbar>
@@ -115,7 +115,7 @@ const retry = () => {
         <!-- Header -->
         <VCardItem class="notification-section">
           <VCardTitle class="text-h6">
-            Notifications
+            الإشعارات
           </VCardTitle>
 
           <template #append>
@@ -125,7 +125,7 @@ const retry = () => {
               color="primary"
               class="me-2"
             >
-              {{ unreadCount > 99 ? '99+' : unreadCount }} New
+              {{ unreadCount > 99 ? '99+' : unreadCount }} جديد
             </VChip>
 
             <!-- Loading indicator -->
@@ -161,7 +161,7 @@ const retry = () => {
             color="primary"
             @click="retry"
           >
-            Retry
+            إعادة المحاولة
           </VBtn>
         </VCardText>
 
@@ -278,7 +278,7 @@ const retry = () => {
                   class="mb-2 text-disabled"
                 />
                 <VListItemTitle class="text-disabled">
-                  No notifications
+                  لا توجد إشعارات
                 </VListItemTitle>
               </div>
             </VListItem>
@@ -294,7 +294,7 @@ const retry = () => {
             size="small"
             :to="{ name: 'notifications' }"
           >
-            View All Notifications
+            عرض كل الإشعارات
           </VBtn>
         </VCardText>
       </VCard>

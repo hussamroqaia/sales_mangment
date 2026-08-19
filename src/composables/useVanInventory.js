@@ -34,7 +34,7 @@ export const useVanInventory = () => {
       inventory.value = Array.isArray(data) ? data : []
       hasFetched.value = true
     } catch (err) {
-      error.value = err?.response?.data?.message || 'Failed to load van inventory.'
+      error.value = err?.response?.data?.message || 'تعذّر تحميل مخزون المركبة.'
       inventory.value = []
     } finally {
       isLoading.value = false

@@ -27,6 +27,7 @@ import {
   upsertSystemConfig,
 } from '@/services/config.service'
 import { useAuth } from '@/composables/useAuth'
+import { INTL_LOCALE } from '@/utils/locale'
 
 const CONFIG_READ_ROLES  = ['admin', 'sales_manager']
 const CONFIG_WRITE_ROLES = ['admin']
@@ -38,10 +39,10 @@ export const CONFIG_VALUE_TYPE_INT = 'INT'
 export const KNOWN_CONFIG_KEYS = [
   {
     key: 'TRACKING_ACTIVE_WINDOW_MINUTES',
-    label: 'Tracking Active Window',
-    unit: 'minutes',
+    label: 'مدة اعتبار المندوب نشطًا',
+    unit: 'دقيقة',
     valueType: CONFIG_VALUE_TYPE_INT,
-    hint: 'How recently a representative must have reported a position to count as active on the live tracking map.',
+    hint: 'أقصى مدة منذ آخر تحديث لموقع المندوب ليظل محسوبًا كنشط على خريطة التتبع المباشر.',
   },
 ]
 
@@ -54,10 +55,10 @@ export const validateConfigValue = (value, valueType) => {
   const trimmed = (value ?? '').trim()
 
   if (!trimmed) return 'A value is required.'
-  if (trimmed.length > 255) return 'The value must be at most 255 characters.'
+  if (trimmed.length > 255) return 'يجب ألّا تتجاوز القيمة 255 حرفًا.'
 
   if (valueType === CONFIG_VALUE_TYPE_INT && !INTEGER_PATTERN.test(trimmed))
-    return 'This setting must be a whole number.'
+    return 'يجب أن تكون قيمة هذا الإعداد رقمًا صحيحًا.'
 
   return ''
 }
@@ -67,7 +68,7 @@ export const formatConfigTimestamp = value => {
 
   const d = new Date(value)
 
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(INTL_LOCALE, {
     year: 'numeric', month: 'short', day: '2-digit',
     hour: '2-digit', minute: '2-digit',
   }).format(d)
@@ -145,7 +146,7 @@ export const useSystemConfig = () => {
     } catch (error) {
       overrides.value = []
       hasLoaded.value = true
-      loadError.value = error?.response?.data?.message || 'Failed to load system configuration.'
+      loadError.value = error?.response?.data?.message || 'تعذّر تحميل إعدادات النظام.'
     } finally {
       isLoading.value = false
     }
@@ -188,11 +189,11 @@ export const useSystemConfig = () => {
 
       overrides.value = [...next, saved].sort((a, b) => a.key.localeCompare(b.key))
 
-      showSnackbar('Configuration updated.')
+      showSnackbar('تم تحديث الإعداد.')
 
       return true
     } catch (error) {
-      saveError.value = error?.response?.data?.message || 'Failed to update this setting.'
+      saveError.value = error?.response?.data?.message || 'تعذّر تحديث هذا الإعداد.'
       showSnackbar(saveError.value, 'error')
 
       return false

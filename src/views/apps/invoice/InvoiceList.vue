@@ -49,12 +49,12 @@ const {
 // service after the query and are NOT persisted columns — sorting on them would
 // make Spring Data throw.
 const headers = [
-  { title: 'Status',         key: 'status',             sortable: true  },
-  { title: 'Customer',       key: 'customerName',       sortable: false },
-  { title: 'Representative', key: 'representativeName', sortable: false },
-  { title: 'Invoice Date',   key: 'invoiceDate',        sortable: true  },
-  { title: 'Total',          key: 'totalAmount',        sortable: true  },
-  { title: 'Action',         key: 'actions',            sortable: false, align: 'end' },
+  { title: 'الحالة',         key: 'status',             sortable: true  },
+  { title: 'العميل',       key: 'customerName',       sortable: false },
+  { title: 'المندوب', key: 'representativeName', sortable: false },
+  { title: 'تاريخ الفاتورة',   key: 'invoiceDate',        sortable: true  },
+  { title: 'الإجمالي',          key: 'totalAmount',        sortable: true  },
+  { title: 'الإجراء',         key: 'actions',            sortable: false, align: 'end' },
 ]
 
 const hasActiveFilters = computed(() => Boolean(
@@ -76,8 +76,8 @@ onMounted(fetchAllInvoices)
   <section>
     <VCard>
       <VCardItem class="pb-2">
-        <VCardTitle>Invoices</VCardTitle>
-        <VCardSubtitle>Review, approve, and reject representative invoices</VCardSubtitle>
+        <VCardTitle>الفواتير</VCardTitle>
+        <VCardSubtitle>مراجعة فواتير المندوبين والموافقة عليها أو رفضها</VCardSubtitle>
       </VCardItem>
 
       <!-- Filters — exactly the four the backend accepts -->
@@ -90,8 +90,8 @@ onMounted(fetchAllInvoices)
           >
             <RepresentativeSelect
               v-model="selectedRepresentativeId"
-              label="Representative"
-              placeholder="Filter by Representative"
+              label="المندوب"
+              placeholder="تصفية حسب المندوب"
               clearable
             />
           </VCol>
@@ -103,8 +103,8 @@ onMounted(fetchAllInvoices)
           >
             <CustomerSelect
               v-model="selectedCustomerId"
-              label="Customer"
-              placeholder="Filter by Customer"
+              label="العميل"
+              placeholder="تصفية حسب العميل"
               clearable
             />
           </VCol>
@@ -116,8 +116,8 @@ onMounted(fetchAllInvoices)
           >
             <VSelect
               v-model="selectedStatus"
-              label="Status"
-              placeholder="Filter by Status"
+              label="الحالة"
+              placeholder="تصفية حسب الحالة"
               :items="INVOICE_STATUS_OPTIONS"
               item-title="title"
               item-value="value"
@@ -133,7 +133,7 @@ onMounted(fetchAllInvoices)
           >
             <AppDateTimePicker
               v-model="selectedInvoiceDate"
-              placeholder="Invoice Date (YYYY-MM-DD)"
+              placeholder="تاريخ الفاتورة (سنة-شهر-يوم)"
               :config="{ dateFormat: 'Y-m-d' }"
               clearable
             />
@@ -163,7 +163,7 @@ onMounted(fetchAllInvoices)
           prepend-icon="tabler-filter-off"
           @click="resetFilters"
         >
-          Reset Filters
+          إعادة تعيين عوامل التصفية
         </VBtn>
         <VBtn
           variant="tonal"
@@ -172,7 +172,7 @@ onMounted(fetchAllInvoices)
           :loading="isListLoading"
           @click="fetchAllInvoices"
         >
-          Refresh
+          تحديث
         </VBtn>
       </VCardText>
 
@@ -212,7 +212,7 @@ onMounted(fetchAllInvoices)
               color="secondary"
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
-              No invoices found for the selected filters.
+              لا توجد فواتير مطابقة لعوامل التصفية المحددة.
             </p>
           </div>
         </template>
@@ -254,7 +254,7 @@ onMounted(fetchAllInvoices)
 
         <template #item.actions="{ item }">
           <div class="d-flex justify-end gap-1">
-            <VTooltip text="View Details">
+            <VTooltip text="عرض التفاصيل">
               <template #activator="{ props: tp }">
                 <IconBtn
                   v-bind="tp"

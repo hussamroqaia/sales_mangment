@@ -59,11 +59,11 @@ const passwordStrength = computed(() => {
 
   const levels = [
     { score: 0, label: '', color: '' },
-    { score: 1, label: 'Very Weak', color: 'error' },
-    { score: 2, label: 'Weak', color: 'warning' },
-    { score: 3, label: 'Fair', color: 'info' },
-    { score: 4, label: 'Strong', color: 'success' },
-    { score: 5, label: 'Very Strong', color: 'success' },
+    { score: 1, label: 'ضعيفة جدًا', color: 'error' },
+    { score: 2, label: 'ضعيفة', color: 'warning' },
+    { score: 3, label: 'متوسطة', color: 'info' },
+    { score: 4, label: 'قوية', color: 'success' },
+    { score: 5, label: 'قوية جدًا', color: 'success' },
   ]
 
   return levels[Math.min(score, 5)]
@@ -75,11 +75,11 @@ const passwordStrengthPercent = computed(() => {
 
 // ── Validators ────────────────────────────────────────────────────────────────
 const minLengthValidator = value => {
-  return value?.length >= 8 || 'Password must be at least 8 characters'
+  return value?.length >= 8 || 'يجب ألّا تقلّ كلمة المرور عن 8 أحرف'
 }
 
 const passwordMatchValidator = value => {
-  return value === form.value.newPassword || 'Passwords do not match'
+  return value === form.value.newPassword || 'كلمتا المرور غير متطابقتين'
 }
 
 // ── Submit ────────────────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ const onSubmit = async () => {
     submitSuccess.value = true
     // useAuth.changePassword() handles the redirect to '/' after success
   } else {
-    submitError.value = result.error || 'Failed to update password.'
+    submitError.value = result.error || 'تعذّر تحديث كلمة المرور.'
   }
 }
 </script>
@@ -155,12 +155,12 @@ const onSubmit = async () => {
       >
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Set Your New Password 🔐
+            تعيين كلمة مرور جديدة 🔐
           </h4>
           <p class="mb-0 text-medium-emphasis">
-            Welcome,
-            <strong class="text-high-emphasis">{{ userData?.name || 'there' }}</strong>!
-            For your security, please set a new password before continuing.
+            مرحبًا
+            <strong class="text-high-emphasis">{{ userData?.name || 'بك' }}</strong>،
+            لحماية حسابك يجب تعيين كلمة مرور جديدة قبل المتابعة.
           </p>
         </VCardText>
 
@@ -172,7 +172,7 @@ const onSubmit = async () => {
             class="mb-6"
             icon="tabler-shield-lock"
           >
-            This is your first login. You must change your temporary password to proceed.
+            هذه أول مرة تسجّل فيها الدخول. يجب تغيير كلمة المرور المؤقتة للمتابعة.
           </VAlert>
 
           <!-- Success message -->
@@ -183,7 +183,7 @@ const onSubmit = async () => {
             class="mb-4"
             icon="tabler-circle-check"
           >
-            Password updated successfully! Redirecting to dashboard...
+            تم تحديث كلمة المرور بنجاح. جارٍ التحويل إلى لوحة التحكم...
           </VAlert>
 
           <!-- Error message -->
@@ -208,7 +208,7 @@ const onSubmit = async () => {
                 <AppTextField
                   id="reset-current-password"
                   v-model="form.currentPassword"
-                  label="Current (Temporary) Password"
+                  label="كلمة المرور الحالية (المؤقتة)"
                   placeholder="············"
                   :rules="[requiredValidator]"
                   type="password"
@@ -222,7 +222,7 @@ const onSubmit = async () => {
                 <AppTextField
                   id="reset-new-password"
                   v-model="form.newPassword"
-                  label="New Password"
+                  label="كلمة المرور الجديدة"
                   placeholder="············"
                   :rules="[requiredValidator, minLengthValidator]"
                   :type="isNewPasswordVisible ? 'text' : 'password'"
@@ -238,7 +238,7 @@ const onSubmit = async () => {
                   class="mt-2"
                 >
                   <div class="d-flex align-center justify-space-between mb-1">
-                    <span class="text-xs text-medium-emphasis">Password strength</span>
+                    <span class="text-xs text-medium-emphasis">قوة كلمة المرور</span>
                     <span
                       class="text-xs font-weight-medium"
                       :class="`text-${passwordStrength.color}`"
@@ -255,16 +255,16 @@ const onSubmit = async () => {
                   />
                   <ul class="text-xs text-medium-emphasis mt-2 ps-4">
                     <li :class="form.newPassword.length >= 8 ? 'text-success' : ''">
-                      At least 8 characters
+                      8 أحرف على الأقل
                     </li>
                     <li :class="/[A-Z]/.test(form.newPassword) ? 'text-success' : ''">
-                      At least one uppercase letter
+                      حرف كبير واحد على الأقل
                     </li>
                     <li :class="/[0-9]/.test(form.newPassword) ? 'text-success' : ''">
-                      At least one number
+                      رقم واحد على الأقل
                     </li>
                     <li :class="/[^A-Za-z0-9]/.test(form.newPassword) ? 'text-success' : ''">
-                      At least one special character
+                      رمز خاص واحد على الأقل
                     </li>
                   </ul>
                 </div>
@@ -275,7 +275,7 @@ const onSubmit = async () => {
                 <AppTextField
                   id="reset-confirm-password"
                   v-model="form.confirmPassword"
-                  label="Confirm New Password"
+                  label="تأكيد كلمة المرور الجديدة"
                   placeholder="············"
                   :rules="[requiredValidator, passwordMatchValidator]"
                   :type="isConfirmPasswordVisible ? 'text' : 'password'"
@@ -302,9 +302,9 @@ const onSubmit = async () => {
                       width="2"
                       class="me-2"
                     />
-                    Updating password...
+                    جارٍ تحديث كلمة المرور...
                   </template>
-                  Set New Password
+                  تعيين كلمة المرور
                 </VBtn>
               </VCol>
             </VRow>

@@ -70,7 +70,7 @@ const onSubmit = () => {
     @update:model-value="emit('update:isDrawerOpen', $event)"
   >
     <AppDrawerHeaderSection
-      title="Edit Route"
+      title="تعديل المسار"
       @cancel="closeDrawer"
     />
 
@@ -87,8 +87,8 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.name"
-                  label="Route Name"
-                  placeholder="e.g. Route 29"
+                  label="اسم المسار"
+                  placeholder="مثال: المسار 29"
                   :rules="[requiredValidator]"
                   :disabled="props.isSubmitting"
                 />
@@ -97,8 +97,8 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppDateTimePicker
                   v-model="form.routeDate"
-                  label="Route Date"
-                  placeholder="Select date"
+                  label="تاريخ المسار"
+                  placeholder="اختر التاريخ"
                   :rules="[requiredValidator]"
                   :disabled="props.isSubmitting"
                   :config="{ dateFormat: 'Y-m-d' }"
@@ -112,7 +112,7 @@ const onSubmit = () => {
                   :loading="props.isSubmitting"
                   :disabled="props.isSubmitting"
                 >
-                  Save Changes
+                  حفظ التغييرات
                 </VBtn>
                 <VBtn
                   type="button"
@@ -121,7 +121,7 @@ const onSubmit = () => {
                   :disabled="props.isSubmitting"
                   @click="closeDrawer"
                 >
-                  Cancel
+                  إلغاء
                 </VBtn>
               </VCol>
             </VRow>

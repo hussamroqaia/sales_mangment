@@ -24,9 +24,9 @@ import {
 
 // ─── Status constants ─────────────────────────────────────────────────────────
 export const DEMAND_ORDER_STATUSES = [
-  { title: 'Submitted', value: 'SUBMITTED' },
-  { title: 'Adjusted',  value: 'ADJUSTED'  },
-  { title: 'Loaded',    value: 'LOADED'    },
+  { title: 'مُرسل',   value: 'SUBMITTED' },
+  { title: 'مُعدَّل',  value: 'ADJUSTED'  },
+  { title: 'مُحمَّل',  value: 'LOADED'    },
 ]
 
 export const resolveDemandStatusVariant = status => {
@@ -99,7 +99,7 @@ export const useDemandOrders = () => {
       orders.value      = data?.content       ?? []
       totalOrders.value = data?.totalElements ?? 0
     } catch (error) {
-      listError.value = error?.response?.data?.message || 'Failed to load demand orders.'
+      listError.value = error?.response?.data?.message || 'تعذّر تحميل طلبات التزويد.'
       showSnackbar(listError.value, 'error')
     } finally {
       isListLoading.value = false
@@ -128,7 +128,7 @@ export const useDemandOrders = () => {
     try {
       selectedOrder.value = await fetchDemandOrderById(id)
     } catch (error) {
-      detailError.value = error?.response?.data?.message || `Failed to load order #${id}.`
+      detailError.value = error?.response?.data?.message || `تعذّر تحميل الطلب رقم ${id}.`
       showSnackbar(detailError.value, 'error')
     } finally {
       isDetailLoading.value = false
@@ -140,16 +140,16 @@ export const useDemandOrders = () => {
     isSubmitting.value = true
     try {
       await createDemandOrderService(payload)
-      showSnackbar('Demand order created successfully.')
+      showSnackbar('تم إنشاء طلب التزويد بنجاح.')
       page.value = 1
       await fetchAllOrders()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to create demand order.', 'error')
+      showSnackbar(message || 'تعذّر إنشاء طلب التزويد.', 'error')
 
-      return { success: false, error: message || 'Failed to create demand order.' }
+      return { success: false, error: message || 'تعذّر إنشاء طلب التزويد.' }
     } finally {
       isSubmitting.value = false
     }
@@ -160,15 +160,15 @@ export const useDemandOrders = () => {
     isSubmitting.value = true
     try {
       const res = await loadDemandOrderService(id)
-      showSnackbar(res?.message || 'Order loaded onto van.')
+      showSnackbar(res?.message || 'تم تحميل الطلب على المركبة.')
       await fetchAllOrders()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to load order.', 'error')
+      showSnackbar(message || 'تعذّر تحميل الطلب على المركبة.', 'error')
 
-      return { success: false, error: message || 'Failed to load order.' }
+      return { success: false, error: message || 'تعذّر تحميل الطلب على المركبة.' }
     } finally {
       isSubmitting.value = false
     }

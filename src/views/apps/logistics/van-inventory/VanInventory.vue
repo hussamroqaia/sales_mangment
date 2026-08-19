@@ -22,10 +22,10 @@ const {
 } = useVanInventory()
 
 const headers = [
-  { title: 'Product',          key: 'product.name', sortable: true  },
-  { title: 'SKU',              key: 'product.sku',  sortable: true  },
-  { title: 'Current Quantity', key: 'quantity',     sortable: true, align: 'end' },
-  { title: 'Unit',             key: 'product.unitOfMeasure', sortable: true },
+  { title: 'المنتج',          key: 'product.name', sortable: true  },
+  { title: 'رمز الصنف',              key: 'product.sku',  sortable: true  },
+  { title: 'الكمية الحالية', key: 'quantity',     sortable: true, align: 'end' },
+  { title: 'الوحدة',             key: 'product.unitOfMeasure', sortable: true },
 ]
 </script>
 
@@ -33,7 +33,7 @@ const headers = [
   <section>
     <VCard>
       <VCardItem class="pb-2">
-        <VCardTitle>Van Inventory</VCardTitle>
+        <VCardTitle>مخزون المركبات</VCardTitle>
         <template #append>
           <VChip
             v-if="hasFetched && inventory.length"
@@ -56,8 +56,8 @@ const headers = [
           >
             <RepresentativeSelect
               v-model="representativeId"
-              label="Sales Rep"
-              placeholder="Select a sales rep to view their van"
+              label="المندوب"
+              placeholder="اختر مندوبًا لعرض مخزون مركبته"
               clearable
             />
           </VCol>
@@ -73,7 +73,7 @@ const headers = [
               :loading="isLoading"
               @click="loadInventory"
             >
-              Refresh
+              تحديث
             </VBtn>
           </VCol>
         </VRow>
@@ -102,7 +102,7 @@ const headers = [
           color="secondary"
         />
         <p class="text-body-1 text-medium-emphasis mb-0">
-          Select a representative to view their current van stock.
+          اختر مندوبًا لعرض مخزون مركبته الحالي.
         </p>
       </div>
 
@@ -129,7 +129,7 @@ const headers = [
               color="secondary"
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
-              This van is currently empty.
+              مخزون هذه المركبة فارغ حاليًا.
             </p>
           </div>
         </template>

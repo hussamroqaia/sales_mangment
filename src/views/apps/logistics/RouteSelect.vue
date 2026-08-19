@@ -31,11 +31,11 @@ const props = defineProps({
   },
   label: {
     type: String,
-    default: 'Route',
+    default: 'المسار',
   },
   placeholder: {
     type: String,
-    default: 'Search routes…',
+    default: 'ابحث عن مسار…',
   },
   disabled: {
     type: Boolean,
@@ -177,7 +177,7 @@ onMounted(() => loadPage(true))
           v-else-if="pageIndex >= totalPages && items.length"
           class="text-caption text-disabled"
         >
-          All routes loaded
+          تم تحميل كل المسارات
         </span>
       </div>
     </template>
@@ -185,7 +185,7 @@ onMounted(() => loadPage(true))
     <template #no-data>
       <VListItem>
         <VListItemTitle class="text-medium-emphasis">
-          {{ isLoading ? 'Loading…' : 'No routes found' }}
+          {{ isLoading ? 'Loading…' : 'لا توجد مسارات' }}
         </VListItemTitle>
       </VListItem>
     </template>

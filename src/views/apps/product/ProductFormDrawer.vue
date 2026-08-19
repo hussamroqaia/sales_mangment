@@ -40,7 +40,7 @@ const refScrollbar = ref()
 
 // ── Mode ────────────────────────────────────────────────────────────────────
 const isEditMode  = computed(() => !!props.product?.id)
-const drawerTitle = computed(() => (isEditMode.value ? 'Edit Product' : 'Add Product'))
+const drawerTitle = computed(() => (isEditMode.value ? 'تعديل المنتج' : 'إضافة منتج'))
 
 // ── Form state ──────────────────────────────────────────────────────────────
 const blankForm = () => ({
@@ -109,9 +109,9 @@ watch(
 
 // ── Validators ──────────────────────────────────────────────────────────────
 const positiveNumberValidator = value => {
-  if (value === null || value === undefined || value === '') return 'This field is required'
+  if (value === null || value === undefined || value === '') return 'هذا الحقل مطلوب'
 
-  return Number(value) >= 0 || 'Enter a value of 0 or greater'
+  return Number(value) >= 0 || 'أدخل قيمة أكبر من أو تساوي 0'
 }
 
 // ── Submit ──────────────────────────────────────────────────────────────────
@@ -166,8 +166,8 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="form.name"
                   :rules="[requiredValidator]"
-                  label="Product Name"
-                  placeholder="e.g. Mineral Water 500ml"
+                  label="اسم المنتج"
+                  placeholder="مثال: مياه معدنية 500 مل"
                   :disabled="props.isSubmitting"
                 />
               </VCol>
@@ -177,8 +177,8 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="form.sku"
                   :rules="[requiredValidator]"
-                  label="SKU"
-                  placeholder="e.g. WTR-500-001"
+                  label="رمز الصنف (SKU)"
+                  placeholder="مثال: WTR-500-001"
                   :disabled="props.isSubmitting"
                 />
               </VCol>
@@ -188,8 +188,8 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="form.barcode"
                   :rules="[requiredValidator]"
-                  label="Barcode"
-                  placeholder="e.g. 6291234567890"
+                  label="الباركود"
+                  placeholder="مثال: 6291234567890"
                   :disabled="props.isSubmitting"
                 />
               </VCol>
@@ -202,7 +202,7 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="form.price"
                   :rules="[positiveNumberValidator]"
-                  label="Price"
+                  label="السعر"
                   type="number"
                   min="0"
                   step="0.01"
@@ -220,7 +220,7 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="form.minStockLevel"
                   :rules="[positiveNumberValidator, integerValidator]"
-                  label="Min Stock Level"
+                  label="الحد الأدنى للمخزون"
                   type="number"
                   min="0"
                   step="1"
@@ -237,8 +237,8 @@ const onSubmit = () => {
                   :items="PRODUCT_UNITS"
                   item-title="title"
                   item-value="value"
-                  label="Unit of Measure"
-                  placeholder="Select a unit"
+                  label="وحدة القياس"
+                  placeholder="اختر وحدة القياس"
                   :disabled="props.isSubmitting"
                 />
               </VCol>
@@ -251,7 +251,7 @@ const onSubmit = () => {
                   :loading="props.isSubmitting"
                   :disabled="props.isSubmitting"
                 >
-                  {{ isEditMode ? 'Save Changes' : 'Create Product' }}
+                  {{ isEditMode ? 'حفظ التغييرات' : 'إنشاء المنتج' }}
                 </VBtn>
                 <VBtn
                   type="button"
@@ -260,7 +260,7 @@ const onSubmit = () => {
                   :disabled="props.isSubmitting"
                   @click="closeDrawer"
                 >
-                  Cancel
+                  إلغاء
                 </VBtn>
               </VCol>
             </VRow>

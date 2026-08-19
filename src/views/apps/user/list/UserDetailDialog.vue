@@ -1,5 +1,6 @@
 <script setup>
 import { USER_STATUSES, resolveStatusVariant, resolveRoleVariant, resolveRoleTitle } from '@/composables/useUsers'
+import { INTL_LOCALE } from '@/utils/locale'
 
 const props = defineProps({
   modelValue: {
@@ -43,7 +44,7 @@ const statusChanged = computed(() =>
 const formattedDate = computed(() => {
   if (!props.user?.createdAt) return '—'
 
-  return new Date(props.user.createdAt).toLocaleDateString('en-US', {
+  return new Date(props.user.createdAt).toLocaleDateString(INTL_LOCALE, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -52,7 +53,7 @@ const formattedDate = computed(() => {
 
 // ── Validators ────────────────────────────────────────────────────────────────
 const passwordMatchValidator = value =>
-  value === newPassword.value || 'Passwords do not match'
+  value === newPassword.value || 'كلمتا المرور غير متطابقتين'
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 const onChangeStatus = () => {
@@ -118,7 +119,7 @@ const close = () => {
             icon="tabler-user"
             class="me-1"
           />
-          Details
+          التفاصيل
         </VTab>
         <VTab value="status">
           <VIcon
@@ -126,7 +127,7 @@ const close = () => {
             icon="tabler-toggle-left"
             class="me-1"
           />
-          Status
+          الحالة
         </VTab>
         <VTab value="password">
           <VIcon
@@ -134,7 +135,7 @@ const close = () => {
             icon="tabler-lock-password"
             class="me-1"
           />
-          Reset Password
+          إعادة تعيين كلمة المرور
         </VTab>
       </VTabs>
 
@@ -153,7 +154,7 @@ const close = () => {
                   />
                 </template>
                 <VListItemTitle class="text-sm text-medium-emphasis">
-                  User ID
+                  معرّف المستخدم
                 </VListItemTitle>
                 <VListItemSubtitle class="font-weight-medium">
                   #{{ props.user.id }}
@@ -170,7 +171,7 @@ const close = () => {
                   />
                 </template>
                 <VListItemTitle class="text-sm text-medium-emphasis">
-                  Email
+                  البريد الإلكتروني
                 </VListItemTitle>
                 <VListItemSubtitle class="font-weight-medium">
                   {{ props.user.email }}
@@ -187,7 +188,7 @@ const close = () => {
                   />
                 </template>
                 <VListItemTitle class="text-sm text-medium-emphasis">
-                  Role
+                  الدور
                 </VListItemTitle>
                 <VListItemSubtitle>
                   <VChip
@@ -216,7 +217,7 @@ const close = () => {
                   />
                 </template>
                 <VListItemTitle class="text-sm text-medium-emphasis">
-                  Status
+                  الحالة
                 </VListItemTitle>
                 <VListItemSubtitle>
                   <VChip
@@ -240,7 +241,7 @@ const close = () => {
                   />
                 </template>
                 <VListItemTitle class="text-sm text-medium-emphasis">
-                  Created At
+                  تاريخ الإنشاء
                 </VListItemTitle>
                 <VListItemSubtitle class="font-weight-medium">
                   {{ formattedDate }}
@@ -253,14 +254,14 @@ const close = () => {
           <VWindowItem value="status">
             <div class="pa-2">
               <p class="text-body-2 text-medium-emphasis mb-4">
-                Change the account status for
+                تغيير حالة حساب
                 <strong class="text-high-emphasis">{{ props.user.name }}</strong>.
-                This affects their ability to access the system.
+                يؤثر هذا على قدرته على الوصول إلى النظام.
               </p>
 
               <AppSelect
                 v-model="selectedStatus"
-                label="Account Status"
+                label="حالة الحساب"
                 :items="USER_STATUSES"
                 item-title="title"
                 item-value="value"
@@ -290,7 +291,7 @@ const close = () => {
                   icon="tabler-check"
                   class="me-1"
                 />
-                Apply Status Change
+                تطبيق تغيير الحالة
               </VBtn>
             </div>
           </VWindowItem>
@@ -299,9 +300,9 @@ const close = () => {
           <VWindowItem value="password">
             <div class="pa-2">
               <p class="text-body-2 text-medium-emphasis mb-4">
-                Set a new password for
+                تعيين كلمة مرور جديدة لـ
                 <strong class="text-high-emphasis">{{ props.user.name }}</strong>.
-                They will need to use this password on their next login.
+                سيستخدم هذه الكلمة عند تسجيل الدخول التالي.
               </p>
 
               <VForm
@@ -313,7 +314,7 @@ const close = () => {
                     <AppTextField
                       v-model="newPassword"
                       :rules="[requiredValidator]"
-                      label="New Password"
+                      label="كلمة المرور الجديدة"
                       placeholder="············"
                       :type="isNewPasswordVisible ? 'text' : 'password'"
                       :append-inner-icon="isNewPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
@@ -327,7 +328,7 @@ const close = () => {
                     <AppTextField
                       v-model="confirmPassword"
                       :rules="[requiredValidator, passwordMatchValidator]"
-                      label="Confirm New Password"
+                      label="تأكيد كلمة المرور الجديدة"
                       placeholder="············"
                       :type="isConfirmPasswordVisible ? 'text' : 'password'"
                       :append-inner-icon="isConfirmPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
@@ -347,7 +348,7 @@ const close = () => {
                         icon="tabler-lock-password"
                         class="me-1"
                       />
-                      Reset Password
+                      إعادة تعيين كلمة المرور
                     </VBtn>
                   </VCol>
                 </VRow>

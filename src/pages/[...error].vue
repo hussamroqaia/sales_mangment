@@ -19,22 +19,22 @@ definePage({
   <div class="misc-wrapper">
     <ErrorHeader
       status-code="404"
-      title="Page Not Found ⚠️"
-      description="We couldn't find the page you are looking for."
+      title="الصفحة غير موجودة ⚠️"
+      description="تعذّر العثور على الصفحة التي تبحث عنها."
     />
 
     <VBtn
       to="/"
       class="mb-11"
     >
-      Back to Home
+      العودة إلى الصفحة الرئيسية
     </VBtn>
 
     <!-- 👉 Image -->
     <div class="misc-avatar w-100 text-center">
       <VImg
         :src="misc404"
-        alt="error 404"
+        alt="خطأ 404"
         :max-height="$vuetify.display.smAndDown ? 350 : 500"
         class="mx-auto"
       />

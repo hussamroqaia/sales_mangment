@@ -29,17 +29,17 @@ import { fetchTerritories } from '@/services/territory.service'
 
 // ─── Customer category & status constants (shared across components) ──────────
 export const CUSTOMER_CATEGORIES = [
-  { title: 'Retail',       value: 'RETAIL'       },
-  { title: 'Wholesale',    value: 'WHOLESALE'    },
-  { title: 'Supermarket',  value: 'SUPERMARKET'  },
-  { title: 'Pharmacy',     value: 'PHARMACY'     },
-  { title: 'Restaurant',   value: 'RESTAURANT'   },
-  { title: 'Other',        value: 'OTHER'        },
+  { title: 'تجزئة',      value: 'RETAIL'      },
+  { title: 'جملة',       value: 'WHOLESALE'   },
+  { title: 'سوبرماركت',  value: 'SUPERMARKET' },
+  { title: 'صيدلية',     value: 'PHARMACY'    },
+  { title: 'مطعم',       value: 'RESTAURANT'  },
+  { title: 'أخرى',       value: 'OTHER'       },
 ]
 
 export const CUSTOMER_STATUSES = [
-  { title: 'Active',   value: 'ACTIVE'   },
-  { title: 'Inactive', value: 'INACTIVE' },
+  { title: 'نشط',      value: 'ACTIVE'   },
+  { title: 'غير نشط',  value: 'INACTIVE' },
 ]
 
 export const resolveCategoryVariant = category => {
@@ -140,7 +140,7 @@ export const useCustomers = () => {
       totalCustomers.value = data?.totalElements ?? 0
     } catch (error) {
       const message = error?.response?.data?.message
-      listError.value = message || 'Failed to load customers.'
+      listError.value = message || 'تعذّر تحميل العملاء.'
       showSnackbar(listError.value, 'error')
     } finally {
       isListLoading.value = false
@@ -175,7 +175,7 @@ export const useCustomers = () => {
       editingCustomer.value = data
     } catch (error) {
       const message = error?.response?.data?.message
-      detailError.value = message || `Failed to load customer #${id}.`
+      detailError.value = message || `تعذّر تحميل العميل رقم ${id}.`
       showSnackbar(detailError.value, 'error')
     } finally {
       isDetailLoading.value = false
@@ -187,16 +187,16 @@ export const useCustomers = () => {
     isSubmitting.value = true
     try {
       await createCustomerService(payload)
-      showSnackbar('Customer created successfully.')
+      showSnackbar('تم إنشاء العميل بنجاح.')
       page.value = 1
       await fetchAllCustomers()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to create customer.', 'error')
+      showSnackbar(message || 'تعذّر إنشاء العميل.', 'error')
 
-      return { success: false, error: message || 'Failed to create customer.' }
+      return { success: false, error: message || 'تعذّر إنشاء العميل.' }
     } finally {
       isSubmitting.value = false
     }
@@ -207,15 +207,15 @@ export const useCustomers = () => {
     isSubmitting.value = true
     try {
       await updateCustomerService(id, payload)
-      showSnackbar('Customer updated successfully.')
+      showSnackbar('تم تحديث بيانات العميل بنجاح.')
       await fetchAllCustomers()
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to update customer.', 'error')
+      showSnackbar(message || 'تعذّر تحديث بيانات العميل.', 'error')
 
-      return { success: false, error: message || 'Failed to update customer.' }
+      return { success: false, error: message || 'تعذّر تحديث بيانات العميل.' }
     } finally {
       isSubmitting.value = false
     }
@@ -231,14 +231,14 @@ export const useCustomers = () => {
       const idx = customers.value.findIndex(c => c.id === id)
       if (idx !== -1) customers.value[idx] = { ...customers.value[idx], status }
 
-      showSnackbar('Customer status updated.')
+      showSnackbar('تم تحديث حالة العميل.')
 
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to update status.', 'error')
+      showSnackbar(message || 'تعذّر تحديث الحالة.', 'error')
 
-      return { success: false, error: message || 'Failed to update status.' }
+      return { success: false, error: message || 'تعذّر تحديث الحالة.' }
     } finally {
       isSubmitting.value = false
     }
@@ -249,7 +249,7 @@ export const useCustomers = () => {
     isSubmitting.value = true
     try {
       await deleteCustomerService(id)
-      showSnackbar('Customer deleted successfully.')
+      showSnackbar('تم حذف العميل بنجاح.')
 
       if (customers.value.length === 1 && page.value > 1) {
         page.value -= 1
@@ -260,9 +260,9 @@ export const useCustomers = () => {
       return { success: true }
     } catch (error) {
       const message = error?.response?.data?.message
-      showSnackbar(message || 'Failed to delete customer.', 'error')
+      showSnackbar(message || 'تعذّر حذف العميل.', 'error')
 
-      return { success: false, error: message || 'Failed to delete customer.' }
+      return { success: false, error: message || 'تعذّر حذف العميل.' }
     } finally {
       isSubmitting.value = false
     }

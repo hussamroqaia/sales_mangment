@@ -125,7 +125,7 @@ const canSubmit = computed(() =>
           color="secondary"
         />
         <p class="text-body-1 text-medium-emphasis mb-0">
-          Your account does not have access to any reports.
+          حسابك لا يملك صلاحية الوصول إلى أي تقارير.
         </p>
       </VCardText>
     </VCard>
@@ -133,9 +133,9 @@ const canSubmit = computed(() =>
     <template v-else>
       <VCard>
         <VCardItem class="pb-2">
-          <VCardTitle>Reports</VCardTitle>
+          <VCardTitle>التقارير</VCardTitle>
           <VCardSubtitle>
-            {{ selectedCategoryTitle ? `${selectedCategoryTitle} · ${selectedReport?.title}` : 'Choose a report' }}
+            {{ selectedCategoryTitle ? `${selectedCategoryTitle} · ${selectedReport?.title}` : 'اختر تقريرًا' }}
           </VCardSubtitle>
         </VCardItem>
 
@@ -151,7 +151,7 @@ const canSubmit = computed(() =>
             >
               <AppSelect
                 v-model="selectedReportKey"
-                label="Report"
+                label="التقرير"
                 :items="reportOptions"
                 item-title="title"
                 item-value="value"
@@ -166,8 +166,8 @@ const canSubmit = computed(() =>
             >
               <AppDateTimePicker
                 v-model="from"
-                label="From"
-                placeholder="YYYY-MM-DD"
+                label="من تاريخ"
+                placeholder="سنة-شهر-يوم"
                 :config="{ dateFormat: 'Y-m-d' }"
               />
             </VCol>
@@ -180,8 +180,8 @@ const canSubmit = computed(() =>
             >
               <AppDateTimePicker
                 v-model="to"
-                label="To"
-                placeholder="YYYY-MM-DD"
+                label="إلى تاريخ"
+                placeholder="سنة-شهر-يوم"
                 :config="{ dateFormat: 'Y-m-d' }"
               />
             </VCol>
@@ -194,8 +194,8 @@ const canSubmit = computed(() =>
             >
               <RepresentativeSelect
                 v-model="representativeId"
-                label="Representative"
-                placeholder="All representatives"
+                label="المندوب"
+                placeholder="كل المندوبين"
                 clearable
               />
             </VCol>
@@ -208,8 +208,8 @@ const canSubmit = computed(() =>
             >
               <CustomerSelect
                 v-model="customerId"
-                label="Customer"
-                placeholder="All customers"
+                label="العميل"
+                placeholder="كل العملاء"
                 clearable
               />
             </VCol>
@@ -236,7 +236,7 @@ const canSubmit = computed(() =>
             :disabled="!canSubmit || isRunning"
             @click="run"
           >
-            Run Report
+            تشغيل التقرير
           </VBtn>
 
           <VChip
@@ -245,7 +245,7 @@ const canSubmit = computed(() =>
             size="small"
             label
           >
-            Filters changed — run again
+            تغيّرت عوامل التصفية — أعد التشغيل
           </VChip>
 
           <VSpacer />
@@ -258,7 +258,7 @@ const canSubmit = computed(() =>
             :disabled="!canSubmit || Boolean(exportingFormat)"
             @click="exportAs('xlsx')"
           >
-            Export XLSX
+            تصدير XLSX
           </VBtn>
 
           <VBtn
@@ -269,7 +269,7 @@ const canSubmit = computed(() =>
             :disabled="!canSubmit || Boolean(exportingFormat)"
             @click="exportAs('pdf')"
           >
-            Export PDF
+            تصدير PDF
           </VBtn>
         </VCardText>
 
@@ -310,7 +310,7 @@ const canSubmit = computed(() =>
             color="secondary"
           />
           <p class="text-body-1 text-medium-emphasis mb-0">
-            Choose a report and press Run Report to generate it.
+            اختر تقريرًا ثم اضغط «تشغيل التقرير» لعرضه.
           </p>
         </VCardText>
 
@@ -324,7 +324,7 @@ const canSubmit = computed(() =>
             color="secondary"
           />
           <p class="text-body-1 text-medium-emphasis mb-0">
-            This report returned no rows for the selected filters.
+            لم يُرجع هذا التقرير أي بيانات لعوامل التصفية المحددة.
           </p>
         </VCardText>
 

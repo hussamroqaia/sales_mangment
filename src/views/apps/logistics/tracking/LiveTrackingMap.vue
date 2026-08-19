@@ -75,8 +75,8 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
 }[ch]))
 
 const popupHtml = rep => {
-  const name = escapeHtml(rep.representativeName || `Rep #${rep.representativeId}`)
-  const status = rep.isLive ? 'Active' : 'Inactive'
+  const name = escapeHtml(rep.representativeName || `مندوب رقم ${rep.representativeId}`)
+  const status = rep.isLive ? 'نشط' : 'غير نشط'
   const statusColor = rep.isLive ? '#28C76F' : '#A8AAAE'
 
   return `
@@ -92,10 +92,10 @@ const popupHtml = rep => {
           margin-inline-end: 6px;
         "></span>${status}
       </div>
-      <div style="color: #6c6f75;">Last update: ${escapeHtml(formatTrackingDateTime(rep.recordedAt))}</div>
+      <div style="color: #6c6f75;">آخر تحديث: ${escapeHtml(formatTrackingDateTime(rep.recordedAt))}</div>
       <div style="color: #6c6f75;">${Number(rep.latitude).toFixed(5)}, ${Number(rep.longitude).toFixed(5)}</div>
       ${rep.isOutsideMapRange
-    ? '<div style="color: #FF9F43; margin-block-start: 4px;">Beyond the map\'s ±85.05° range — pin shown at the nearest drawable point.</div>'
+    ? '<div style="color: #FF9F43; margin-block-start: 4px;">خارج نطاق ±85.05° للخريطة — تم رسم العلامة عند أقرب نقطة ممكنة.</div>'
     : ''}
     </div>`
 }
@@ -238,7 +238,7 @@ defineExpose({ fitToMarkers })
       prepend-icon="tabler-focus-centered"
       @click="fitToMarkers"
     >
-      Fit to representatives
+      ملاءمة العرض للمندوبين
     </VBtn>
   </div>
 </template>

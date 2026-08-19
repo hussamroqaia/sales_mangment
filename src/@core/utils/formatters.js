@@ -1,4 +1,5 @@
 import { isToday } from './helpers'
+import { INTL_LOCALE } from '@/utils/locale'
 
 export const avatarText = value => {
   if (!value)
@@ -12,7 +13,7 @@ export const avatarText = value => {
 export const kFormatter = num => {
   const regex = /\B(?=(\d{3})+(?!\d))/g
   
-  return Math.abs(num) > 9999 ? `${Math.sign(num) * +((Math.abs(num) / 1000).toFixed(1))}k` : Math.abs(num).toFixed(0).replace(regex, ',')
+  return Math.abs(num) > 9999 ? `${Math.sign(num) * +((Math.abs(num) / 1000).toFixed(1))} ألف` : Math.abs(num).toFixed(0).replace(regex, ',')
 }
 
 /**
@@ -26,7 +27,7 @@ export const formatDate = (value, formatting = { month: 'short', day: 'numeric',
   if (!value)
     return value
   
-  return new Intl.DateTimeFormat('en-US', formatting).format(new Date(value))
+  return new Intl.DateTimeFormat(INTL_LOCALE, formatting).format(new Date(value))
 }
 
 /**
@@ -41,6 +42,6 @@ export const formatDateToMonthShort = (value, toTimeForCurrentDay = true) => {
   if (toTimeForCurrentDay && isToday(date))
     formatting = { hour: 'numeric', minute: 'numeric' }
   
-  return new Intl.DateTimeFormat('en-US', formatting).format(new Date(value))
+  return new Intl.DateTimeFormat(INTL_LOCALE, formatting).format(new Date(value))
 }
 export const prefixWithPlus = value => value > 0 ? `+${value}` : value
