@@ -76,18 +76,8 @@ return {
           .replace(/([a-z\d])([A-Z])/g, '$1-$2')
           .toLowerCase()
       },
-      beforeWriteFiles: root => {
-        root.insert('/apps/email/:filter', '/src/pages/apps/email/index.vue')
-        root.insert('/apps/email/:label', '/src/pages/apps/email/index.vue')
-      },
     }),
-    vue({
-      template: {
-        compilerOptions: {
-          isCustomElement: tag => tag === 'swiper-container' || tag === 'swiper-slide',
-        },
-      },
-    }),
+    vue(),
     VueDevTools(),
     vueJsx(),
 
@@ -109,17 +99,9 @@ return {
       // ℹ️ globSafePath: see note above — same parentheses issue as AutoImport
       dirs: [
         globSafePath('src/@core/components'),
-        globSafePath('src/views/demos'),
         globSafePath('src/components'),
       ],
       dts: true,
-      resolvers: [
-        componentName => {
-          // Auto import `VueApexCharts`
-          if (componentName === 'VueApexCharts')
-            return { name: 'default', from: 'vue3-apexcharts', as: 'VueApexCharts' }
-        },
-      ],
     }),
 
     // Docs: https://github.com/antfu/unplugin-auto-import#unplugin-auto-import
@@ -175,8 +157,6 @@ return {
       '@images': fileURLToPath(new URL('./src/assets/images/', import.meta.url)),
       '@styles': fileURLToPath(new URL('./src/assets/styles/', import.meta.url)),
       '@configured-variables': fileURLToPath(new URL('./src/assets/styles/variables/_template.scss', import.meta.url)),
-      '@db': fileURLToPath(new URL('./src/plugins/fake-api/handlers/', import.meta.url)),
-      '@api-utils': fileURLToPath(new URL('./src/plugins/fake-api/utils/', import.meta.url)),
     },
   },
   build: {

@@ -7,52 +7,12 @@ const { logout, userData: authUserData, isLoading } = useAuth()
 // Keep the cookie ref as well for the template (same source of truth).
 const userData = authUserData
 
+// Menu entries below the identity block. The Vuexy demo list (a hardcoded
+// "Profile" link to user id 21, Settings, Billing Plan, Pricing and FAQ) pointed
+// at template pages that do not exist in this application, so only the divider
+// above the Logout button remains. Add real entries here as those screens land.
 const userProfileList = [
   { type: 'divider' },
-  {
-    type: 'navItem',
-    icon: 'tabler-user',
-    title: 'Profile',
-    to: {
-      name: 'apps-user-view-id',
-      params: { id: 21 },
-    },
-  },
-  {
-    type: 'navItem',
-    icon: 'tabler-settings',
-    title: 'Settings',
-    to: {
-      name: 'pages-account-settings-tab',
-      params: { tab: 'account' },
-    },
-  },
-  {
-    type: 'navItem',
-    icon: 'tabler-file-dollar',
-    title: 'Billing Plan',
-    to: {
-      name: 'pages-account-settings-tab',
-      params: { tab: 'billing-plans' },
-    },
-    badgeProps: {
-      color: 'error',
-      content: '4',
-    },
-  },
-  { type: 'divider' },
-  {
-    type: 'navItem',
-    icon: 'tabler-currency-dollar',
-    title: 'Pricing',
-    to: { name: 'pages-pricing' },
-  },
-  {
-    type: 'navItem',
-    icon: 'tabler-question-mark',
-    title: 'FAQ',
-    to: { name: 'pages-faq' },
-  },
 ]
 </script>
 

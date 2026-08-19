@@ -59,7 +59,7 @@ const fcmPermission = ref(null)   // 'granted'|'denied'|'default'|'unsupported'|
 
 // ─── Notification shape normalizer ────────────────────────────────────────────
 /**
- * Map a raw backend notification to the shape expected by Vuexy's Notifications.vue.
+ * Map a raw backend notification to the shape rendered by NavBarNotifications.vue.
  *
  * Backend shape (assumed):
  *   { id, title, message/body, read/isRead, createdAt, type, ... }

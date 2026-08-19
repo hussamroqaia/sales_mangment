@@ -5,7 +5,11 @@ import { _setDirAttr } from '@layouts/utils'
 // ℹ️ We should not import themeConfig here but in urgency we are doing it for now
 import { layoutConfig } from '@themeConfig'
 
-export const namespaceConfig = str => `${layoutConfig.app.title}-${str}`
+// The namespace prefixes every persisted cookie/localStorage key, so it must be
+// a valid cookie name: RFC 6265 forbids spaces, and browsers silently drop a
+// `document.cookie` write whose name contains one. `app.title` is a display
+// string ("Sales Management"), hence the whitespace collapse.
+export const namespaceConfig = str => `${layoutConfig.app.title.replace(/\s+/g, '-')}-${str}`
 export const cookieRef = (key, defaultValue) => {
   return useCookie(namespaceConfig(key), { default: () => defaultValue })
 }
