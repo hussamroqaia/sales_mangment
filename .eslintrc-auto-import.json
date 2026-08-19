@@ -431,6 +431,7 @@
     "KNOWN_CONFIG_KEYS": true,
     "formatConfigTimestamp": true,
     "useSystemConfig": true,
-    "validateConfigValue": true
+    "validateConfigValue": true,
+    "useNotifications": true
   }
 }

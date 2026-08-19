@@ -15,6 +15,7 @@
 
 import { useAbility } from '@casl/vue'
 import { loginUser, logoutUser, changePassword as changePasswordService } from '@/services/auth.service'
+import { useNotifications } from '@/composables/useNotifications'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_ATTEMPTS = 5
@@ -54,6 +55,10 @@ const clearLockoutState = () => {
 export const useAuth = () => {
   const router = useRouter()
   const ability = useAbility()
+
+  // Notification system — initialized after login, cleaned up after logout.
+  // Destructure carefully to avoid triggering reactive state before auth.
+  const { initialize: initNotifications, cleanup: cleanupNotifications } = useNotifications()
 
   // ── Cookie-backed State ──────────────────────────────────────────────────
   // useCookie (VueUse) is reactive and syncs across tabs automatically.
@@ -275,6 +280,15 @@ export const useAuth = () => {
       await nextTick(() => {
         router.replace(redirectTo !== '/' ? redirectTo : '/')
       })
+
+      // ── Initialize notification system (non-blocking) ──────────────────
+      // Must run AFTER auth state is persisted and router has navigated.
+      // Failure here must never prevent the rest of the login flow.
+      try {
+        await initNotifications()
+      } catch (notifErr) {
+        console.warn('[useAuth] Notification init failed (non-fatal):', notifErr)
+      }
     } catch (error) {
       const status = error?.response?.status
       const message = error?.response?.data?.message
@@ -348,6 +362,13 @@ export const useAuth = () => {
   const logout = async () => {
     isLoading.value = true
 
+    // Stop notification system before clearing state
+    try {
+      cleanupNotifications()
+    } catch (notifErr) {
+      console.warn('[useAuth] Notification cleanup failed (non-fatal):', notifErr)
+    }
+
     try {
       await logoutUser()
     } catch (error) {
@@ -367,6 +388,13 @@ export const useAuth = () => {
    * Does NOT call the API — just wipes local state and redirects.
    */
   const forceLogout = () => {
+    // Stop notification system before clearing state
+    try {
+      cleanupNotifications()
+    } catch (notifErr) {
+      console.warn('[useAuth] Notification cleanup failed (non-fatal):', notifErr)
+    }
+
     clearAuthState()
 
     // The Axios interceptor handles the window.location redirect,

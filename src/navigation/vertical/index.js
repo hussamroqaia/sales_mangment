@@ -10,6 +10,13 @@ export default [
     subject: 'Auth',
   },
   {
+    title: 'Notifications',
+    icon: { icon: 'tabler-bell' },
+    to: 'notifications',
+    action: 'read',
+    subject: 'Auth',
+  },
+  {
     heading: 'Management',
     action: 'manage',
     subject: 'all',
