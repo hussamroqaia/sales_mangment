@@ -19,15 +19,26 @@ const refForm = ref()
 const isPasswordVisible = ref(false)
 const isConfirmPasswordVisible = ref(false)
 
+// `phoneNumber` holds ONLY the 9-digit local part — the field renders +963 as
+// a fixed prefix and `toFullPhone` reassembles the wire format on submit.
 const blankForm = () => ({
   name: '',
-  email: '',
+  phoneNumber: '',
   password: '',
   confirmPassword: '',
   role: null,
 })
 
 const form = ref(blankForm())
+
+// Reduce anything typed or pasted (+963…, 00963…, 0…) to the local 9 digits,
+// so the prefix can never end up duplicated in the value. See login.vue for why
+// this is a write-back watcher and not a `@update:model-value` handler.
+watch(() => form.value.phoneNumber, value => {
+  const cleaned = toLocalPhone(value)
+
+  if (cleaned !== value) form.value.phoneNumber = cleaned
+})
 
 // ── Close ─────────────────────────────────────────────────────────────────────
 const closeDrawer = () => {
@@ -56,7 +67,7 @@ const onSubmit = () => {
 
     emit('submit', {
       name: form.value.name,
-      email: form.value.email,
+      phoneNumber: toFullPhone(form.value.phoneNumber),
       password: form.value.password,
       role: form.value.role,
     })
@@ -64,7 +75,7 @@ const onSubmit = () => {
 }
 
 // ℹ️ The drawer deliberately does NOT close itself when `isSubmitting` falls
-// back to false: that happens on a rejected create too (duplicate email, weak
+// back to false: that happens on a rejected create too (duplicate phone number, weak
 // password), and closing there threw away everything the user had typed while
 // the error snackbar was still on screen. Only the parent closes it, and only
 // when the create actually succeeded.
@@ -107,14 +118,19 @@ const onSubmit = () => {
                 />
               </VCol>
 
-              <!-- Email -->
+              <!-- Phone number -->
               <VCol cols="12">
                 <AppTextField
-                  v-model="form.email"
-                  :rules="[requiredValidator, emailValidator]"
-                  label="البريد الإلكتروني"
-                  type="email"
-                  placeholder="name@example.com"
+                  v-model="form.phoneNumber"
+                  class="phone-field"
+                  :rules="[localPhoneValidator]"
+                  label="رقم الهاتف"
+                  type="tel"
+                  inputmode="numeric"
+                  autocomplete="tel-national"
+                  :prefix="SYRIA_DIAL_CODE"
+                  placeholder="981491713"
+                  dir="ltr"
                   :disabled="props.isSubmitting"
                 />
               </VCol>

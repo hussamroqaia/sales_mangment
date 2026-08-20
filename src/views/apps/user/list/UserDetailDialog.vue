@@ -114,7 +114,7 @@ const close = () => {
               {{ props.user.name }}
             </h6>
             <div class="text-sm text-medium-emphasis">
-              {{ props.user.email }}
+              <span dir="ltr">{{ formatPhoneNumber(props.user.phoneNumber) }}</span>
             </div>
           </div>
         </div>
@@ -166,32 +166,15 @@ const close = () => {
               <VListItem>
                 <template #prepend>
                   <VIcon
-                    icon="tabler-id"
+                    icon="tabler-phone"
                     class="me-2"
                   />
                 </template>
                 <VListItemTitle class="text-sm text-medium-emphasis">
-                  معرّف المستخدم
+                  رقم الهاتف
                 </VListItemTitle>
                 <VListItemSubtitle class="font-weight-medium">
-                  #{{ props.user.id }}
-                </VListItemSubtitle>
-              </VListItem>
-
-              <VDivider inset />
-
-              <VListItem>
-                <template #prepend>
-                  <VIcon
-                    icon="tabler-mail"
-                    class="me-2"
-                  />
-                </template>
-                <VListItemTitle class="text-sm text-medium-emphasis">
-                  البريد الإلكتروني
-                </VListItemTitle>
-                <VListItemSubtitle class="font-weight-medium">
-                  {{ props.user.email }}
+                  <span dir="ltr">{{ formatPhoneNumber(props.user.phoneNumber) }}</span>
                 </VListItemSubtitle>
               </VListItem>
 

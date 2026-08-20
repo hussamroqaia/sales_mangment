@@ -460,6 +460,14 @@
     "resolveCategoryVariant": true,
     "resolveCustomerStatusVariant": true,
     "resolveProductStatusVariant": true,
-    "resolveUserStatusVariant": true
+    "resolveUserStatusVariant": true,
+    "SYRIA_DIAL_CODE": true,
+    "SYRIA_PHONE_LENGTH": true,
+    "SYRIA_PHONE_REGEX": true,
+    "formatPhoneNumber": true,
+    "localPhoneValidator": true,
+    "phoneNumberValidator": true,
+    "toFullPhone": true,
+    "toLocalPhone": true
   }
 }

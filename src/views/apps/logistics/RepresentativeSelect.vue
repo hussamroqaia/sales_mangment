@@ -58,7 +58,7 @@ let   blockScroll = false
 
 const mapUser = u => ({
   title: u.name ? u.name : `Rep #${u.id}`,
-  subtitle: u.email ?? '',
+  subtitle: u.phoneNumber ? formatPhoneNumber(u.phoneNumber) : '',
   value: u.id,
   raw: u,
 })

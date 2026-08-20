@@ -91,8 +91,8 @@ const roleLabel = computed(() => {
 
               <div>
                 <h6 class="text-h6 font-weight-medium">
-                  <!-- API returns `name`; fall back to email if missing -->
-                  {{ userData?.name || userData?.fullName || userData?.email }}
+                  <!-- API returns `name`; fall back to the phone number if missing -->
+                  {{ userData?.name || userData?.fullName || formatPhoneNumber(userData?.phoneNumber) }}
                 </h6>
                 <VListItemSubtitle class="text-disabled">
                   {{ roleLabel }}

@@ -7,7 +7,17 @@ import authV2ForgotPasswordIllustrationLight from '@images/pages/auth-v2-forgot-
 import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@images/pages/misc-mask-light.png'
 
-const email = ref('')
+// Holds ONLY the 9-digit local part; the field supplies the +963 prefix.
+// See login.vue for why normalization is a write-back watcher and not a
+// `@update:model-value` handler.
+const phoneNumber = ref('')
+
+watch(phoneNumber, value => {
+  const cleaned = toLocalPhone(value)
+
+  if (cleaned !== value) phoneNumber.value = cleaned
+})
+
 const authThemeImg = useGenerateImageVariant(authV2ForgotPasswordIllustrationLight, authV2ForgotPasswordIllustrationDark)
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
 
@@ -74,22 +84,27 @@ definePage({
             نسيت كلمة المرور؟ 🔒
           </h4>
           <p class="mb-0">
-            أدخل بريدك الإلكتروني وسنرسل لك تعليمات إعادة تعيين كلمة المرور
+            أدخل رقم هاتفك وسنرسل لك تعليمات إعادة تعيين كلمة المرور
           </p>
         </VCardText>
 
         <VCardText>
           <VForm @submit.prevent="() => {}">
             <VRow>
-              <!-- email -->
+              <!-- phone number -->
               <VCol cols="12">
                 <AppTextField
-                  v-model="email"
+                  v-model="phoneNumber"
+                  class="phone-field"
                   autofocus
-                  label="البريد الإلكتروني"
-                  type="email"
-                  placeholder="name@example.com"
+                  label="رقم الهاتف"
+                  type="tel"
+                  inputmode="numeric"
+                  autocomplete="tel-national"
+                  :prefix="SYRIA_DIAL_CODE"
+                  placeholder="981491713"
                   dir="ltr"
+                  :rules="[localPhoneValidator]"
                 />
               </VCol>
 

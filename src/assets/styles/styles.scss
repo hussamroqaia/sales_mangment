@@ -1,1 +1,11 @@
 // Write your overrides
+
+// ── Phone number fields ───────────────────────────────────────────────────────
+// A phone number is LTR data sitting on an RTL page. Vuetify lays a text field's
+// prefix out in the locale's direction, so without this the "+963" ends up to
+// the RIGHT of the digits and the field reads "981491713 +963".
+// Only the field box is flipped — the label above it stays in the RTL flow so it
+// still aligns with every other label on the same form.
+.app-text-field.phone-field .v-field {
+  direction: ltr;
+}

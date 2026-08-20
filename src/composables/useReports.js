@@ -103,7 +103,7 @@ export const REPORT_FIELD_LABELS = {
   repName: 'المندوب',
   userId: 'معرّف المستخدم',
   userName: 'المستخدم',
-  email: 'البريد الإلكتروني',
+  phoneNumber: 'رقم الهاتف',
   phone: 'رقم الهاتف',
   role: 'الدور',
 

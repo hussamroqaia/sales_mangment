@@ -13,23 +13,23 @@ import apiClient from '@/services/apiClient'
 
 // ─── POST /auth/login ─────────────────────────────────────────────────────────
 /**
- * Authenticate a user with email + password.
+ * Authenticate a user with phone number + password.
  *
- * @param {string} email
+ * @param {string} phoneNumber - E.164 wire format, e.g. "+963981491713"
  * @param {string} password
  * @returns {Promise<{
  *   userId: number,
  *   name: string,
- *   email: string,
+ *   phoneNumber: string,
  *   role: string,
  *   accessToken: string,
  *   refreshToken: string,
  *   isFirstLogin?: boolean
  * }>}
  */
-export const loginUser = async (email, password) => {
+export const loginUser = async (phoneNumber, password) => {
   try {
-    const response = await apiClient.post('/auth/login', { email, password })
+    const response = await apiClient.post('/auth/login', { phoneNumber, password })
 
     // API wraps data in a `data` envelope: { success, data: { ... } }
     return response.data?.data ?? response.data

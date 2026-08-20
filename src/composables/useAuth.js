@@ -223,11 +223,11 @@ export const useAuth = () => {
    *  - First-time login redirect
    *  - Normal dashboard redirect
    *
-   * @param {string} email
+   * @param {string} phoneNumber - E.164 wire format, e.g. "+963981491713"
    * @param {string} password
    * @param {string} [redirectTo] - Optional path to redirect to after login
    */
-  const login = async (email, password, redirectTo = '/') => {
+  const login = async (phoneNumber, password, redirectTo = '/') => {
     // Refresh lockout state from localStorage before checking
     syncLockout()
 
@@ -241,7 +241,7 @@ export const useAuth = () => {
     loginError.value = ''
 
     try {
-      const data = await loginUser(email, password)
+      const data = await loginUser(phoneNumber, password)
 
       // ── Block Sales Reps from web login ───────────────────────────────
       if (data.role?.toUpperCase() === 'SALES_REP') {
@@ -335,7 +335,7 @@ export const useAuth = () => {
           loginError.value = `تم قفل الحساب بعد ${MAX_ATTEMPTS} محاولات فاشلة. الرجاء المحاولة بعد 15 دقيقة.`
         } else {
           const attemptsLeft = remaining > 0 ? remaining : 0
-          let errorMsg = translateBackendMessage(message) || 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
+          let errorMsg = translateBackendMessage(message) || 'رقم الهاتف أو كلمة المرور غير صحيحة.'
 
           // Append the remaining-attempts hint so the lockout is never a surprise.
           if (attemptsLeft > 0) {

@@ -47,7 +47,7 @@ export const fetchUsers = async (params = {}) => {
 /**
  * Fetch a single user by ID.
  * @param {number|string} id
- * @returns {Promise<{ id, name, email, role, status, createdAt }>}
+ * @returns {Promise<{ id, name, phoneNumber, role, status, createdAt }>}
  */
 export const fetchUserById = async id => {
   try {
@@ -62,8 +62,8 @@ export const fetchUserById = async id => {
 // ─── POST /users ──────────────────────────────────────────────────────────────
 /**
  * Create a new user.
- * @param {{ name: string, email: string, password: string, role: string }} payload
- * @returns {Promise<{ id, name, email, role, status, createdAt }>}
+ * @param {{ name: string, phoneNumber: string, password: string, role: string }} payload
+ * @returns {Promise<{ id, name, phoneNumber, role, status, createdAt }>}
  */
 export const createUser = async payload => {
   try {

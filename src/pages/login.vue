@@ -20,10 +20,25 @@ const { login, isLoading, loginError, isLockedOut, lockoutRemainingFormatted, sy
 const refVForm = ref()
 const isPasswordVisible = ref(false)
 
+// `phoneNumber` holds ONLY the 9-digit local part; the field renders the
+// +963 dial code as a fixed prefix and `toFullPhone` reassembles the wire
+// format on submit.
 const credentials = ref({
-  email: '',
+  phoneNumber: '',
   password: '',
   remember: false,
+})
+
+// Keep whatever is typed or pasted (+963…, 00963…, 0…) reduced to the local
+// 9 digits, so the prefix can never end up duplicated in the value. Writing the
+// cleaned value back through the same binding is what makes Vue patch the DOM
+// input, so an over-long paste or a stray letter cannot linger on screen — which
+// is also why the field carries no `maxlength`: that would clip a pasted
+// "+963981491713" to nine characters before this ever saw it.
+watch(() => credentials.value.phoneNumber, value => {
+  const cleaned = toLocalPhone(value)
+
+  if (cleaned !== value) credentials.value.phoneNumber = cleaned
 })
 
 // ── Session Expired Banner ────────────────────────────────────────────────────
@@ -60,7 +75,7 @@ onUnmounted(() => {
 })
 
 // ── Clear error on input change ───────────────────────────────────────────────
-watch(() => [credentials.value.email, credentials.value.password], () => {
+watch(() => [credentials.value.phoneNumber, credentials.value.password], () => {
   if (loginError.value) loginError.value = ''
 })
 
@@ -71,7 +86,7 @@ const onSubmit = () => {
 
     const redirectTo = route.query.to ? String(route.query.to) : '/'
 
-    login(credentials.value.email, credentials.value.password, redirectTo)
+    login(toFullPhone(credentials.value.phoneNumber), credentials.value.password, redirectTo)
   })
 }
 </script>
@@ -180,17 +195,21 @@ const onSubmit = () => {
             @submit.prevent="onSubmit"
           >
             <VRow>
-              <!-- Email -->
+              <!-- Phone number -->
               <VCol cols="12">
                 <AppTextField
-                  id="login-email"
-                  v-model="credentials.email"
+                  id="login-phone"
+                  v-model="credentials.phoneNumber"
+                  class="phone-field"
                   autofocus
-                  label="البريد الإلكتروني"
-                  type="email"
-                  placeholder="name@example.com"
+                  label="رقم الهاتف"
+                  type="tel"
+                  inputmode="numeric"
+                  autocomplete="tel-national"
+                  :prefix="SYRIA_DIAL_CODE"
+                  placeholder="981491713"
                   dir="ltr"
-                  :rules="[requiredValidator, emailValidator]"
+                  :rules="[localPhoneValidator]"
                   :disabled="isLockedOut || isLoading"
                 />
               </VCol>

@@ -279,7 +279,7 @@ onMounted(fetchAllUsers)
         <div style="inline-size: 15.625rem;">
           <AppTextField
             v-model="searchQuery"
-            placeholder="ابحث بالاسم أو البريد الإلكتروني…"
+            placeholder="ابحث بالاسم أو رقم الهاتف…"
             prepend-inner-icon="tabler-search"
             clearable
           />
@@ -371,7 +371,10 @@ onMounted(fetchAllUsers)
               <span class="text-body-1 font-weight-medium text-high-emphasis">
                 {{ item.name }}
               </span>
-              <span class="text-sm text-medium-emphasis">{{ item.email }}</span>
+              <span
+                class="text-sm text-medium-emphasis"
+                dir="ltr"
+              >{{ formatPhoneNumber(item.phoneNumber) }}</span>
             </div>
           </div>
         </template>

@@ -20,8 +20,9 @@
 
 /** Known backend phrases → Arabic. Keys are matched case-insensitively. */
 const KNOWN_MESSAGES = {
-  'bad credentials': 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
-  'invalid email or password': 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+  'bad credentials': 'رقم الهاتف أو كلمة المرور غير صحيحة.',
+  'invalid phone number or password': 'رقم الهاتف أو كلمة المرور غير صحيحة.',
+  'invalid credentials': 'رقم الهاتف أو كلمة المرور غير صحيحة.',
   'user not found': 'لم يتم العثور على المستخدم.',
   'access denied': 'ليس لديك صلاحية لتنفيذ هذا الإجراء.',
   'unauthorized': 'انتهت الجلسة. الرجاء تسجيل الدخول من جديد.',
@@ -29,7 +30,9 @@ const KNOWN_MESSAGES = {
   'token expired': 'انتهت صلاحية الجلسة. الرجاء تسجيل الدخول من جديد.',
   'invalid token': 'انتهت صلاحية الجلسة. الرجاء تسجيل الدخول من جديد.',
   'current password is incorrect': 'كلمة المرور الحالية غير صحيحة.',
-  'email already exists': 'هذا البريد الإلكتروني مسجّل مسبقًا.',
+  'phone number already exists': 'رقم الهاتف هذا مسجّل مسبقًا.',
+  'phonenumber already exists': 'رقم الهاتف هذا مسجّل مسبقًا.',
+  'user with this phone number already exists': 'رقم الهاتف هذا مسجّل مسبقًا.',
   'insufficient stock': 'الكمية المتوفرة في المخزون غير كافية.',
   'internal server error': 'حدث خطأ في الخادم. الرجاء المحاولة لاحقًا.',
 
