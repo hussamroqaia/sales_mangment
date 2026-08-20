@@ -1,4 +1,5 @@
 import { isEmpty, isEmptyArray, isNullOrUndefined } from './helpers'
+import { countAr } from '@/utils/locale'
 
 // 👉 Required Validator
 export const requiredValidator = value => {
@@ -92,4 +93,26 @@ export const alphaDashValidator = value => {
   const valueAsString = String(value)
   
   return /^[\w-]*$/.test(valueAsString) || 'يحتوي هذا الحقل على رموز غير مسموح بها'
+}
+
+// 👉 Minimum Length Validator
+// Mirrors the backend's @Size(min = …) constraints, so an over-short value is
+// caught in the form instead of coming back as a 400 the user cannot act on.
+// An empty value passes — emptiness is `requiredValidator`'s job, and pairing
+// the two on an optional field would make it required by accident.
+export const minLengthValidator = (value, min) => {
+  if (isEmpty(value))
+    return true
+
+  return String(value).trim().length >= min
+    || `يجب ألّا يقلّ هذا الحقل عن ${countAr(min, { one: 'حرف', two: 'حرفين', few: 'أحرف', many: 'حرفًا', other: 'حرف' })}`
+}
+
+// 👉 Maximum Length Validator — mirrors the backend's @Size(max = …)
+export const maxLengthValidator = (value, max) => {
+  if (isEmpty(value))
+    return true
+
+  return String(value).trim().length <= max
+    || `يجب ألّا يزيد هذا الحقل عن ${countAr(max, { one: 'حرف', two: 'حرفين', few: 'أحرف', many: 'حرفًا', other: 'حرف' })}`
 }

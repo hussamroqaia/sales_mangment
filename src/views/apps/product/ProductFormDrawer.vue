@@ -108,11 +108,39 @@ watch(
 )
 
 // ── Validators ──────────────────────────────────────────────────────────────
+// Mirrors CreateProductRequest / UpdateProductRequest:
+//   name          @NotBlank @Size(min = 2, max = 150)
+//   sku           @NotBlank @Size(max = 50)
+//   unitOfMeasure @NotBlank @Size(max = 30)
+//   price         @NotNull  @DecimalMin("0")
+//   barcode       @Size(max = 50)   ← optional
+//   minStockLevel @Min(0)           ← optional
+//
+// `barcode` and `minStockLevel` are absent from the contract's `required` list;
+// both were validated as required here, which made the form stricter than the
+// API and refused products the backend accepts.
 const positiveNumberValidator = value => {
   if (value === null || value === undefined || value === '') return 'هذا الحقل مطلوب'
 
   return Number(value) >= 0 || 'أدخل قيمة أكبر من أو تساوي 0'
 }
+
+/** Non-negative, but blank passes — for the optional numeric fields. */
+const optionalNonNegativeValidator = value => {
+  if (value === null || value === undefined || value === '') return true
+
+  return Number(value) >= 0 || 'أدخل قيمة أكبر من أو تساوي 0'
+}
+
+const nameRules = [
+  requiredValidator,
+  v => minLengthValidator(v, 2),
+  v => maxLengthValidator(v, 150),
+]
+
+const skuRules = [requiredValidator, v => maxLengthValidator(v, 50)]
+
+const barcodeRules = [v => maxLengthValidator(v, 50)]
 
 // ── Submit ──────────────────────────────────────────────────────────────────
 const onSubmit = () => {
@@ -123,10 +151,15 @@ const onSubmit = () => {
       id:            props.product?.id ?? null,
       name:          form.value.name.trim(),
       sku:           form.value.sku.trim(),
-      barcode:       form.value.barcode.trim(),
+      // Both are optional in the contract. `Number('')` and `Number(null)` are
+      // 0, so an untouched minimum-stock field used to be persisted as a real
+      // 0 — which reads as "alert me the moment this runs out", not "unset".
+      barcode:       form.value.barcode.trim() || null,
       price:         Number(form.value.price),
       unitOfMeasure: form.value.unitOfMeasure,
-      minStockLevel: Number(form.value.minStockLevel),
+      minStockLevel: form.value.minStockLevel === null || form.value.minStockLevel === ''
+        ? null
+        : Number(form.value.minStockLevel),
     })
   })
 }
@@ -165,7 +198,8 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.name"
-                  :rules="[requiredValidator]"
+                  :rules="nameRules"
+                  counter="150"
                   label="اسم المنتج"
                   placeholder="مثال: مياه معدنية 500 مل"
                   :disabled="props.isSubmitting"
@@ -176,7 +210,8 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.sku"
-                  :rules="[requiredValidator]"
+                  :rules="skuRules"
+                  counter="50"
                   label="رمز الصنف (SKU)"
                   placeholder="مثال: WTR-500-001"
                   :disabled="props.isSubmitting"
@@ -187,8 +222,9 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.barcode"
-                  :rules="[requiredValidator]"
-                  label="الباركود"
+                  :rules="barcodeRules"
+                  counter="50"
+                  label="الباركود (اختياري)"
                   placeholder="مثال: 6291234567890"
                   :disabled="props.isSubmitting"
                 />
@@ -203,10 +239,8 @@ const onSubmit = () => {
                   v-model="form.price"
                   :rules="[positiveNumberValidator]"
                   label="السعر"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  prefix="$"
+                  type="text"
+                  inputmode="decimal"
                   placeholder="0.00"
                   :disabled="props.isSubmitting"
                 />
@@ -219,11 +253,10 @@ const onSubmit = () => {
               >
                 <AppTextField
                   v-model="form.minStockLevel"
-                  :rules="[positiveNumberValidator, integerValidator]"
-                  label="الحد الأدنى للمخزون"
-                  type="number"
-                  min="0"
-                  step="1"
+                  :rules="[optionalNonNegativeValidator, integerValidator]"
+                  label="الحد الأدنى للمخزون (اختياري)"
+                  type="text"
+                  inputmode="numeric"
                   placeholder="0"
                   :disabled="props.isSubmitting"
                 />

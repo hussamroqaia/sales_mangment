@@ -1,5 +1,5 @@
 <script setup>
-import { USER_STATUSES, resolveStatusVariant, resolveRoleVariant, resolveRoleTitle } from '@/composables/useUsers'
+import { USER_STATUSES, resolveUserStatusVariant, resolveStatusTitle, resolveRoleVariant, resolveRoleTitle } from '@/composables/useUsers'
 import { INTL_LOCALE } from '@/utils/locale'
 
 const props = defineProps({
@@ -12,6 +12,10 @@ const props = defineProps({
     default: null,
   },
   isSubmitting: {
+    type: Boolean,
+    default: false,
+  },
+  isLoading: {
     type: Boolean,
     default: false,
   },
@@ -55,6 +59,11 @@ const formattedDate = computed(() => {
 const passwordMatchValidator = value =>
   value === newPassword.value || 'كلمتا المرور غير متطابقتين'
 
+// Mirrors the backend constraint on ResetPasswordRequest.newPassword
+// (@Size(min = 8)); without it the user only learns about it from a 400.
+const passwordLengthValidator = value =>
+  (value || '').length >= 8 || 'يجب ألّا تقلّ كلمة المرور عن 8 أحرف'
+
 // ── Actions ───────────────────────────────────────────────────────────────────
 const onChangeStatus = () => {
   if (statusChanged.value) {
@@ -81,7 +90,15 @@ const close = () => {
     scrollable
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <VCard v-if="props.user">
+    <!-- The dialog opens before the detail request resolves; without this the
+         user would stare at an empty overlay until it landed. -->
+    <VCard v-if="props.isLoading && !props.user">
+      <VCardText class="pa-6">
+        <VSkeletonLoader type="list-item-avatar-two-line, divider, list-item-two-line@4" />
+      </VCardText>
+    </VCard>
+
+    <VCard v-else-if="props.user">
       <!-- Header -->
       <VCardTitle class="d-flex align-center justify-space-between pa-4 pb-2">
         <div class="d-flex align-center gap-3">
@@ -221,12 +238,11 @@ const close = () => {
                 </VListItemTitle>
                 <VListItemSubtitle>
                   <VChip
-                    :color="resolveStatusVariant(props.user.status)"
+                    :color="resolveUserStatusVariant(props.user.status)"
                     size="small"
                     label
-                    class="text-capitalize"
                   >
-                    {{ props.user.status }}
+                    {{ resolveStatusTitle(props.user.status) }}
                   </VChip>
                 </VListItemSubtitle>
               </VListItem>
@@ -272,7 +288,7 @@ const close = () => {
                 <VChip
                   v-for="s in USER_STATUSES"
                   :key="s.value"
-                  :color="resolveStatusVariant(s.value)"
+                  :color="resolveUserStatusVariant(s.value)"
                   size="small"
                   label
                   class="me-2"
@@ -313,7 +329,7 @@ const close = () => {
                   <VCol cols="12">
                     <AppTextField
                       v-model="newPassword"
-                      :rules="[requiredValidator]"
+                      :rules="[requiredValidator, passwordLengthValidator]"
                       label="كلمة المرور الجديدة"
                       placeholder="············"
                       :type="isNewPasswordVisible ? 'text' : 'password'"

@@ -22,8 +22,9 @@
  */
 
 import { fetchInventoryDashboard, fetchSalesDashboard } from '@/services/dashboard.service'
+import { resolveApiError } from '@/utils/apiErrors'
 import { useAuth } from '@/composables/useAuth'
-import { INTL_LOCALE } from '@/utils/locale'
+import { INTL_LOCALE, formatMoney } from '@/utils/locale'
 
 const SALES_DASHBOARD_ROLES     = ['admin', 'sales_manager']
 const INVENTORY_DASHBOARD_ROLES = ['admin', 'warehouse_manager']
@@ -37,15 +38,7 @@ const INVENTORY_DASHBOARD_ROLES = ['admin', 'warehouse_manager']
  * Money-like value. Returns '—' ONLY for null/undefined — 0 is real business
  * data (no sales today is a fact, not a missing value).
  */
-export const formatDashboardAmount = value => {
-  if (value === null || value === undefined) return '—'
-
-  const n = Number(value)
-
-  return Number.isNaN(n)
-    ? '—'
-    : n.toLocaleString(INTL_LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
+export const formatDashboardAmount = formatMoney
 
 /** Integer count. 0 is valid data, so only null/undefined become '—'. */
 export const formatDashboardCount = value => {
@@ -109,8 +102,7 @@ export const useDashboard = () => {
       // Deliberately no fallback numbers — a failed request must not be
       // dressed up as business data.
       salesDashboard.value = null
-      salesError.value = error?.response?.data?.message
-        || 'تعذّر تحميل لوحة مؤشرات المبيعات.'
+      salesError.value = resolveApiError(error, 'تعذّر تحميل لوحة مؤشرات المبيعات.')
     } finally {
       isSalesLoading.value = false
     }
@@ -126,8 +118,7 @@ export const useDashboard = () => {
       inventoryDashboard.value = await fetchInventoryDashboard()
     } catch (error) {
       inventoryDashboard.value = null
-      inventoryError.value = error?.response?.data?.message
-        || 'تعذّر تحميل لوحة مؤشرات المخزون.'
+      inventoryError.value = resolveApiError(error, 'تعذّر تحميل لوحة مؤشرات المخزون.')
     } finally {
       isInventoryLoading.value = false
     }

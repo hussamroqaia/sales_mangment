@@ -16,6 +16,7 @@
  */
 
 import { watchDebounced } from '@vueuse/core'
+import { resolveApiError } from '@/utils/apiErrors'
 import {
   fetchProducts,
   fetchProductById,
@@ -43,8 +44,26 @@ export const PRODUCT_UNITS = [
   { title: 'دزينة',  value: 'DOZEN'  },
 ]
 
-export const resolveStatusVariant = status =>
+export const resolveProductStatusVariant = status =>
   status?.toUpperCase() === 'ACTIVE' ? 'success' : 'secondary'
+
+/**
+ * Arabic label for a `ProductResponse.status` enum value. The list, the filter
+ * and the row menu all render the same enum, so they share one lookup instead
+ * of printing the raw `ACTIVE`/`DISCONTINUED` token lower-cased.
+ */
+export const resolveProductStatusTitle = status =>
+  PRODUCT_STATUSES.find(st => st.value === status?.toUpperCase())?.title ?? status ?? '—'
+
+/**
+ * Arabic label for `ProductResponse.unitOfMeasure`.
+ *
+ * The value is one of the PRODUCT_UNITS codes the create form sends, so it maps
+ * back through the same list. A unit set outside this app (or a code added
+ * server-side later) falls through to its raw value rather than rendering blank.
+ */
+export const resolveUnitTitle = unit =>
+  PRODUCT_UNITS.find(u => u.value === unit?.toUpperCase())?.title ?? unit ?? '—'
 
 // ─── Composable ───────────────────────────────────────────────────────────────
 export const useProducts = () => {
@@ -62,9 +81,19 @@ export const useProducts = () => {
   const itemsPerPage  = ref(10)
   const totalProducts = ref(0)
 
-  // ── Sorting State ───────────────────────────────────────────────────────────
-  const sortBy  = ref('id')
-  const sortDir = ref('asc')
+  // ── Sorting State ─────────────────────────────────────────────────────────
+  // VDataTableServer emits `update:options` on mount with an EMPTY `sortBy`,
+  // meaning "the user has chosen no column". `updateOptions` below falls back
+  // to these defaults for that case. It used to fall back to a hardcoded
+  // id/asc, which on a list defaulting to `desc` both overrode the intended
+  // order and — because the fallback differed from the current value — counted
+  // as a sort change and fired a second request on top of the one onMounted
+  // had already issued.
+  const DEFAULT_SORT_BY  = 'id'
+  const DEFAULT_SORT_DIR = 'asc'
+
+  const sortBy  = ref(DEFAULT_SORT_BY)
+  const sortDir = ref(DEFAULT_SORT_DIR)
 
   // ── Single Product State (edit mode) ────────────────────────────────────────
   const editingProduct  = ref(null)
@@ -97,7 +126,7 @@ export const useProducts = () => {
       products.value      = data?.content       ?? []
       totalProducts.value = data?.totalElements ?? 0
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       listError.value = message || 'تعذّر تحميل المنتجات.'
       showSnackbar(listError.value, 'error')
     } finally {
@@ -105,18 +134,37 @@ export const useProducts = () => {
     }
   }
 
+  // ── reloadFromFirstPage() ────────────────────────────────────────
+  /**
+   * Apply a filter/search/create result: go back to the first page, then load.
+   *
+   * Assigning `page` fires the page watcher, which loads on its own. Calling
+   * the loader here as well would issue the same request twice for anyone who
+   * was not already on page 1, so exactly one of the two paths ever runs.
+   *
+   * @returns {Promise<void>|undefined} resolves once the load this call owns
+   *   has finished; `undefined` when the page watcher owns it instead.
+   */
+  const reloadFromFirstPage = () => {
+    if (page.value !== 1) {
+      page.value = 1
+
+      return undefined
+    }
+
+    return fetchAllProducts()
+  }
+
   // ── Watchers ────────────────────────────────────────────────────────────────
 
   // Debounce search to avoid hitting the API on every keystroke
   watchDebounced(searchQuery, () => {
-    page.value = 1
-    fetchAllProducts()
+    reloadFromFirstPage()
   }, { debounce: 400 })
 
   // Reset to page 1 when the status filter changes
   watch(selectedStatus, () => {
-    page.value = 1
-    fetchAllProducts()
+    reloadFromFirstPage()
   })
 
   // Refetch when page or page-size changes
@@ -132,7 +180,7 @@ export const useProducts = () => {
       const data = await fetchProductById(id)
       editingProduct.value = data
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       detailError.value = message || `تعذّر تحميل المنتج رقم ${id}.`
       showSnackbar(detailError.value, 'error')
     } finally {
@@ -146,12 +194,11 @@ export const useProducts = () => {
     try {
       await createProductService(payload)
       showSnackbar('تم إنشاء المنتج بنجاح.')
-      page.value = 1
-      await fetchAllProducts()
+      await reloadFromFirstPage()
 
       return { success: true }
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       showSnackbar(message || 'تعذّر إنشاء المنتج.', 'error')
 
       return { success: false, error: message || 'تعذّر إنشاء المنتج.' }
@@ -170,7 +217,7 @@ export const useProducts = () => {
 
       return { success: true }
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       showSnackbar(message || 'تعذّر تحديث المنتج.', 'error')
 
       return { success: false, error: message || 'تعذّر تحديث المنتج.' }
@@ -193,7 +240,7 @@ export const useProducts = () => {
 
       return { success: true }
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       showSnackbar(message || 'تعذّر تحديث الحالة.', 'error')
 
       return { success: false, error: message || 'تعذّر تحديث الحالة.' }
@@ -219,7 +266,7 @@ export const useProducts = () => {
 
       return { success: true }
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       showSnackbar(message || 'تعذّر حذف المنتج.', 'error')
 
       return { success: false, error: message || 'تعذّر حذف المنتج.' }
@@ -231,8 +278,10 @@ export const useProducts = () => {
   // ── updateOptions (VDataTableServer @update:options callback) ──────────────
   const updateOptions = options => {
     const firstSort  = options.sortBy?.[0]
-    const newSortBy  = firstSort?.key ?? 'id'
-    const newSortDir = firstSort?.order === 'desc' ? 'desc' : 'asc'
+    const newSortBy  = firstSort?.key ?? DEFAULT_SORT_BY
+    const newSortDir = firstSort
+      ? (firstSort.order === 'desc' ? 'desc' : 'asc')
+      : DEFAULT_SORT_DIR
 
     // Only reset to page 1 when the sort actually changes — NOT on every
     // options emission (which would fight with TablePagination page clicks)

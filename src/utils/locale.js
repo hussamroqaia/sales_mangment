@@ -80,3 +80,24 @@ export const formatRelativeArabic = value => {
   return new Intl.RelativeTimeFormat(INTL_LOCALE, { numeric: 'auto' })
     .format(Math.round(diff / chosen.ms), chosen.unit)
 }
+
+/**
+ * A money-like amount: grouped, always two decimals, and NO currency symbol.
+ *
+ * No DTO in the API and no entry in `/api/config` declares a currency, so the
+ * app must not print one. The products list used to format prices as
+ * `style: 'currency', currency: 'USD'` and render "US$ 1,500.00" for a figure
+ * the backend never said was in dollars — an invented fact on screen, and out
+ * of step with the dashboard and the invoice tables beside it.
+ *
+ * `null`/`undefined` become '—'; 0 does not — a zero price is real data.
+ */
+export const formatMoney = value => {
+  if (value === null || value === undefined || value === '') return '\u2014'
+
+  const n = Number(value)
+
+  return Number.isNaN(n)
+    ? String(value)
+    : n.toLocaleString(INTL_LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}

@@ -17,6 +17,7 @@
  */
 
 import { watchDebounced } from '@vueuse/core'
+import { resolveApiError } from '@/utils/apiErrors'
 import {
   fetchWarehouseStock,
   fetchWarehouseStockByProductId,
@@ -49,9 +50,19 @@ export const useWarehouseStock = () => {
   const itemsPerPage = ref(10)
   const totalStock   = ref(0)
 
-  // ── Sorting State ───────────────────────────────────────────────────────────
-  const sortBy  = ref('id')
-  const sortDir = ref('asc')
+  // ── Sorting State ─────────────────────────────────────────────────────────
+  // VDataTableServer emits `update:options` on mount with an EMPTY `sortBy`,
+  // meaning "the user has chosen no column". `updateOptions` below falls back
+  // to these defaults for that case. It used to fall back to a hardcoded
+  // id/asc, which on a list defaulting to `desc` both overrode the intended
+  // order and — because the fallback differed from the current value — counted
+  // as a sort change and fired a second request on top of the one onMounted
+  // had already issued.
+  const DEFAULT_SORT_BY  = 'id'
+  const DEFAULT_SORT_DIR = 'asc'
+
+  const sortBy  = ref(DEFAULT_SORT_BY)
+  const sortDir = ref(DEFAULT_SORT_DIR)
 
   // ── Single Record State (modal context) ───────────────────────────────────────
   const selectedStock   = ref(null)
@@ -84,7 +95,7 @@ export const useWarehouseStock = () => {
       stockList.value  = data?.content       ?? []
       totalStock.value = data?.totalElements ?? 0
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       listError.value = message || 'تعذّر تحميل مخزون المستودع.'
       showSnackbar(listError.value, 'error')
     } finally {
@@ -92,18 +103,37 @@ export const useWarehouseStock = () => {
     }
   }
 
+  // ── reloadFromFirstPage() ────────────────────────────────────────
+  /**
+   * Apply a filter/search/create result: go back to the first page, then load.
+   *
+   * Assigning `page` fires the page watcher, which loads on its own. Calling
+   * the loader here as well would issue the same request twice for anyone who
+   * was not already on page 1, so exactly one of the two paths ever runs.
+   *
+   * @returns {Promise<void>|undefined} resolves once the load this call owns
+   *   has finished; `undefined` when the page watcher owns it instead.
+   */
+  const reloadFromFirstPage = () => {
+    if (page.value !== 1) {
+      page.value = 1
+
+      return undefined
+    }
+
+    return fetchAllStock()
+  }
+
   // ── Watchers ────────────────────────────────────────────────────────────────
 
   // Reset to page 1 when the low-stock toggle changes
   watch(lowStockOnly, () => {
-    page.value = 1
-    fetchAllStock()
+    reloadFromFirstPage()
   })
 
   // Debounce the productId number input so we don't fire on every keystroke
   watchDebounced(productIdFilter, () => {
-    page.value = 1
-    fetchAllStock()
+    reloadFromFirstPage()
   }, { debounce: 400 })
 
   // Refetch when page or page-size changes
@@ -119,7 +149,7 @@ export const useWarehouseStock = () => {
       const data = await fetchWarehouseStockByProductId(productId)
       selectedStock.value = data
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       detailError.value = message || `تعذّر تحميل مخزون المنتج رقم ${productId}.`
       showSnackbar(detailError.value, 'error')
     } finally {
@@ -137,7 +167,7 @@ export const useWarehouseStock = () => {
 
       return { success: true }
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       showSnackbar(message || 'تعذّر تسجيل استلام المخزون.', 'error')
 
       return { success: false, error: message || 'تعذّر تسجيل استلام المخزون.' }
@@ -156,7 +186,7 @@ export const useWarehouseStock = () => {
 
       return { success: true }
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       showSnackbar(message || 'تعذّر تحديث المخزون.', 'error')
 
       return { success: false, error: message || 'تعذّر تحديث المخزون.' }
@@ -168,8 +198,10 @@ export const useWarehouseStock = () => {
   // ── updateOptions (VDataTableServer @update:options callback) ────────────────
   const updateOptions = options => {
     const firstSort  = options.sortBy?.[0]
-    const newSortBy  = firstSort?.key ?? 'id'
-    const newSortDir = firstSort?.order === 'desc' ? 'desc' : 'asc'
+    const newSortBy  = firstSort?.key ?? DEFAULT_SORT_BY
+    const newSortDir = firstSort
+      ? (firstSort.order === 'desc' ? 'desc' : 'asc')
+      : DEFAULT_SORT_DIR
 
     // Only reset to page 1 when the sort actually changes — NOT on every
     // options emission (which would fight with TablePagination page clicks).

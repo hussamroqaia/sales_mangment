@@ -45,6 +45,29 @@ const defaultForm = () => ({
 
 const form = ref(defaultForm())
 
+// ── Validation ────────────────────────────────────────────────────────────────
+// Mirrors CreateCustomerRequest / UpdateCustomerRequest. Only `name`,
+// `territoryId` and `category` are in the contract's `required` list — `phone`
+// and `address` used to carry requiredValidator here, which made the form
+// stricter than the API and blocked customers the backend accepts.
+//
+// The +963 shape is a deliberate house rule (the backend's own @Pattern is the
+// far looser `^[+0-9()\s-]{6,30}$`), so it is applied only once the field has
+// something in it rather than as a second required check.
+const nameRules = [
+  requiredValidator,
+  v => minLengthValidator(v, 2),
+  v => maxLengthValidator(v, 150),
+]
+
+const phoneRules = [
+  v => !(v ?? '').trim()
+    || /^\+963\d{9}$/.test(String(v).trim())
+    || 'يجب أن يبدأ رقم الهاتف بـ +963 يليه 9 أرقام (مثال: +963912345678)',
+]
+
+const addressRules = [v => maxLengthValidator(v, 500)]
+
 // ── Map state ──────────────────────────────────────────────────────────────────
 // Default center: Damascus, Syria
 const DEFAULT_CENTER = [33.5138, 36.2765]
@@ -241,8 +264,8 @@ const onSubmit = () => {
       id:          props.customer?.id ?? null,
       territoryId: form.value.territoryId,
       name:        form.value.name.trim(),
-      address:     form.value.address.trim(),
-      phone:       form.value.phone.trim(),
+      address:     form.value.address.trim() || null,
+      phone:       form.value.phone.trim() || null,
       latitude:    form.value.latitude,
       longitude:   form.value.longitude,
       category:    form.value.category,
@@ -356,9 +379,10 @@ const onTerritoryMenuUpdate = isOpen => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.name"
-                  :rules="[requiredValidator]"
+                  :rules="nameRules"
                   label="اسم العميل"
                   placeholder="مثال: صيدلية الفرحان"
+                  counter="150"
                   :disabled="props.isSubmitting"
                 />
               </VCol>
@@ -416,7 +440,7 @@ const onTerritoryMenuUpdate = isOpen => {
                   <template #no-data>
                     <VListItem>
                       <VListItemTitle class="text-medium-emphasis">
-                        {{ isTerritoryLoading ? 'Loading…' : 'لا توجد مناطق' }}
+                        {{ isTerritoryLoading ? 'جارِ التحميل…' : 'لا توجد مناطق' }}
                       </VListItemTitle>
                     </VListItem>
                   </template>
@@ -441,12 +465,10 @@ const onTerritoryMenuUpdate = isOpen => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.phone"
-                  :rules="[
-                    requiredValidator,
-                    v => /^\+963\d{9}$/.test((v ?? '').trim()) || 'يجب أن يبدأ رقم الهاتف بـ +963 يليه 9 أرقام (مثال: +963912345678)',
-                  ]"
-                  label="رقم الهاتف"
+                  :rules="phoneRules"
+                  label="رقم الهاتف (اختياري)"
                   placeholder="+963 9xx xxx xxx"
+                  dir="ltr"
                   :disabled="props.isSubmitting"
                 />
               </VCol>
@@ -455,10 +477,11 @@ const onTerritoryMenuUpdate = isOpen => {
               <VCol cols="12">
                 <AppTextarea
                   v-model="form.address"
-                  :rules="[requiredValidator]"
-                  label="العنوان"
+                  :rules="addressRules"
+                  label="العنوان (اختياري)"
                   placeholder="الشارع، المبنى، المدينة…"
                   rows="2"
+                  counter="500"
                   :disabled="props.isSubmitting"
                 />
               </VCol>

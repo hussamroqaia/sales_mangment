@@ -214,7 +214,7 @@ onMounted(() => {
     <template #no-data>
       <VListItem>
         <VListItemTitle class="text-medium-emphasis">
-          {{ isLoading ? 'Loading…' : 'لا يوجد عملاء' }}
+          {{ isLoading ? 'جارِ التحميل…' : 'لا يوجد عملاء' }}
         </VListItemTitle>
       </VListItem>
     </template>

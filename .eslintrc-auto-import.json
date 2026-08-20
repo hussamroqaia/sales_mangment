@@ -446,6 +446,20 @@
     "routeStatusTitle": true,
     "formatRelativeArabic": true,
     "translateNotificationMessage": true,
-    "translateNotificationTitle": true
+    "translateNotificationTitle": true,
+    "normalizeNotification": true,
+    "resolveStatusTitle": true,
+    "maxLengthValidator": true,
+    "minLengthValidator": true,
+    "resolveCategoryTitle": true,
+    "resolveCustomerStatusTitle": true,
+    "resolveProductStatusTitle": true,
+    "resolveUnitTitle": true,
+    "formatMoney": true,
+    "PRODUCT_UNITS": true,
+    "resolveCategoryVariant": true,
+    "resolveCustomerStatusVariant": true,
+    "resolveProductStatusVariant": true,
+    "resolveUserStatusVariant": true
   }
 }

@@ -77,9 +77,9 @@ const {
 // ── Live connection indicator ─────────────────────────────────────────────────
 const LIVE_STATUS_META = {
   idle: { color: 'secondary', label: 'غير متصل', icon: 'tabler-plug-connected-x' },
-  connecting: { color: 'info', label: 'Connecting…', icon: 'tabler-loader' },
+  connecting: { color: 'info', label: 'جارٍ الاتصال…', icon: 'tabler-loader' },
   connected: { color: 'success', label: 'مباشر', icon: 'tabler-broadcast' },
-  reconnecting: { color: 'warning', label: 'Reconnecting…', icon: 'tabler-refresh' },
+  reconnecting: { color: 'warning', label: 'جارٍ إعادة الاتصال…', icon: 'tabler-refresh' },
   unavailable: { color: 'error', label: 'غير متاح', icon: 'tabler-plug-connected-x' },
   disconnected: { color: 'secondary', label: 'انقطع الاتصال', icon: 'tabler-plug-connected-x' },
 }

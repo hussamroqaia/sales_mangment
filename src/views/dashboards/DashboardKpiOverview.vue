@@ -65,6 +65,22 @@ const inventoryTiles = computed(() => {
   ]
 })
 
+// ── Value typography ──────────────────────────────────────────────────────────
+// The sales row packs five tiles into one 12-column grid, so each gets a sixth
+// of the card. A money figure in the millions ("142,435,434.00") is wider than
+// that at `text-h4`, and the overflow used to run over the neighbouring tile
+// and crush its icon. Long values step down one notch on the Vuexy type scale
+// rather than overflowing; `.dashboard-kpi__value` in the style block below
+// keeps even an extreme value inside its own column.
+const valueClass = value => {
+  const { length } = String(value)
+
+  if (length > 12) return 'text-h6'
+  if (length > 9) return 'text-h5'
+
+  return 'text-h4'
+}
+
 onMounted(loadDashboards)
 </script>
 
@@ -139,15 +155,19 @@ onMounted(loadDashboards)
               md="4"
               lg="2"
             >
-              <div class="d-flex justify-space-between align-center">
-                <div class="d-flex flex-column">
-                  <h4 class="text-h4">
+              <div class="d-flex justify-space-between align-center dashboard-kpi">
+                <div class="d-flex flex-column dashboard-kpi__text">
+                  <h4
+                    class="dashboard-kpi__value"
+                    :class="valueClass(tile.value)"
+                  >
                     {{ tile.value }}
                   </h4>
                   <span class="text-body-1">{{ tile.title }}</span>
                 </div>
 
                 <VAvatar
+                  class="dashboard-kpi__avatar"
                   variant="tonal"
                   rounded
                   size="42"
@@ -217,15 +237,19 @@ onMounted(loadDashboards)
             sm="6"
             md="3"
           >
-            <div class="d-flex justify-space-between align-center">
-              <div class="d-flex flex-column">
-                <h4 class="text-h4">
+            <div class="d-flex justify-space-between align-center dashboard-kpi">
+              <div class="d-flex flex-column dashboard-kpi__text">
+                <h4
+                  class="dashboard-kpi__value"
+                  :class="valueClass(tile.value)"
+                >
                   {{ tile.value }}
                 </h4>
                 <span class="text-body-1">{{ tile.title }}</span>
               </div>
 
               <VAvatar
+                class="dashboard-kpi__avatar"
                 variant="tonal"
                 rounded
                 size="42"
@@ -250,3 +274,30 @@ onMounted(loadDashboards)
     </VCardText>
   </VCard>
 </template>
+
+<style lang="scss" scoped>
+/**
+ * Keeps a tile's number inside its own column.
+ *
+ * `justify-space-between` alone lets the text block push past the tile: a flex
+ * item's default `min-inline-size: auto` refuses to shrink below its content,
+ * so a wide figure spilled over the divider and squeezed the neighbouring
+ * avatar to nothing. Allowing the text block to shrink and pinning the avatar
+ * out of the shrink calculation fixes both halves of that.
+ */
+.dashboard-kpi {
+  gap: 0.5rem;
+
+  &__text {
+    min-inline-size: 0;
+  }
+
+  &__value {
+    overflow-wrap: anywhere;
+  }
+
+  &__avatar {
+    flex: 0 0 auto;
+  }
+}
+</style>

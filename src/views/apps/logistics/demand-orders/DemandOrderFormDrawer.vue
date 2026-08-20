@@ -180,9 +180,8 @@ const onSubmit = () => {
                       v-model="line.requestedQty"
                       :rules="qtyRules"
                       label="الكمية المطلوبة"
-                      type="number"
-                      min="1"
-                      step="1"
+                      type="text"
+                      inputmode="numeric"
                       :disabled="props.isSubmitting"
                     />
                   </div>

@@ -25,10 +25,12 @@ import ProductFormDrawer from '@/views/apps/product/ProductFormDrawer.vue'
 import {
   useProducts,
   PRODUCT_STATUSES,
-  resolveStatusVariant,
+  resolveProductStatusVariant,
+  resolveProductStatusTitle,
+  resolveUnitTitle,
 } from '@/composables/useProducts'
 import { useAuth } from '@/composables/useAuth'
-import { INTL_LOCALE } from '@/utils/locale'
+import { formatMoney } from '@/utils/locale'
 
 // ── Auth — role guard for mutating actions ───────────────────────────────────
 const { userData } = useAuth()
@@ -135,14 +137,9 @@ const onCancelDelete = () => {
 }
 
 // ── Price formatter ─────────────────────────────────────────────────────────────
-const formatPrice = value => {
-  if (value === null || value === undefined) return '—'
-
-  return new Intl.NumberFormat(INTL_LOCALE, {
-    style: 'currency',
-    currency: 'USD',
-  }).format(value)
-}
+// Shared with the dashboard and the invoice tables. Deliberately symbol-less —
+// see the note on formatMoney in src/utils/locale.js.
+const formatPrice = formatMoney
 
 // ── Fetch on mount ─────────────────────────────────────────────────────────────
 onMounted(fetchAllProducts)
@@ -351,8 +348,8 @@ onMounted(fetchAllProducts)
 
         <!-- Unit column -->
         <template #item.unitOfMeasure="{ item }">
-          <span class="text-body-2 text-capitalize">
-            {{ item.unitOfMeasure?.toLowerCase() ?? '—' }}
+          <span class="text-body-2">
+            {{ resolveUnitTitle(item.unitOfMeasure) }}
           </span>
         </template>
 
@@ -364,12 +361,11 @@ onMounted(fetchAllProducts)
         <!-- Status column -->
         <template #item.status="{ item }">
           <VChip
-            :color="resolveStatusVariant(item.status)"
+            :color="resolveProductStatusVariant(item.status)"
             size="small"
             label
-            class="text-capitalize"
           >
-            {{ item.status?.toLowerCase() ?? '—' }}
+            {{ resolveProductStatusTitle(item.status) }}
           </VChip>
         </template>
 
@@ -412,11 +408,11 @@ onMounted(fetchAllProducts)
                     <template #prepend>
                       <VIcon
                         :icon="s.value === 'ACTIVE' ? 'tabler-circle-check' : 'tabler-circle-x'"
-                        :color="resolveStatusVariant(s.value)"
+                        :color="resolveProductStatusVariant(s.value)"
                         size="16"
                       />
                     </template>
-                    <VListItemTitle>Set {{ s.title }}</VListItemTitle>
+                    <VListItemTitle>تعيين كـ {{ s.title }}</VListItemTitle>
                   </VListItem>
 
                   <VDivider class="my-1" />

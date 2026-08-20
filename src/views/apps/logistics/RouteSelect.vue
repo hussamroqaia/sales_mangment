@@ -185,7 +185,7 @@ onMounted(() => loadPage(true))
     <template #no-data>
       <VListItem>
         <VListItemTitle class="text-medium-emphasis">
-          {{ isLoading ? 'Loading…' : 'لا توجد مسارات' }}
+          {{ isLoading ? 'جارِ التحميل…' : 'لا توجد مسارات' }}
         </VListItemTitle>
       </VListItem>
     </template>

@@ -26,6 +26,7 @@ import {
   fetchSystemConfig,
   upsertSystemConfig,
 } from '@/services/config.service'
+import { resolveApiError } from '@/utils/apiErrors'
 import { useAuth } from '@/composables/useAuth'
 import { INTL_LOCALE } from '@/utils/locale'
 
@@ -146,7 +147,7 @@ export const useSystemConfig = () => {
     } catch (error) {
       overrides.value = []
       hasLoaded.value = true
-      loadError.value = error?.response?.data?.message || 'تعذّر تحميل إعدادات النظام.'
+      loadError.value = resolveApiError(error, 'تعذّر تحميل إعدادات النظام.')
     } finally {
       isLoading.value = false
     }
@@ -193,7 +194,7 @@ export const useSystemConfig = () => {
 
       return true
     } catch (error) {
-      saveError.value = error?.response?.data?.message || 'تعذّر تحديث هذا الإعداد.'
+      saveError.value = resolveApiError(error, 'تعذّر تحديث هذا الإعداد.')
       showSnackbar(saveError.value, 'error')
 
       return false

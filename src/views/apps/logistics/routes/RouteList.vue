@@ -120,7 +120,8 @@ onMounted(fetchAllRoutes)
   <section>
     <VCard>
       <VCardItem class="pb-2">
-        <VCardTitle>Routes</VCardTitle>
+        <VCardTitle>المسارات</VCardTitle>
+        <VCardSubtitle>خطط زيارات المندوبين وترتيب العملاء</VCardSubtitle>
         <template #append>
           <VBtn
             v-if="canManageRoutes"

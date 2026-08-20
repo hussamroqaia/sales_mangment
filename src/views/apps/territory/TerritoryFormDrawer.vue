@@ -32,6 +32,20 @@ const drawerTitle = computed(() => (isEditMode.value ? 'تعديل المنطق�
 // Form state
 const form = ref({ name: '', description: '' })
 
+// ── Validation ────────────────────────────────────────────────────────────────
+// Mirrors CreateTerritoryRequest / UpdateTerritoryRequest:
+//   name        @NotBlank @Size(min = 2, max = 100)
+//   description @Size(max = 500)   ← optional; only `name` is in `required`
+// The description field used to carry requiredValidator, which made the form
+// stricter than the API and blocked a legitimate territory with no description.
+const nameRules = [
+  requiredValidator,
+  v => minLengthValidator(v, 2),
+  v => maxLengthValidator(v, 100),
+]
+
+const descriptionRules = [v => maxLengthValidator(v, 500)]
+
 // Populate form when territory prop changes (edit mode)
 watch(
   () => props.territory,
@@ -130,8 +144,9 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.name"
-                  :rules="[requiredValidator]"
+                  :rules="nameRules"
                   label="اسم المنطقة"
+                  counter="100"
                   placeholder="مثال: المنطقة الشمالية"
                   :disabled="props.isSubmitting"
                 />
@@ -141,10 +156,11 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppTextarea
                   v-model="form.description"
-                  :rules="[requiredValidator]"
-                  label="الوصف"
+                  :rules="descriptionRules"
+                  label="الوصف (اختياري)"
                   placeholder="صف نطاق تغطية هذه المنطقة…"
                   rows="4"
+                  counter="500"
                   :disabled="props.isSubmitting"
                 />
               </VCol>

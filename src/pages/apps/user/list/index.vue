@@ -12,7 +12,8 @@ import {
   useUsers,
   resolveRoleVariant,
   resolveRoleTitle,
-  resolveStatusVariant,
+  resolveUserStatusVariant,
+  resolveStatusTitle,
   USER_ROLES,
   USER_STATUSES,
 } from '@/composables/useUsers'
@@ -390,12 +391,11 @@ onMounted(fetchAllUsers)
         <!-- Status column -->
         <template #item.status="{ item }">
           <VChip
-            :color="resolveStatusVariant(item.status)"
+            :color="resolveUserStatusVariant(item.status)"
             size="small"
             label
-            class="text-capitalize"
           >
-            {{ item.status }}
+            {{ resolveStatusTitle(item.status) }}
           </VChip>
         </template>
 
@@ -454,10 +454,10 @@ onMounted(fetchAllUsers)
                       <VIcon
                         :icon="s.value === 'ACTIVE' ? 'tabler-user-check' : s.value === 'SUSPENDED' ? 'tabler-user-x' : 'tabler-user-off'"
                         size="16"
-                        :color="resolveStatusVariant(s.value)"
+                        :color="resolveUserStatusVariant(s.value)"
                       />
                     </template>
-                    <VListItemTitle>Set {{ s.title }}</VListItemTitle>
+                    <VListItemTitle>تعيين كـ {{ s.title }}</VListItemTitle>
                   </VListItem>
                 </VList>
               </VMenu>
@@ -487,6 +487,7 @@ onMounted(fetchAllUsers)
     <UserDetailDialog
       v-model="isDetailDialogOpen"
       :user="selectedUser"
+      :is-loading="isDetailLoading"
       :is-submitting="isSubmitting"
       @change-status="onChangeStatus"
       @reset-password="onResetPassword"

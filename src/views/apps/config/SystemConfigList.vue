@@ -130,9 +130,9 @@ onMounted(loadConfig)
         <VTable v-else>
           <thead>
             <tr>
-              <th>Setting</th>
-              <th>Value</th>
-              <th>Note</th>
+              <th>الإعداد</th>
+              <th>القيمة</th>
+              <th>ملاحظة</th>
               <th>آخر تحديث</th>
               <th
                 v-if="canWriteConfig"
@@ -222,10 +222,10 @@ onMounted(loadConfig)
         <VTable>
           <thead>
             <tr>
-              <th>Key</th>
-              <th>Value</th>
-              <th>Type</th>
-              <th>Note</th>
+              <th>المفتاح</th>
+              <th>القيمة</th>
+              <th>النوع</th>
+              <th>ملاحظة</th>
               <th>آخر تحديث</th>
             </tr>
           </thead>
@@ -252,10 +252,10 @@ onMounted(loadConfig)
       v-model="isEditOpen"
       max-width="560"
     >
-      <VCard :title="`Edit ${editingSetting?.label ?? 'setting'}`">
+      <VCard :title="`تعديل ${editingSetting?.label ?? 'إعداد'}`">
         <VCardText>
           <p class="text-body-2 text-medium-emphasis mb-4">
-            <code>{{ editingSetting?.key }}</code> · type {{ editingSetting?.valueType }}
+            <code>{{ editingSetting?.key }}</code> · النوع {{ editingSetting?.valueType }}
           </p>
 
           <AppTextField

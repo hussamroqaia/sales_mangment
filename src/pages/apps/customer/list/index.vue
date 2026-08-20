@@ -23,7 +23,9 @@ import { useAuth } from '@/composables/useAuth'
 import {
   CUSTOMER_STATUSES,
   resolveCategoryVariant,
-  resolveStatusVariant,
+  resolveCategoryTitle,
+  resolveCustomerStatusVariant,
+  resolveCustomerStatusTitle,
   useCustomers
 } from '@/composables/useCustomers'
 import { fetchCustomerById } from '@/services/customer.service'
@@ -350,7 +352,7 @@ onMounted(async () => {
               <template #no-data>
                 <VListItem>
                   <VListItemTitle class="text-medium-emphasis">
-                    {{ isFilterTerritoryLoading ? 'Loading…' : 'لا توجد مناطق' }}
+                    {{ isFilterTerritoryLoading ? 'جارِ التحميل…' : 'لا توجد مناطق' }}
                   </VListItemTitle>
                 </VListItem>
               </template>
@@ -453,7 +455,9 @@ onMounted(async () => {
               color="secondary"
             />
             <p class="text-body-1 text-medium-emphasis mb-0">
-              لا يوجد عملاء.
+              {{ searchQuery || selectedStatus || selectedTerritory
+                ? 'لا يوجد عملاء مطابقون لعوامل التصفية.'
+                : 'لا يوجد عملاء.' }}
               <span v-if="!searchQuery && !selectedStatus && !selectedTerritory && isAdmin">
                 أنشئ أول عميل للبدء.
               </span>
@@ -502,8 +506,8 @@ onMounted(async () => {
               :color="resolveCategoryVariant(item.category).color"
               size="20"
             />
-            <span class="text-body-2 text-capitalize">
-              {{ item.category?.toLowerCase() ?? '—' }}
+            <span class="text-body-2">
+              {{ resolveCategoryTitle(item.category) }}
             </span>
           </div>
         </template>
@@ -532,18 +536,20 @@ onMounted(async () => {
 
         <!-- Phone column -->
         <template #item.phone="{ item }">
-          <span class="text-body-2">{{ item.phone || '—' }}</span>
+          <span
+            class="text-body-2"
+            dir="ltr"
+          >{{ item.phone || '—' }}</span>
         </template>
 
         <!-- Status column -->
         <template #item.status="{ item }">
           <VChip
-            :color="resolveStatusVariant(item.status)"
+            :color="resolveCustomerStatusVariant(item.status)"
             size="small"
             label
-            class="text-capitalize"
           >
-            {{ item.status?.toLowerCase() ?? '—' }}
+            {{ resolveCustomerStatusTitle(item.status) }}
           </VChip>
         </template>
 
@@ -598,11 +604,11 @@ onMounted(async () => {
                     <template #prepend>
                       <VIcon
                         :icon="s.value === 'ACTIVE' ? 'tabler-user-check' : 'tabler-user-off'"
-                        :color="resolveStatusVariant(s.value)"
+                        :color="resolveCustomerStatusVariant(s.value)"
                         size="16"
                       />
                     </template>
-                    <VListItemTitle>Set {{ s.title }}</VListItemTitle>
+                    <VListItemTitle>تعيين كـ {{ s.title }}</VListItemTitle>
                   </VListItem>
 
                   <template v-if="isAdmin">
@@ -727,12 +733,11 @@ onMounted(async () => {
                 الحالة
               </p>
               <VChip
-                :color="resolveStatusVariant(viewingCustomer.status)"
+                :color="resolveCustomerStatusVariant(viewingCustomer.status)"
                 size="small"
                 label
-                class="text-capitalize"
               >
-                {{ viewingCustomer.status?.toLowerCase() }}
+                {{ resolveCustomerStatusTitle(viewingCustomer.status) }}
               </VChip>
             </VCol>
 
@@ -749,8 +754,8 @@ onMounted(async () => {
                   :color="resolveCategoryVariant(viewingCustomer.category).color"
                   size="18"
                 />
-                <span class="text-body-2 text-capitalize">
-                  {{ viewingCustomer.category?.toLowerCase() }}
+                <span class="text-body-2">
+                  {{ resolveCategoryTitle(viewingCustomer.category) }}
                 </span>
               </div>
             </VCol>
@@ -795,7 +800,10 @@ onMounted(async () => {
               <p class="text-caption text-medium-emphasis mb-1">
                 رقم الهاتف
               </p>
-              <p class="text-body-2 mb-0">
+              <p
+                class="text-body-2 mb-0"
+                dir="ltr"
+              >
                 {{ viewingCustomer.phone || '—' }}
               </p>
             </VCol>

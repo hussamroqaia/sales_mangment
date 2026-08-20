@@ -1,8 +1,8 @@
 <script setup>
-import { useNotifications } from '@/composables/useNotifications'
+import { normalizeNotification, useNotifications } from '@/composables/useNotifications'
 import { fetchNotifications } from '@/services/notification.service'
-import { INTL_LOCALE, countAr, formatRelativeArabic } from '@/utils/locale'
-import { translateNotificationMessage, translateNotificationTitle } from '@/utils/notificationText'
+import { resolveApiError } from '@/utils/apiErrors'
+import { countAr } from '@/utils/locale'
 
 definePage({
   meta: {
@@ -11,42 +11,54 @@ definePage({
   },
 })
 
+// The composable owns the shared navbar feed and the unread badge; this page
+// owns its own paginated slice. Mutations go through the composable so both
+// stay in step — the page never writes to the shared state directly.
 const {
-  notifications,
-  unreadCount,
-  loading,
-  error,
-  fetchFeed,
   fetchCount,
   markRead,
   markAllRead,
   handleNotificationClick,
 } = useNotifications()
 
-// ── Pagination state ──────────────────────────────────────────────────────
+// ── Page-local state ──────────────────────────────────────────────────────
+// Deliberately NOT the composable's `loading`/`error`: those drive the navbar
+// dropdown, and a page-level load has no business putting the dropdown into a
+// loading or error state.
+const isLoading = ref(false)
+const loadError = ref('')
+
 const currentPage = ref(0)
 const pageSize = ref(20)
 const totalPages = ref(1)
 const totalElements = ref(0)
 const allNotifications = ref([])
 
-// ── Load page ─────────────────────────────────────────────────────────────
+const snackbar = ref({ show: false, message: '', color: 'success' })
 
+const notify = (message, color = 'success') => {
+  snackbar.value = { show: true, message, color }
+}
+
+const hasUnread = computed(() => allNotifications.value.some(n => !n.isSeen))
+
+// ── Load page ─────────────────────────────────────────────────────────────
 const loadPage = async (page = 0) => {
-  loading.value = true
-  error.value = null
+  isLoading.value = true
+  loadError.value = ''
 
   try {
     const data = await fetchNotifications({ page, size: pageSize.value })
 
     // Handle both paginated and plain array responses
     if (Array.isArray(data)) {
-      allNotifications.value = data.map(normalizeNotification)
+      allNotifications.value = data.map(n => normalizeNotification(n, { absoluteTime: true }))
       totalElements.value = data.length
       totalPages.value = 1
     } else {
       const content = Array.isArray(data?.content) ? data.content : []
-      allNotifications.value = content.map(normalizeNotification)
+
+      allNotifications.value = content.map(n => normalizeNotification(n, { absoluteTime: true }))
       totalElements.value = data?.totalElements ?? content.length
       totalPages.value = data?.totalPages ?? 1
     }
@@ -54,67 +66,72 @@ const loadPage = async (page = 0) => {
     currentPage.value = page
   } catch (err) {
     console.warn('[Notifications Page] Failed to load:', err.message)
-    error.value = 'تعذّر تحميل الإشعارات. الرجاء المحاولة مرة أخرى.'
+    loadError.value = resolveApiError(err, 'تعذّر تحميل الإشعارات. الرجاء المحاولة مرة أخرى.')
+    allNotifications.value = []
   } finally {
-    loading.value = false
+    isLoading.value = false
   }
 }
 
-// ── Notification shape normalizer (same logic as composable) ──────────────
-const normalizeNotification = raw => {
-  const isRead = raw.read ?? raw.isRead ?? raw.isSeen ?? false
-  const body = translateNotificationMessage(raw.message ?? raw.body ?? raw.subtitle ?? '')
-  const title = translateNotificationTitle(raw.title) ?? 'إشعار'
-
-  let time = ''
-  if (raw.createdAt) {
-    try {
-      const diffMs = Date.now() - new Date(raw.createdAt)
-      if (diffMs > 24 * 60 * 60 * 1000) {
-        time = new Intl.DateTimeFormat(INTL_LOCALE, {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        }).format(new Date(raw.createdAt))
-      } else {
-        time = formatRelativeArabic(raw.createdAt)
-      }
-    } catch {
-      time = raw.createdAt
-    }
-  }
-
-  return {
-    id: raw.id,
-    title,
-    subtitle: body,
-    time,
-    isSeen: isRead,
-    icon: raw.icon ?? 'tabler-bell',
-    color: raw.color ?? 'primary',
-    _raw: raw,
-  }
-}
-
-// ── Click handler ─────────────────────────────────────────────────────────
+// ── Click: mark read on the server, then follow the record it points at ───
 const onNotificationClick = async notification => {
+  const wasUnread = !notification.isSeen
+
   await handleNotificationClick(notification)
-  // Refresh page item read state
-  const item = allNotifications.value.find(n => n.id === notification.id)
-  if (item) item.isSeen = true
+
+  // The composable only owns the shared feed; mirror the result onto this row.
+  if (wasUnread) {
+    const item = allNotifications.value.find(n => n.id === notification.id)
+
+    if (item) item.isSeen = true
+  }
+}
+
+// ── Mark one as read without opening it ───────────────────────────────────
+const markingId = ref(null)
+
+const onMarkRead = async notification => {
+  markingId.value = notification.id
+
+  const ok = await markRead(notification.id)
+
+  markingId.value = null
+
+  if (ok) {
+    const item = allNotifications.value.find(n => n.id === notification.id)
+
+    if (item) item.isSeen = true
+  } else {
+    notify('تعذّر تعليم الإشعار كمقروء. الرجاء المحاولة مرة أخرى.', 'error')
+  }
+}
+
+// ── Mark all ──────────────────────────────────────────────────────────────
+const isMarkingAll = ref(false)
+
+const onMarkAllRead = async () => {
+  isMarkingAll.value = true
+
+  const ok = await markAllRead()
+
+  isMarkingAll.value = false
+
+  if (!ok) {
+    notify('تعذّر تعليم الإشعارات كمقروءة. الرجاء المحاولة مرة أخرى.', 'error')
+
+    return
+  }
+
+  // read-all covers every page, not just the loaded one — reload the current
+  // page from the backend rather than assuming what it now contains.
+  await loadPage(currentPage.value)
+  await fetchCount()
+  notify('تم تعليم جميع الإشعارات كمقروءة.')
 }
 
 // ── Pagination ────────────────────────────────────────────────────────────
 const onPageChange = page => {
   loadPage(page - 1)  // Vuetify pagination is 1-based, backend is 0-based
-}
-
-// ── Mark all ─────────────────────────────────────────────────────────────
-const onMarkAllRead = async () => {
-  await markAllRead()
-  allNotifications.value.forEach(n => { n.isSeen = true })
 }
 
 // ── Retry ─────────────────────────────────────────────────────────────────
@@ -146,11 +163,12 @@ onMounted(() => {
           </div>
 
           <VBtn
-            v-if="allNotifications.some(n => !n.isSeen)"
+            v-if="hasUnread"
             variant="tonal"
             color="primary"
             prepend-icon="tabler-mail-opened"
-            :loading="loading"
+            :loading="isMarkingAll"
+            :disabled="isMarkingAll || isLoading"
             @click="onMarkAllRead"
           >
             تعليم الكل كمقروء
@@ -161,7 +179,7 @@ onMounted(() => {
 
     <!-- Error state -->
     <VCard
-      v-if="error && !loading"
+      v-if="loadError && !isLoading"
       class="text-center pa-8 mb-4"
     >
       <VIcon
@@ -174,7 +192,7 @@ onMounted(() => {
         تعذّر تحميل الإشعارات
       </h5>
       <p class="text-body-2 text-disabled mb-4">
-        {{ error }}
+        {{ loadError }}
       </p>
       <VBtn
         color="primary"
@@ -185,40 +203,19 @@ onMounted(() => {
     </VCard>
 
     <!-- Loading skeleton -->
-    <div v-else-if="loading && !allNotifications.length">
+    <div v-else-if="isLoading && !allNotifications.length">
       <VCard
         v-for="i in 5"
         :key="i"
         class="mb-2"
       >
-        <VCardText class="d-flex align-center gap-4 py-4">
-          <VSkeleton
-            type="avatar"
-            class="flex-shrink-0"
-          />
-          <div class="flex-grow-1">
-            <VSkeleton
-              type="text"
-              class="mb-2"
-              width="60%"
-            />
-            <VSkeleton
-              type="text"
-              width="80%"
-            />
-          </div>
-          <VSkeleton
-            type="text"
-            width="60px"
-            class="flex-shrink-0"
-          />
-        </VCardText>
+        <VSkeletonLoader type="list-item-avatar-two-line" />
       </VCard>
     </div>
 
     <!-- Empty state -->
     <VCard
-      v-else-if="!allNotifications.length && !loading"
+      v-else-if="!allNotifications.length"
       class="text-center pa-8"
     >
       <VIcon
@@ -238,7 +235,7 @@ onMounted(() => {
     <!-- Notification list -->
     <VCard
       v-else
-      :loading="loading"
+      :loading="isLoading"
     >
       <VList class="py-0">
         <template
@@ -273,10 +270,35 @@ onMounted(() => {
             </VListItemSubtitle>
 
             <template #append>
-              <div class="d-flex flex-column align-end gap-2">
+              <div class="d-flex align-center gap-3">
                 <span class="text-xs text-disabled text-no-wrap">
                   {{ notification.time }}
                 </span>
+
+                <VProgressCircular
+                  v-if="markingId === notification.id"
+                  indeterminate
+                  size="18"
+                  width="2"
+                  color="primary"
+                />
+                <IconBtn
+                  v-else-if="!notification.isSeen"
+                  size="small"
+                  @click.stop="onMarkRead(notification)"
+                >
+                  <VIcon
+                    icon="tabler-mail-opened"
+                    size="20"
+                  />
+                  <VTooltip
+                    activator="parent"
+                    location="start"
+                  >
+                    تعليم كمقروء
+                  </VTooltip>
+                </IconBtn>
+
                 <VIcon
                   size="8"
                   icon="tabler-circle-filled"
@@ -298,10 +320,27 @@ onMounted(() => {
           :model-value="currentPage + 1"
           :length="totalPages"
           :total-visible="5"
+          :disabled="isLoading"
           @update:model-value="onPageChange"
         />
       </VCardText>
     </VCard>
+
+    <!-- Feedback -->
+    <VSnackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      location="bottom end"
+      :timeout="3500"
+    >
+      <div class="d-flex align-center gap-2">
+        <VIcon
+          :icon="snackbar.color === 'success' ? 'tabler-circle-check' : 'tabler-alert-circle'"
+          size="20"
+        />
+        <span>{{ snackbar.message }}</span>
+      </div>
+    </VSnackbar>
   </div>
 </template>
 

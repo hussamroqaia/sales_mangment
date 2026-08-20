@@ -327,7 +327,7 @@ const onSubmit = () => {
                   <template #no-data>
                     <VListItem>
                       <VListItemTitle class="text-medium-emphasis">
-                        {{ isTerritoryLoading ? 'Loading…' : 'لا توجد مناطق' }}
+                        {{ isTerritoryLoading ? 'جارِ التحميل…' : 'لا توجد مناطق' }}
                       </VListItemTitle>
                     </VListItem>
                   </template>
@@ -382,7 +382,7 @@ const onSubmit = () => {
                   <template #no-data>
                     <VListItem>
                       <VListItemTitle class="text-medium-emphasis">
-                        {{ !form.territoryId ? 'اختر المنطقة أولًا' : (isCustomerLoading ? 'Loading…' : 'لا يوجد عملاء في هذه المنطقة') }}
+                        {{ !form.territoryId ? 'اختر المنطقة أولًا' : (isCustomerLoading ? 'جارِ التحميل…' : 'لا يوجد عملاء في هذه المنطقة') }}
                       </VListItemTitle>
                     </VListItem>
                   </template>

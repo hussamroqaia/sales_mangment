@@ -149,7 +149,7 @@ const onChange = val => {
     <template #no-data>
       <VListItem>
         <VListItemTitle class="text-medium-emphasis">
-          {{ isLoading ? 'Loading…' : 'لا توجد منتجات' }}
+          {{ isLoading ? 'جارِ التحميل…' : 'لا توجد منتجات' }}
         </VListItemTitle>
       </VListItem>
     </template>

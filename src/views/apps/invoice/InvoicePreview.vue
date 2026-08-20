@@ -189,7 +189,7 @@ onBeforeUnmount(clearSelected)
               <div class="d-flex flex-column gap-1">
                 <div class="d-flex align-center gap-3">
                   <h5 class="text-h5 mb-0">
-                    Invoice #{{ selectedInvoice.id }}
+                    فاتورة رقم {{ selectedInvoice.id }}
                   </h5>
                   <VChip
                     :color="statusMeta.color"
@@ -205,7 +205,7 @@ onBeforeUnmount(clearSelected)
                   </VChip>
                 </div>
                 <span class="text-body-2 text-medium-emphasis">
-                  Issued {{ formatInvoiceDate(selectedInvoice.invoiceDate) }}
+                  صدرت في {{ formatInvoiceDate(selectedInvoice.invoiceDate) }}
                 </span>
               </div>
 
@@ -241,7 +241,7 @@ onBeforeUnmount(clearSelected)
                     :disabled="isReviewing"
                     @click="openApproveDialog"
                   >
-                    Approve
+                    الموافقة
                   </VBtn>
                 </template>
               </div>
@@ -325,7 +325,7 @@ onBeforeUnmount(clearSelected)
 
             <VCardText class="d-flex justify-end">
               <div class="d-flex align-center gap-4">
-                <span class="text-body-1 font-weight-medium">Total</span>
+                <span class="text-body-1 font-weight-medium">الإجمالي</span>
                 <span class="text-h5">{{ formatAmount(selectedInvoice.totalAmount) }}</span>
               </div>
             </VCardText>
@@ -406,7 +406,7 @@ onBeforeUnmount(clearSelected)
         >
           <VCard>
             <VCardItem>
-              <VCardTitle>Review</VCardTitle>
+              <VCardTitle>المراجعة</VCardTitle>
             </VCardItem>
 
             <VCardText class="d-flex flex-column gap-3">
@@ -436,7 +436,7 @@ onBeforeUnmount(clearSelected)
 
               <div>
                 <p class="text-body-2 text-medium-emphasis mb-1">
-                  Visit
+                  الزيارة
                 </p>
                 <p class="text-body-1 mb-0">
                   {{ selectedInvoice.visitId != null ? `#${selectedInvoice.visitId}` : '—' }}
@@ -515,7 +515,7 @@ onBeforeUnmount(clearSelected)
             :disabled="isReviewing"
             @click="confirmApprove"
           >
-            Approve
+            الموافقة
           </VBtn>
         </VCardActions>
       </VCard>

@@ -19,7 +19,7 @@ const refForm = ref()
 const isPasswordVisible = ref(false)
 const isConfirmPasswordVisible = ref(false)
 
-const form = ref({
+const blankForm = () => ({
   name: '',
   email: '',
   password: '',
@@ -27,16 +27,27 @@ const form = ref({
   role: null,
 })
 
-// ── Reset & close ──────────────────────────────────────────────────────────────
+const form = ref(blankForm())
+
+// ── Close ─────────────────────────────────────────────────────────────────────
 const closeDrawer = () => {
   emit('update:isDrawerOpen', false)
-  nextTick(() => {
-    refForm.value?.reset()
-    refForm.value?.resetValidation()
-    isPasswordVisible.value = false
-    isConfirmPasswordVisible.value = false
-  })
 }
+
+// ── Reset on close ────────────────────────────────────────────────────────────
+// Keyed on the open flag rather than on the cancel button, because the drawer
+// is closed from three places: cancel, the header's close icon, and the parent
+// after a successful create. Resetting only in `closeDrawer()` left the last
+// typed values — including the password fields — sitting in the form the next
+// time it opened.
+watch(() => props.isDrawerOpen, isOpen => {
+  if (isOpen) return
+
+  form.value = blankForm()
+  isPasswordVisible.value = false
+  isConfirmPasswordVisible.value = false
+  nextTick(() => refForm.value?.resetValidation())
+})
 
 // ── Submit ─────────────────────────────────────────────────────────────────────
 const onSubmit = () => {
@@ -52,12 +63,11 @@ const onSubmit = () => {
   })
 }
 
-// Auto-close drawer after successful submission (parent clears isSubmitting)
-watch(() => props.isSubmitting, (newVal, oldVal) => {
-  if (oldVal === true && newVal === false) {
-    closeDrawer()
-  }
-})
+// ℹ️ The drawer deliberately does NOT close itself when `isSubmitting` falls
+// back to false: that happens on a rejected create too (duplicate email, weak
+// password), and closing there threw away everything the user had typed while
+// the error snackbar was still on screen. Only the parent closes it, and only
+// when the create actually succeeded.
 </script>
 
 <template>

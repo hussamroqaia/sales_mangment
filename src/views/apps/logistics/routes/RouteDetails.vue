@@ -219,7 +219,7 @@ const buildRoute = async () => {
       .addTo(leafletMap)
       .bindPopup(
         `<div>
-          <strong>Stop ${stop.sequenceNumber}: ${stop.customerName}</strong><br>
+          <strong>محطة ${stop.sequenceNumber}: ${stop.customerName}</strong><br>
           <span>${stop.customerAddress || 'لا يوجد عنوان'}</span>
         </div>`,
       )
@@ -486,7 +486,7 @@ const onRemoveCustomer = async customerId => {
             </VBtn>
           </template>
           <VCardTitle class="text-h5">
-            Route: {{ selectedRoute.name }}
+            المسار: {{ selectedRoute.name }}
           </VCardTitle>
           <template #append>
             <!-- Edit Button -->
@@ -675,7 +675,7 @@ const onRemoveCustomer = async customerId => {
                 <template #no-data>
                   <VListItem>
                     <VListItemTitle class="text-medium-emphasis">
-                      {{ isCustomerLoading ? 'Loading…' : 'لا يوجد عملاء في هذه المنطقة' }}
+                      {{ isCustomerLoading ? 'جارِ التحميل…' : 'لا يوجد عملاء في هذه المنطقة' }}
                     </VListItemTitle>
                   </VListItem>
                 </template>
@@ -693,7 +693,7 @@ const onRemoveCustomer = async customerId => {
                 block
                 @click="onAssignCustomers"
               >
-                Assign {{ selectedCustomerIds.length ? `(${selectedCustomerIds.length})` : '' }}
+                إسناد {{ selectedCustomerIds.length ? `(${selectedCustomerIds.length})` : '' }}
               </VBtn>
             </VCol>
           </VRow>
@@ -802,7 +802,7 @@ const onRemoveCustomer = async customerId => {
                           size="x-small"
                           label
                         >
-                          Stop {{ stop.sequenceNumber }}
+                          محطة {{ stop.sequenceNumber }}
                         </VChip>
                       </div>
                       <div class="d-flex align-center gap-1">

@@ -26,6 +26,7 @@ import {
   readReportBlobError,
   runReport,
 } from '@/services/report.service'
+import { resolveApiError } from '@/utils/apiErrors'
 import { useAuth } from '@/composables/useAuth'
 import { INTL_LOCALE } from '@/utils/locale'
 
@@ -83,6 +84,10 @@ export const formatReportCell = (key, value) => {
  * visible-but-English instead of broken. Add it here when that happens.
  */
 export const REPORT_FIELD_LABELS = {
+  // report envelope — every date-ranged report returns these two alongside `rows`
+  from: 'من تاريخ',
+  to: 'إلى تاريخ',
+
   // identity / shared
   id: 'المعرّف',
   name: 'الاسم',
@@ -171,6 +176,25 @@ export const REPORT_FIELD_LABELS = {
   requestedQuantity: 'الكمية المطلوبة',
   fulfilledQuantity: 'الكمية المُلبّاة',
   fillRate: 'نسبة التلبية',
+
+  // inventory reports (stock-levels, below-minimum, aging, movement, fill-rate,
+  // fast/slow-moving) — key names taken from the live responses, not guessed
+  onHand: 'الكمية المتوفرة',
+  minStockLevel: 'الحد الأدنى للمخزون',
+  belowMin: 'أقل من الحد الأدنى',
+  unitsSold: 'الوحدات المباعة',
+  revenue: 'الإيراد',
+  classification: 'التصنيف',
+  requested: 'المطلوب',
+  fulfilled: 'المُلبّى',
+  fillRatePercent: 'نسبة التلبية (%)',
+  loadedToVans: 'المُحمّل على المركبات',
+  returnedFromVans: 'المرتجع من المركبات',
+  sold: 'المباع',
+  net: 'الصافي',
+
+  // customer purchases
+  totalSpent: 'إجمالي المشتريات',
 }
 
 const ACRONYMS = /\b(sku|id)\b/gi
@@ -240,7 +264,7 @@ export const useReports = () => {
   const dateRangeError = computed(() => {
     if (!showsDateRange.value || !from.value || !to.value) return ''
 
-    return from.value > to.value ? 'The "from" date must not be after the "to" date.' : ''
+    return from.value > to.value ? 'يجب ألّا يكون تاريخ البداية بعد تاريخ النهاية.' : ''
   })
 
   // ── Run state ───────────────────────────────────────────────────────────────
@@ -301,7 +325,7 @@ export const useReports = () => {
       // looking like a result.
       reportData.value = null
       hasRun.value     = true
-      runError.value   = error?.response?.data?.message || 'تعذّر تشغيل هذا التقرير.'
+      runError.value   = resolveApiError(error, 'تعذّر تشغيل هذا التقرير.')
     } finally {
       if (runId === latestRunId) {
         isRunning.value = false

@@ -32,6 +32,13 @@ const KNOWN_MESSAGES = {
   'email already exists': 'هذا البريد الإلكتروني مسجّل مسبقًا.',
   'insufficient stock': 'الكمية المتوفرة في المخزون غير كافية.',
   'internal server error': 'حدث خطأ في الخادم. الرجاء المحاولة لاحقًا.',
+
+  // The backend's own catch-all for an unhandled 500. It is long enough that
+  // the `looksGeneric` heuristic below would keep it verbatim, which put an
+  // English sentence on an otherwise Arabic screen (seen on the Routes report
+  // endpoints); matching it exactly here is the documented way to fix that.
+  'an unexpected error occurred. please try again later.':
+    'حدث خطأ في الخادم. الرجاء المحاولة لاحقًا.',
 }
 
 /** HTTP status → Arabic, used when the body carries nothing usable. */

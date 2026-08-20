@@ -353,7 +353,7 @@ onMounted(fetchAllStock)
               <template #no-data>
                 <VListItem>
                   <VListItemTitle class="text-medium-emphasis">
-                    {{ isProductLoading ? 'Loading…' : 'لا توجد منتجات' }}
+                    {{ isProductLoading ? 'جارِ التحميل…' : 'لا توجد منتجات' }}
                   </VListItemTitle>
                 </VListItem>
               </template>
@@ -673,7 +673,7 @@ onMounted(fetchAllStock)
                   <template #no-data>
                     <VListItem>
                       <VListItemTitle class="text-medium-emphasis">
-                        {{ isAddProductLoading ? 'Loading…' : 'لا توجد منتجات' }}
+                        {{ isAddProductLoading ? 'جارِ التحميل…' : 'لا توجد منتجات' }}
                       </VListItemTitle>
                     </VListItem>
                   </template>
@@ -692,9 +692,8 @@ onMounted(fetchAllStock)
                   ]"
                   hint="ستُضاف هذه الكمية إلى مخزون المستودع."
                   persistent-hint
-                  type="number"
-                  min="1"
-                  step="1"
+                  type="text"
+                  inputmode="numeric"
                   placeholder="0"
                   :disabled="isAddSubmitting"
                 />

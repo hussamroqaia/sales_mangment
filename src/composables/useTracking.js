@@ -21,7 +21,8 @@
  *    geolocation capture anywhere in this module.
  */
 
-import { INTL_LOCALE } from '@/utils/locale'
+import { INTL_LOCALE, formatRelativeArabic } from '@/utils/locale'
+import { resolveApiError } from '@/utils/apiErrors'
 import {
   fetchLatestLocations,
   fetchRepresentativeTrail,
@@ -150,19 +151,24 @@ export const formatTrackingTime = value => {
   }).format(d)
 }
 
-/** Compact "3 min ago" style label for the last-sync indicator. */
+/**
+ * Relative label for the last-sync indicator ("قبل 3 دقائق").
+ *
+ * Delegates to the shared `formatRelativeArabic`, which puts the phrase through
+ * `Intl.RelativeTimeFormat` and so gets Arabic's dual and 3–10 plural forms
+ * right. This used to build the string by hand and emitted English ("just now",
+ * "3 min ago") on an otherwise Arabic screen.
+ *
+ * @param {string} value  ISO instant
+ * @param {number} [nowMs] a ticking clock from the caller. Not used in the
+ *   calculation — `formatRelativeArabic` reads the clock itself — but kept in
+ *   the signature so the caller's computed still re-runs each tick.
+ */
+// eslint-disable-next-line no-unused-vars
 export const formatRelativeTime = (value, nowMs = Date.now()) => {
-  const time = Date.parse(value)
+  if (Number.isNaN(Date.parse(value))) return '—'
 
-  if (Number.isNaN(time)) return '—'
-
-  const seconds = Math.max(0, Math.round((nowMs - time) / 1000))
-
-  if (seconds < 60) return 'just now'
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)} h ago`
-
-  return `${Math.floor(seconds / 86400)} d ago`
+  return formatRelativeArabic(value)
 }
 
 /**
@@ -367,7 +373,7 @@ export const useTracking = () => {
       if (status === 403)
         latestError.value = 'ليس لديك صلاحية لعرض مواقع المندوبين.'
       else
-        latestError.value = error?.response?.data?.message || 'تعذّر تحميل مواقع المندوبين.'
+        latestError.value = resolveApiError(error, 'تعذّر تحميل مواقع المندوبين.')
 
       if (!silent) locationsById.value = new Map()
     } finally {
@@ -492,7 +498,7 @@ export const useTracking = () => {
       if (status === 403)
         trailError.value = 'ليس لديك صلاحية لعرض مسار هذا المندوب.'
       else
-        trailError.value = error?.response?.data?.message || 'تعذّر تحميل مسار المندوب.'
+        trailError.value = resolveApiError(error, 'تعذّر تحميل مسار المندوب.')
 
       trail.value = []
       hasLoadedTrail.value = true

@@ -41,7 +41,7 @@ const headers = [
             variant="tonal"
             label
           >
-            {{ totalUnits }} units in van
+            {{ countAr(totalUnits, { one: 'وحدة', two: 'وحدتان', few: 'وحدات', many: 'وحدة', other: 'وحدة' }) }} في المركبة
           </VChip>
         </template>
       </VCardItem>
@@ -161,7 +161,7 @@ const headers = [
         </template>
 
         <template #item.product.unitOfMeasure="{ item }">
-          <span class="text-body-2 text-capitalize">{{ (item.product?.unitOfMeasure || '—').toLowerCase() }}</span>
+          <span class="text-body-2">{{ resolveUnitTitle(item.product?.unitOfMeasure) }}</span>
         </template>
       </VDataTable>
     </VCard>

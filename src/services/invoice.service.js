@@ -114,20 +114,40 @@ export const rejectInvoice = async (id, reason) => {
 // so the token is attached (and a stale token still triggers the refresh cycle),
 // which means the caller receives a Blob and owns the object-URL lifecycle.
 
+/** Marker for "the request succeeded but carried no document". See below. */
+export const EMPTY_PDF_ERROR = 'empty_pdf'
+
 /**
  * The customer-facing PDF copy of one invoice.
  *
  * DRAFT invoices are refused by the backend with 409 — a draft has no
  * proof-of-delivery, so there is nothing to render.
  *
+ * For every other status the backend currently answers 204 No Content with a
+ * zero-byte body instead of a PDF. Axios reports that as a success, so without
+ * the guard below the caller would hand the browser an empty Blob and the user
+ * would get a 0-byte `invoice-N.pdf` that looks like a completed download. A
+ * response with no document is a failure to produce one, and is raised as such.
+ *
  * @param {number|string} id
  * @returns {Promise<{ blob: Blob, filename: string }>}
+ * @throws {Error} with `code === EMPTY_PDF_ERROR` when the body is empty
  */
 export const fetchInvoicePdf = async id => {
   const response = await apiClient.get(`${BASE}/${id}/pdf`, { responseType: 'blob' })
 
+  const blob = response.data
+
+  if (response.status === 204 || !blob || blob.size === 0) {
+    const error = new Error('Invoice PDF response carried no content')
+
+    error.code = EMPTY_PDF_ERROR
+
+    throw error
+  }
+
   return {
-    blob: response.data,
+    blob,
     filename: parseContentDispositionFilename(response.headers) ?? `invoice-${id}.pdf`,
   }
 }

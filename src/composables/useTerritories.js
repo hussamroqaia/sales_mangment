@@ -22,6 +22,7 @@ import {
   updateTerritory as updateTerritoryService,
   deleteTerritory as deleteTerritoryService,
 } from '@/services/territory.service'
+import { resolveApiError } from '@/utils/apiErrors'
 
 export const useTerritories = () => {
   // ── List State ──────────────────────────────────────────────────────────────
@@ -80,7 +81,7 @@ export const useTerritories = () => {
       territories.value      = data?.content       ?? []
       totalTerritories.value = data?.totalElements ?? 0
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       listError.value = message || 'تعذّر تحميل المناطق.'
       showSnackbar(listError.value, 'error')
     } finally {
@@ -88,20 +89,50 @@ export const useTerritories = () => {
     }
   }
 
+  // ── reloadFromFirstPage() ────────────────────────────────────────
+  /**
+   * Apply a filter/search/create result: go back to the first page, then load.
+   *
+   * Assigning `page` fires the page watcher, which loads on its own. Calling
+   * the loader here as well would issue the same request twice for anyone who
+   * was not already on page 1, so exactly one of the two paths ever runs.
+   *
+   * @returns {Promise<void>|undefined} resolves once the load this call owns
+   *   has finished; `undefined` when the page watcher owns it instead.
+   */
+  const reloadFromFirstPage = () => {
+    if (page.value !== 1) {
+      page.value = 1
+
+      return undefined
+    }
+
+    return fetchAllTerritories()
+  }
+
   // ── Watchers — re-fetch on page / size / search change ────────────────────
   watch([page, itemsPerPage, searchDebounced], fetchAllTerritories)
 
   // ── fetchTerritory(id) ──────────────────────────────────────────────────────
-  const fetchTerritory = async id => {
+  /**
+   * Load one territory into edit state.
+   *
+   * @param {number|string} id
+   * @param {object|null} [seed] the row the user clicked. Seeding first means
+   *   the drawer opens already populated and titled "edit"; clearing the state
+   *   here instead made it flash an empty CREATE form for the length of the
+   *   round-trip. The response then replaces the seed with the server record.
+   */
+  const fetchTerritory = async (id, seed = null) => {
     isDetailLoading.value = true
     detailError.value     = ''
-    editingTerritory.value = null
+    editingTerritory.value = seed ? { ...seed } : null
 
     try {
       const data = await fetchTerritoryById(id)
       editingTerritory.value = data
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       detailError.value = message || `تعذّر تحميل المنطقة رقم ${id}.`
       showSnackbar(detailError.value, 'error')
     } finally {
@@ -115,12 +146,11 @@ export const useTerritories = () => {
     try {
       await createTerritoryService(payload)
       showSnackbar('تم إنشاء المنطقة بنجاح.')
-      page.value = 1
-      await fetchAllTerritories()
+      await reloadFromFirstPage()
 
       return { success: true }
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       showSnackbar(message || 'تعذّر إنشاء المنطقة.', 'error')
 
       return { success: false, error: message || 'تعذّر إنشاء المنطقة.' }
@@ -139,7 +169,7 @@ export const useTerritories = () => {
 
       return { success: true }
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       showSnackbar(message || 'تعذّر تحديث المنطقة.', 'error')
 
       return { success: false, error: message || 'تعذّر تحديث المنطقة.' }
@@ -165,7 +195,7 @@ export const useTerritories = () => {
 
       return { success: true }
     } catch (error) {
-      const message = error?.response?.data?.message
+      const message = resolveApiError(error, '')
       showSnackbar(message || 'تعذّر حذف المنطقة.', 'error')
 
       return { success: false, error: message || 'تعذّر حذف المنطقة.' }

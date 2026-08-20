@@ -17,9 +17,11 @@
  * no service call, no state, and no action here.
  */
 
-import { INTL_LOCALE } from '@/utils/locale'
+import { INTL_LOCALE, formatMoney } from '@/utils/locale'
+import { resolveApiError } from '@/utils/apiErrors'
 import {
   approveInvoice,
+  EMPTY_PDF_ERROR,
   fetchInvoiceById,
   fetchInvoiceEpodFile,
   fetchInvoicePdf,
@@ -88,13 +90,7 @@ export const formatInvoiceTimestamp = value => {
  * `totalAmount`, `price`, `discount`, and `subtotal` arrive as JSON numbers
  * serialised from BigDecimal. Rendered with two decimals and no assumed symbol.
  */
-export const formatAmount = value => {
-  if (value === null || value === undefined || value === '') return '—'
-
-  const n = Number(value)
-
-  return Number.isNaN(n) ? String(value) : n.toFixed(2)
-}
+export const formatAmount = formatMoney
 
 // ─── Composable ───────────────────────────────────────────────────────────────
 export const useInvoices = () => {
@@ -114,9 +110,19 @@ export const useInvoices = () => {
   const itemsPerPage  = ref(10)
   const totalInvoices = ref(0)
 
-  // ── Sorting State ───────────────────────────────────────────────────────────
-  const sortBy  = ref('id')
-  const sortDir = ref('desc')
+  // ── Sorting State ─────────────────────────────────────────────────────────
+  // VDataTableServer emits `update:options` on mount with an EMPTY `sortBy`,
+  // meaning "the user has chosen no column". `updateOptions` below falls back
+  // to these defaults for that case. It used to fall back to a hardcoded
+  // id/asc, which on a list defaulting to `desc` both overrode the intended
+  // order and — because the fallback differed from the current value — counted
+  // as a sort change and fired a second request on top of the one onMounted
+  // had already issued.
+  const DEFAULT_SORT_BY  = 'id'
+  const DEFAULT_SORT_DIR = 'desc'
+
+  const sortBy  = ref(DEFAULT_SORT_BY)
+  const sortDir = ref(DEFAULT_SORT_DIR)
 
   // ── Single Invoice (details page) ───────────────────────────────────────────
   const selectedInvoice = ref(null)
@@ -171,7 +177,7 @@ export const useInvoices = () => {
     } catch (error) {
       if (requestId !== latestRequestId) return
 
-      listError.value = error?.response?.data?.message || 'تعذّر تحميل الفواتير.'
+      listError.value = resolveApiError(error, 'تعذّر تحميل الفواتير.')
       invoices.value  = []
       totalInvoices.value = 0
       showSnackbar(listError.value, 'error')
@@ -211,8 +217,10 @@ export const useInvoices = () => {
   // ── updateOptions (VDataTableServer @update:options) ────────────────────────
   const updateOptions = options => {
     const firstSort   = options.sortBy?.[0]
-    const newSortBy   = firstSort?.key ?? 'id'
-    const newSortDir  = firstSort?.order === 'desc' ? 'desc' : 'asc'
+    const newSortBy   = firstSort?.key ?? DEFAULT_SORT_BY
+    const newSortDir  = firstSort
+      ? (firstSort.order === 'desc' ? 'desc' : 'asc')
+      : DEFAULT_SORT_DIR
     const sortChanged = newSortBy !== sortBy.value || newSortDir !== sortDir.value
 
     sortBy.value  = newSortBy
@@ -262,7 +270,7 @@ export const useInvoices = () => {
       else if (status === 404)
         detailError.value = `الفاتورة رقم ${id} غير موجودة.`
       else
-        detailError.value = error?.response?.data?.message || `تعذّر تحميل الفاتورة رقم ${id}.`
+        detailError.value = resolveApiError(error, `تعذّر تحميل الفاتورة رقم ${id}.`)
     } finally {
       isDetailLoading.value = false
     }
@@ -288,7 +296,7 @@ export const useInvoices = () => {
 
       return true
     } catch (error) {
-      reviewError.value = error?.response?.data?.message || 'تعذّرت الموافقة على الفاتورة.'
+      reviewError.value = resolveApiError(error, 'تعذّرت الموافقة على الفاتورة.')
       showSnackbar(reviewError.value, 'error')
 
       // 409 means somebody else already reviewed it — resync so the buttons
@@ -326,7 +334,7 @@ export const useInvoices = () => {
 
       return true
     } catch (error) {
-      reviewError.value = error?.response?.data?.message || 'تعذّر رفض الفاتورة.'
+      reviewError.value = resolveApiError(error, 'تعذّر رفض الفاتورة.')
       showSnackbar(reviewError.value, 'error')
 
       if (error?.response?.status === 409) await fetchInvoice(id)
@@ -369,10 +377,14 @@ export const useInvoices = () => {
         URL.revokeObjectURL(url)
       }
     } catch (error) {
-      const message = await readBlobErrorMessage(error)
-        || (error?.response?.status === 409
-          ? 'لا يمكن تنزيل ملف PDF لفاتورة في حالة مسودة قبل إرسالها.'
-          : 'تعذّر تنزيل ملف الفاتورة.')
+      // The backend answers 204/empty for every non-draft invoice today, which
+      // the service raises rather than letting a 0-byte file reach the user.
+      const message = error?.code === EMPTY_PDF_ERROR
+        ? 'ملف PDF لهذه الفاتورة غير متاح حاليًا من الخادم.'
+        : await readBlobErrorMessage(error)
+          || (error?.response?.status === 409
+            ? 'لا يمكن تنزيل ملف PDF لفاتورة في حالة مسودة قبل إرسالها.'
+            : 'تعذّر تنزيل ملف الفاتورة.')
 
       showSnackbar(message, 'error')
     } finally {

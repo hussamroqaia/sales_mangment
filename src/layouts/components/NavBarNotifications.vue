@@ -2,6 +2,11 @@
 import { useNotifications } from '@/composables/useNotifications'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
+// The template has two roots (the teleported snackbar and the bell button), so
+// Vue cannot place an inherited `class` on its own. The layout passes one, and
+// it belongs on the bell — bound explicitly below.
+defineOptions({ inheritAttrs: false })
+
 const {
   notifications,
   unreadCount,
@@ -10,13 +15,28 @@ const {
   fetchFeed,
   fetchCount,
   markRead,
+  markAllRead,
   handleNotificationClick: composableClickHandler,
 } = useNotifications()
 
-// ── Toast / Snackbar for foreground messages ──────────────────────────────
+// ── Toast / Snackbar ──────────────────────────────────────────────────────
+// Serves both the incoming-FCM toast and failure feedback for the mark-read
+// actions, so the navbar never fails silently.
 const toastVisible = ref(false)
 const toastTitle = ref('')
 const toastBody = ref('')
+const toastColor = ref('primary')
+
+const showToast = (title, body = '', color = 'primary') => {
+  toastTitle.value = title
+  toastBody.value = body
+  toastColor.value = color
+  toastVisible.value = true
+}
+
+const handleToastEvent = event => {
+  showToast(event.detail?.title ?? 'إشعار جديد', event.detail?.body ?? '', 'primary')
+}
 
 onMounted(() => {
   window.addEventListener('app:notification-toast', handleToastEvent)
@@ -26,25 +46,36 @@ onUnmounted(() => {
   window.removeEventListener('app:notification-toast', handleToastEvent)
 })
 
-const handleToastEvent = event => {
-  toastTitle.value = event.detail?.title ?? 'إشعار جديد'
-  toastBody.value = event.detail?.body ?? ''
-  toastVisible.value = true
-}
-
-// ── Notification click (mark read locally + navigate) ─────────────────────
+// ── Notification click (mark read on the server + navigate) ───────────────
 const handleNotificationClick = notification => {
   composableClickHandler(notification)
 }
 
-// ── Local dismiss (no delete endpoint confirmed) ──────────────────────────
-const handleRemove = notificationId => {
-  const idx = notifications.value.findIndex(n => n.id === notificationId)
-  if (idx !== -1) {
-    const wasUnseen = !notifications.value[idx].isSeen
-    notifications.value.splice(idx, 1)
-    if (wasUnseen && unreadCount.value > 0) unreadCount.value -= 1
-  }
+// ── Mark one as read without following its link ───────────────────────────
+// Replaces the old X, which removed the row from the local array only: the
+// backend exposes no delete endpoint, so the item came straight back on the
+// next poll. Marking read is the action the backend actually supports.
+const markingId = ref(null)
+
+const handleMarkRead = async notificationId => {
+  markingId.value = notificationId
+
+  const ok = await markRead(notificationId)
+
+  markingId.value = null
+  if (!ok) showToast('تعذّر تعليم الإشعار كمقروء', 'الرجاء المحاولة مرة أخرى.', 'error')
+}
+
+// ── Mark every notification as read ───────────────────────────────────────
+const isMarkingAll = ref(false)
+
+const handleMarkAllRead = async () => {
+  isMarkingAll.value = true
+
+  const ok = await markAllRead()
+
+  isMarkingAll.value = false
+  if (!ok) showToast('تعذّر تعليم الإشعارات كمقروءة', 'الرجاء المحاولة مرة أخرى.', 'error')
 }
 
 // ── Retry on error ────────────────────────────────────────────────────────
@@ -55,17 +86,17 @@ const retry = () => {
 </script>
 
 <template>
-  <!-- Foreground notification toast -->
+  <!-- Foreground notification toast / action feedback -->
   <VSnackbar
     v-model="toastVisible"
     location="top right"
-    color="primary"
+    :color="toastColor"
     :timeout="5000"
     max-width="350"
   >
     <div class="d-flex align-center gap-3">
       <VIcon
-        icon="tabler-bell"
+        :icon="toastColor === 'error' ? 'tabler-alert-circle' : 'tabler-bell'"
         size="20"
       />
       <div>
@@ -74,7 +105,7 @@ const retry = () => {
         </div>
         <div
           v-if="toastBody"
-          class="text-body-2 text-disabled"
+          class="text-body-2"
         >
           {{ toastBody }}
         </div>
@@ -93,7 +124,10 @@ const retry = () => {
   </VSnackbar>
 
   <!-- Notification Bell + Dropdown -->
-  <IconBtn id="notification-btn">
+  <IconBtn
+    id="notification-btn"
+    v-bind="$attrs"
+  >
     <VBadge
       :model-value="unreadCount > 0"
       color="error"
@@ -128,6 +162,25 @@ const retry = () => {
               {{ unreadCount > 99 ? '99+' : unreadCount }} جديد
             </VChip>
 
+            <!-- Mark every notification as read -->
+            <IconBtn
+              v-show="unreadCount > 0"
+              size="small"
+              :loading="isMarkingAll"
+              @click="handleMarkAllRead"
+            >
+              <VIcon
+                icon="tabler-mail-opened"
+                size="20"
+              />
+              <VTooltip
+                activator="parent"
+                location="bottom"
+              >
+                تعليم الكل كمقروء
+              </VTooltip>
+            </IconBtn>
+
             <!-- Loading indicator -->
             <VProgressCircular
               v-if="loading"
@@ -135,6 +188,7 @@ const retry = () => {
               size="20"
               width="2"
               color="primary"
+              class="ms-2"
             />
           </template>
         </VCardItem>
@@ -170,26 +224,11 @@ const retry = () => {
           v-else-if="loading && !notifications.length"
           class="pa-2"
         >
-          <div
+          <VSkeletonLoader
             v-for="i in 3"
             :key="i"
-            class="d-flex align-center gap-3 pa-2 mb-1"
-          >
-            <VSkeleton
-              type="avatar"
-              class="flex-shrink-0"
-            />
-            <div class="flex-grow-1">
-              <VSkeleton
-                type="text"
-                class="mb-1"
-              />
-              <VSkeleton
-                type="text"
-                width="60%"
-              />
-            </div>
-          </div>
+            type="list-item-avatar-two-line"
+          />
         </div>
 
         <!-- Notification list -->
@@ -214,12 +253,12 @@ const retry = () => {
               >
                 <div class="d-flex align-start gap-3">
                   <VAvatar
-                    :color="notification.color ?? 'primary'"
+                    :color="notification.color"
                     variant="tonal"
                     size="38"
                   >
                     <VIcon
-                      :icon="notification.icon ?? 'tabler-bell'"
+                      :icon="notification.icon"
                       size="20"
                     />
                   </VAvatar>
@@ -253,13 +292,28 @@ const retry = () => {
                       class="mb-2"
                     />
 
-                    <!-- Dismiss (local only) -->
-                    <VIcon
-                      size="20"
-                      icon="tabler-x"
-                      class="visible-in-hover"
-                      @click.stop="handleRemove(notification.id)"
+                    <!-- Mark read without opening the linked record -->
+                    <VProgressCircular
+                      v-if="markingId === notification.id"
+                      indeterminate
+                      size="16"
+                      width="2"
+                      color="primary"
                     />
+                    <VIcon
+                      v-else-if="!notification.isSeen"
+                      size="20"
+                      icon="tabler-mail-opened"
+                      class="visible-in-hover"
+                      @click.stop="handleMarkRead(notification.id)"
+                    >
+                      <VTooltip
+                        activator="parent"
+                        location="start"
+                      >
+                        تعليم كمقروء
+                      </VTooltip>
+                    </VIcon>
                   </div>
                 </div>
               </VListItem>

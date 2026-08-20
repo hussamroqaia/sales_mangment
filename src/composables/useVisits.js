@@ -14,6 +14,7 @@
  */
 
 import { fetchVisits, fetchVisitById } from '@/services/visit.service'
+import { resolveApiError } from '@/utils/apiErrors'
 import { INTL_LOCALE } from '@/utils/locale'
 
 // ─── Status constants ─────────────────────────────────────────────────────────
@@ -106,9 +107,19 @@ export const useVisits = () => {
   const itemsPerPage = ref(10)
   const totalVisits  = ref(0)
 
-  // ── Sorting State ───────────────────────────────────────────────────────────
-  const sortBy  = ref('id')
-  const sortDir = ref('asc')
+  // ── Sorting State ─────────────────────────────────────────────────────────
+  // VDataTableServer emits `update:options` on mount with an EMPTY `sortBy`,
+  // meaning "the user has chosen no column". `updateOptions` below falls back
+  // to these defaults for that case. It used to fall back to a hardcoded
+  // id/asc, which on a list defaulting to `desc` both overrode the intended
+  // order and — because the fallback differed from the current value — counted
+  // as a sort change and fired a second request on top of the one onMounted
+  // had already issued.
+  const DEFAULT_SORT_BY  = 'id'
+  const DEFAULT_SORT_DIR = 'asc'
+
+  const sortBy  = ref(DEFAULT_SORT_BY)
+  const sortDir = ref(DEFAULT_SORT_DIR)
 
   // ── Single Visit (details page) ─────────────────────────────────────────────
   const selectedVisit   = ref(null)
@@ -153,7 +164,7 @@ export const useVisits = () => {
     } catch (error) {
       if (requestId !== latestRequestId) return
 
-      listError.value = error?.response?.data?.message || 'تعذّر تحميل الزيارات.'
+      listError.value = resolveApiError(error, 'تعذّر تحميل الزيارات.')
       visits.value    = []
       showSnackbar(listError.value, 'error')
     } finally {
@@ -194,8 +205,10 @@ export const useVisits = () => {
   // are declared `sortable: false` in the table headers.
   const updateOptions = options => {
     const firstSort  = options.sortBy?.[0]
-    const newSortBy  = firstSort?.key ?? 'id'
-    const newSortDir = firstSort?.order === 'desc' ? 'desc' : 'asc'
+    const newSortBy  = firstSort?.key ?? DEFAULT_SORT_BY
+    const newSortDir = firstSort
+      ? (firstSort.order === 'desc' ? 'desc' : 'asc')
+      : DEFAULT_SORT_DIR
     const sortChanged = newSortBy !== sortBy.value || newSortDir !== sortDir.value
 
     sortBy.value  = newSortBy
@@ -245,7 +258,7 @@ export const useVisits = () => {
       else if (status === 404)
         detailError.value = `الزيارة رقم ${id} غير موجودة.`
       else
-        detailError.value = error?.response?.data?.message || `تعذّر تحميل الزيارة رقم ${id}.`
+        detailError.value = resolveApiError(error, `تعذّر تحميل الزيارة رقم ${id}.`)
     } finally {
       isDetailLoading.value = false
     }

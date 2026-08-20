@@ -74,7 +74,10 @@ const openCreate = () => {
 /** Open drawer in EDIT mode — fetch latest data first */
 const openEdit = async territory => {
   isDrawerOpen.value = true
-  await fetchTerritory(territory.id)
+
+  // The row already holds the full TerritoryResponse, so it seeds the form
+  // immediately; the request that follows refreshes it from the server.
+  await fetchTerritory(territory.id, territory)
 }
 
 /** Unified submit from drawer — create or update based on mode */

@@ -140,17 +140,17 @@ const onSubmit = () => {
         <!-- Read-only product context -->
         <div class="d-flex flex-column gap-1 mb-4">
           <div class="d-flex align-center justify-space-between">
-            <span class="text-body-2 text-medium-emphasis">Product</span>
+            <span class="text-body-2 text-medium-emphasis">المنتج</span>
             <span class="text-body-1 font-weight-medium text-high-emphasis">
               {{ props.stock?.productName || '—' }}
             </span>
           </div>
           <div class="d-flex align-center justify-space-between">
-            <span class="text-body-2 text-medium-emphasis">SKU</span>
+            <span class="text-body-2 text-medium-emphasis">رمز الصنف</span>
             <span class="text-body-2 font-weight-medium">{{ props.stock?.sku || '—' }}</span>
           </div>
           <div class="d-flex align-center justify-space-between">
-            <span class="text-body-2 text-medium-emphasis">Current On-hand</span>
+            <span class="text-body-2 text-medium-emphasis">الكمية الحالية</span>
             <span class="text-body-2 font-weight-medium">{{ props.stock?.quantity ?? '—' }}</span>
           </div>
         </div>
@@ -167,9 +167,8 @@ const onSubmit = () => {
             :rules="quantityRules"
             :hint="quantityHint"
             persistent-hint
-            type="number"
-            min="0"
-            step="1"
+            type="text"
+            inputmode="numeric"
             placeholder="0"
             :disabled="props.isSubmitting"
             autofocus
