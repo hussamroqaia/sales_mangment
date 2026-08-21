@@ -193,6 +193,14 @@ export const REPORT_FIELD_LABELS = {
   sold: 'المباع',
   net: 'الصافي',
 
+  // stock variance
+  countId: 'معرّف الجرد',
+  countDate: 'تاريخ الجرد',
+  finalizedAt: 'وقت الاعتماد',
+  counted: 'الكمية المجردة',
+  recorded: 'الكمية المسجلة',
+  variance: 'الفروقات',
+
   // customer purchases
   totalSpent: 'إجمالي المشتريات',
 }
@@ -245,12 +253,14 @@ export const useReports = () => {
   const showsDateRange     = computed(() => supportsFilter(REPORT_FILTERS.DATE_RANGE))
   const showsRepresentative = computed(() => supportsFilter(REPORT_FILTERS.REPRESENTATIVE))
   const showsCustomer      = computed(() => supportsFilter(REPORT_FILTERS.CUSTOMER))
+  const showsCountId       = computed(() => supportsFilter(REPORT_FILTERS.COUNT_ID))
 
   // ── Filters ─────────────────────────────────────────────────────────────────
   const from             = ref(null)
   const to               = ref(null)
   const representativeId = ref(null)
   const customerId       = ref(null)
+  const countId          = ref(null)
 
   /** Only the filters the selected report actually declares are handed on. */
   const activeFilters = computed(() => ({
@@ -258,6 +268,7 @@ export const useReports = () => {
     to: to.value || undefined,
     representativeId: representativeId.value ?? undefined,
     customerId: customerId.value ?? undefined,
+    countId: countId.value ?? undefined,
   }))
 
   /** `from <= to`, checked rather than silently swapped. */
@@ -344,6 +355,7 @@ export const useReports = () => {
     // Drop filters the newly selected report cannot honour.
     if (!showsRepresentative.value) representativeId.value = null
     if (!showsCustomer.value) customerId.value = null
+    if (!showsCountId.value) countId.value = null
     if (!showsDateRange.value) {
       from.value = null
       to.value = null
@@ -351,7 +363,7 @@ export const useReports = () => {
   })
 
   // Filter edits mark the result stale without firing a request.
-  watch([from, to, representativeId, customerId], () => {
+  watch([from, to, representativeId, customerId, countId], () => {
     if (hasRun.value) isStale.value = true
   })
 
@@ -412,12 +424,14 @@ export const useReports = () => {
     showsDateRange,
     showsRepresentative,
     showsCustomer,
+    showsCountId,
 
     // Filters
     from,
     to,
     representativeId,
     customerId,
+    countId,
     dateRangeError,
 
     // Run

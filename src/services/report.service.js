@@ -36,6 +36,7 @@ export const REPORT_FILTERS = {
   DATE_RANGE: 'dateRange',
   REPRESENTATIVE: 'representativeId',
   CUSTOMER: 'customerId',
+  COUNT_ID: 'countId',
 }
 
 /**
@@ -135,6 +136,14 @@ export const REPORT_DEFINITIONS = {
     filenameSlug: 'fill-rate',
     filters: [REPORT_FILTERS.DATE_RANGE],
   },
+  inventoryStockVariance: {
+    key: 'inventoryStockVariance',
+    category: 'inventory',
+    title: 'فروقات الجرد',
+    path: `${BASE}/inventory/stock-variance`,
+    filenameSlug: 'stock-variance',
+    filters: [REPORT_FILTERS.COUNT_ID],
+  },
 }
 
 /**
@@ -155,6 +164,9 @@ const buildParams = (definition, filters = {}) => {
 
   if (supported.includes(REPORT_FILTERS.CUSTOMER) && filters.customerId != null)
     params.customerId = filters.customerId
+
+  if (supported.includes(REPORT_FILTERS.COUNT_ID) && filters.countId != null)
+    params.countId = filters.countId
 
   return params
 }

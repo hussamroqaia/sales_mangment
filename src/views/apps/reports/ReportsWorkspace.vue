@@ -32,10 +32,12 @@ const {
   showsDateRange,
   showsRepresentative,
   showsCustomer,
+  showsCountId,
   from,
   to,
   representativeId,
   customerId,
+  countId,
   dateRangeError,
   reportData,
   isRunning,
@@ -105,8 +107,12 @@ const isEmptyResult = computed(() =>
   && !runError.value
   && (resultRows.value?.length === 0 || (!resultRows.value && !resultSummary.value?.length)))
 
-const canSubmit = computed(() =>
-  Boolean(selectedReportKey.value) && !dateRangeError.value)
+const canSubmit = computed(() => {
+  if (!selectedReportKey.value) return false
+  if (dateRangeError.value) return false
+  if (showsCountId.value && !countId.value) return false
+  return true
+})
 </script>
 
 <template>
@@ -208,6 +214,21 @@ const canSubmit = computed(() =>
                 v-model="customerId"
                 label="العميل"
                 placeholder="كل العملاء"
+                clearable
+              />
+            </VCol>
+
+            <VCol
+              v-if="showsCountId"
+              cols="12"
+              md="3"
+              sm="6"
+            >
+              <AppTextField
+                v-model.number="countId"
+                type="number"
+                label="معرّف الجرد"
+                placeholder="رقم الجرد"
                 clearable
               />
             </VCol>
