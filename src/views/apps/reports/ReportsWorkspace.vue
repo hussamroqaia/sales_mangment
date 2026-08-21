@@ -53,13 +53,6 @@ const reportOptions = computed(() => {
   const items = []
 
   allowedCategories.value.forEach(category => {
-    // Vuetify 3 marks a non-selectable group heading with `type: 'subheader'`.
-    // The Vuetify 2 shape (`{ props: { header } }`) is not recognised — VSelect
-    // treated it as an ordinary item and, finding no `title`, printed the object
-    // itself, so the picker listed `{ "props": { "header": "العملاء" } }`
-    // between the reports.
-    items.push({ type: 'subheader', title: category.title })
-
     allowedReports.value
       .filter(r => r.category === category.key)
       .forEach(r => items.push({ title: r.title, value: r.key }))
