@@ -34,12 +34,16 @@ const props = defineProps({
 window.L = L
 
 import { formatTrackingTime } from '@/composables/useTracking'
+import { constrainMapToSingleWorld } from '@/utils/leafletWorldView'
 
 const DEFAULT_CENTER = [33.5117, 36.3067]
 const DEFAULT_ZOOM = 6
 
 let leafletMap = null
 let layerGroup = null
+
+// Detaches the world-constraint resize listener (see onBeforeUnmount).
+let releaseWorldView = null
 
 const createDot = () => L.divIcon({
   className: 'tracking-trail-icon',
@@ -162,12 +166,19 @@ const drawTrail = () => {
 
 const onMapReady = map => {
   leafletMap = map
+
+  // Before drawTrail: a trail spanning a wide area (or containing a clamped
+  // polar point) makes fitBounds zoom right out, which is what put five copies
+  // of the world on screen. Installing the minZoom floor first clamps it.
+  releaseWorldView = constrainMapToSingleWorld(map)
   drawTrail()
 }
 
 watch(() => props.points, drawTrail)
 
 onBeforeUnmount(() => {
+  releaseWorldView?.()
+  releaseWorldView = null
   layerGroup = null
   leafletMap = null
 })
@@ -187,6 +198,7 @@ onBeforeUnmount(() => {
         attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
         layer-type="base"
         name="OpenStreetMap"
+        no-wrap
       />
     </LMap>
   </div>

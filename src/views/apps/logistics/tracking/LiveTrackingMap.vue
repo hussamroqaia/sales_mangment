@@ -35,12 +35,16 @@ const props = defineProps({
 window.L = L
 
 import { formatTrackingDateTime } from '@/composables/useTracking'
+import { constrainMapToSingleWorld } from '@/utils/leafletWorldView'
 
 // Damascus — the same fallback centre RouteDetails/VisitDetails use.
 const DEFAULT_CENTER = [33.5117, 36.3067]
 const DEFAULT_ZOOM = 6
 
 let leafletMap = null
+
+// Detaches the world-constraint resize listener (see onBeforeUnmount).
+let releaseWorldView = null
 
 const markersById = new Map()
 
@@ -196,12 +200,19 @@ function fitToMarkers() {
 
 const onMapReady = map => {
   leafletMap = map
+
+  // Before syncMarkers: this installs the minZoom floor, so the fitBounds that
+  // the first snapshot triggers is already clamped and can never land on a
+  // zoom that would tile the world sideways.
+  releaseWorldView = constrainMapToSingleWorld(map)
   syncMarkers()
 }
 
 watch(() => props.representatives, syncMarkers, { deep: true })
 
 onBeforeUnmount(() => {
+  releaseWorldView?.()
+  releaseWorldView = null
   markersById.clear()
   leafletMap = null
 })
@@ -224,6 +235,7 @@ defineExpose({ fitToMarkers })
           attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
           layer-type="base"
           name="OpenStreetMap"
+          no-wrap
         />
       </LMap>
     </div>

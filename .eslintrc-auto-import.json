@@ -477,6 +477,8 @@
     "resolveVarianceVariant": true,
     "toIsoDate": true,
     "todayIsoDate": true,
-    "useStockCounts": true
+    "useStockCounts": true,
+    "LEAFLET_WORLD_BOUNDS": true,
+    "constrainMapToSingleWorld": true
   }
 }

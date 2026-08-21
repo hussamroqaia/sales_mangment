@@ -91,11 +91,25 @@ const resultSummary = computed(() => {
   return Object.entries(d).filter(([, v]) => !Array.isArray(v))
 })
 
+// Database keys are noise in a printed report: every `xId` the endpoints return
+// travels with the readable field it identifies (`productId` + `productName`,
+// `invoiceId` + `invoiceNumber`, `routeId` + `routeName`, …), so the column adds
+// a number the reader cannot act on next to the name they actually recognise.
+//
+// Matching is on camelCase `…Id`, never a lowercase `…id`, so genuine fields
+// such as `paid` or `valid` keep their columns.
+const ID_COLUMN = /^id$|[a-z\d](?:Id|ID)$|_id$/
+
 const columns = computed(() => {
   const rows = resultRows.value
   if (!rows?.length) return []
 
-  return Object.keys(rows[0]).map(key => ({
+  const keys = Object.keys(rows[0])
+  const visible = keys.filter(key => !ID_COLUMN.test(key))
+
+  // A report whose rows are nothing but identifiers would otherwise render as a
+  // table with no columns at all. Showing the ids beats showing an empty grid.
+  return (visible.length ? visible : keys).map(key => ({
     key,
     title: humaniseKey(key),
     sortable: false,
