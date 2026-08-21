@@ -71,13 +71,14 @@ export default [
     subject: 'Warehouse',
   },
   {
-    // Same gate as Warehouse Stock — a stock count writes to the same inventory,
-    // so ADMIN + WAREHOUSE_MANAGER and nobody else.
+    // Wider than Warehouse Stock: reading a count admits SALES_MANAGER too, so
+    // this is a `read` gate. The write actions inside the page remain
+    // ADMIN + WAREHOUSE_MANAGER.
     title: 'Stock Counts',
     icon: { icon: 'tabler-clipboard-list' },
     to: 'stock-counts',
-    action: 'manage',
-    subject: 'Warehouse',
+    action: 'read',
+    subject: 'StockCounts',
   },
   {
     // ADMIN + SALES_MANAGER + WAREHOUSE_MANAGER. Which report categories are
@@ -89,15 +90,7 @@ export default [
     action: 'read',
     subject: 'Reports',
   },
-  {
-    // ADMIN + SALES_MANAGER can read config; only ADMIN can write it, which is
-    // enforced inside the page rather than by hiding the entry.
-    title: 'System Config',
-    icon: { icon: 'tabler-settings-cog' },
-    to: 'config',
-    action: 'read',
-    subject: 'Config',
-  },
+
   {
     title: 'Logistics',
     icon: { icon: 'tabler-truck' },

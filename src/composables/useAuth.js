@@ -181,6 +181,12 @@ export const useAuth = () => {
         // PUT /api/config/{key} is ADMIN only — the write controls are gated
         // inside the view, so this grants read access only.
         { action: 'read', subject: 'Config' },
+
+        // Stock counts are a warehouse workflow, but GET /stock-counts and
+        // GET /stock-counts/{id} also admit SALES_MANAGER — read-only. The
+        // create / edit-lines / finalize endpoints stay ADMIN +
+        // WAREHOUSE_MANAGER, and are gated inside the view rather than here.
+        { action: 'read', subject: 'StockCounts' },
       ],
       sales_rep: [
         { action: 'read', subject: 'Auth' },
@@ -193,6 +199,11 @@ export const useAuth = () => {
         { action: 'read', subject: 'Management' },
 
         { action: 'manage', subject: 'Warehouse' },
+
+        // Read gate for the Stock Counts page. WAREHOUSE_MANAGER also holds the
+        // write half through `manage: Warehouse` above; SALES_MANAGER gets this
+        // rule alone, which is what makes their view read-only.
+        { action: 'read', subject: 'StockCounts' },
 
         // Reports area — Inventory categories only; the composable hides the
         // Sales/Customers/Routes categories for this role.

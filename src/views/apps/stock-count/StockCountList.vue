@@ -31,8 +31,11 @@ import { confirmAction } from '@/utils/swal'
 import { INTL_LOCALE } from '@/utils/locale'
 
 // ── Auth — role guard for mutating actions ───────────────────────────────────
-// Same pair as Warehouse Stock: ADMIN and WAREHOUSE_MANAGER own the warehouse.
-// (Mirrors the CASL rule warehouse_manager → manage:Warehouse defined in useAuth.)
+// The route itself is gated on `read: StockCounts`, which ADMIN,
+// WAREHOUSE_MANAGER and SALES_MANAGER all hold — the list and detail endpoints
+// admit all three. Create / edit-lines / finalize do NOT: they are
+// ADMIN + WAREHOUSE_MANAGER, so SALES_MANAGER gets a read-only page and every
+// write control below hangs off this flag.
 const { userData } = useAuth()
 
 const STOCK_MANAGER_ROLES = ['admin', 'warehouse_manager']
@@ -245,6 +248,20 @@ onMounted(fetchAllCounts)
           >
             عملية جرد جديدة
           </VBtn>
+
+          <!--
+            Read-only roles (SALES_MANAGER) — say so instead of just showing a
+            page with no controls on it.
+          -->
+          <VChip
+            v-else
+            size="small"
+            color="secondary"
+            variant="tonal"
+            label
+          >
+            عرض فقط
+          </VChip>
         </template>
       </VCardItem>
 

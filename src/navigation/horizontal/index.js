@@ -71,19 +71,23 @@ export default [
     subject: 'Warehouse',
   },
   {
+    // Wider than Warehouse Stock: reading a count admits SALES_MANAGER too, so
+    // this is a `read` gate. The write actions inside the page remain
+    // ADMIN + WAREHOUSE_MANAGER.
+    title: 'Stock Counts',
+    icon: { icon: 'tabler-clipboard-list' },
+    to: 'stock-counts',
+    action: 'read',
+    subject: 'StockCounts',
+  },
+  {
     title: 'Reports',
     icon: { icon: 'tabler-report-analytics' },
     to: 'reports',
     action: 'read',
     subject: 'Reports',
   },
-  {
-    title: 'System Config',
-    icon: { icon: 'tabler-settings-cog' },
-    to: 'config',
-    action: 'read',
-    subject: 'Config',
-  },
+
   {
     title: 'Logistics',
     icon: { icon: 'tabler-truck' },

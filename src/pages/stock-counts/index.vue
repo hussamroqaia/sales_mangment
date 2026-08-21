@@ -11,17 +11,19 @@
  *
  * Thin wrapper; all UI lives in the StockCountList view.
  *
- * Access rules:
- *   - Only ADMIN and WAREHOUSE_MANAGER can reach this page — same gate as
- *     Warehouse Stock, since a stock count writes to the same inventory.
- *   - The mutating actions (create / edit lines / finalize) are additionally
- *     guarded inside the view via useAuth.
+ * Access rules — the read and write halves differ, which is why this page is
+ * NOT gated on `manage: Warehouse` like Warehouse Stock is:
+ *   - ADMIN, WAREHOUSE_MANAGER and SALES_MANAGER can all reach the page, since
+ *     GET /stock-counts and GET /stock-counts/{id} admit all three.
+ *   - Creating, editing lines and finalizing are ADMIN + WAREHOUSE_MANAGER
+ *     only. SALES_MANAGER therefore sees a read-only page; that half is guarded
+ *     inside the view via useAuth.
  */
 
 definePage({
   meta: {
-    action: 'manage',
-    subject: 'Warehouse',
+    action: 'read',
+    subject: 'StockCounts',
   },
 })
 
