@@ -71,6 +71,15 @@ export default [
     subject: 'Warehouse',
   },
   {
+    // Same gate as Warehouse Stock — a stock count writes to the same inventory,
+    // so ADMIN + WAREHOUSE_MANAGER and nobody else.
+    title: 'Stock Counts',
+    icon: { icon: 'tabler-clipboard-list' },
+    to: 'stock-counts',
+    action: 'manage',
+    subject: 'Warehouse',
+  },
+  {
     // ADMIN + SALES_MANAGER + WAREHOUSE_MANAGER. Which report categories are
     // offered inside the page depends on the role, mirroring the backend's own
     // @PreAuthorize split. SALES_REP holds no `Reports` ability.

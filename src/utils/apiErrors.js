@@ -34,6 +34,14 @@ const KNOWN_MESSAGES = {
   'phonenumber already exists': 'رقم الهاتف هذا مسجّل مسبقًا.',
   'user with this phone number already exists': 'رقم الهاتف هذا مسجّل مسبقًا.',
   'insufficient stock': 'الكمية المتوفرة في المخزون غير كافية.',
+
+  // Success strings the stock-count endpoints put in `message`. They are
+  // shown verbatim in a snackbar, so without an entry here an English
+  // sentence lands on an otherwise Arabic screen.
+  'stock count finalized': 'تم اعتماد عملية الجرد.',
+  'stock count updated': 'تم تحديث أسطر الجرد.',
+  'resource created successfully': 'تم إنشاء السجل بنجاح.',
+
   'internal server error': 'حدث خطأ في الخادم. الرجاء المحاولة لاحقًا.',
 
   // The backend's own catch-all for an unhandled 500. It is long enough that

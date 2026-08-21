@@ -468,6 +468,15 @@
     "localPhoneValidator": true,
     "phoneNumberValidator": true,
     "toFullPhone": true,
-    "toLocalPhone": true
+    "toLocalPhone": true,
+    "STOCK_COUNT_STATUSES": true,
+    "isDraftCount": true,
+    "resolveStockCountStatusTitle": true,
+    "resolveStockCountStatusVariant": true,
+    "resolveVarianceLabel": true,
+    "resolveVarianceVariant": true,
+    "toIsoDate": true,
+    "todayIsoDate": true,
+    "useStockCounts": true
   }
 }
