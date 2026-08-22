@@ -24,7 +24,7 @@
 import { fetchInventoryDashboard, fetchSalesDashboard } from '@/services/dashboard.service'
 import { resolveApiError } from '@/utils/apiErrors'
 import { useAuth } from '@/composables/useAuth'
-import { INTL_LOCALE, formatMoney } from '@/utils/locale'
+import { INTL_LOCALE } from '@/utils/locale'
 
 const SALES_DASHBOARD_ROLES     = ['admin', 'sales_manager']
 const INVENTORY_DASHBOARD_ROLES = ['admin', 'warehouse_manager']
@@ -37,8 +37,22 @@ const INVENTORY_DASHBOARD_ROLES = ['admin', 'warehouse_manager']
 /**
  * Money-like value. Returns '—' ONLY for null/undefined — 0 is real business
  * data (no sales today is a fact, not a missing value).
+ *
+ * Unlike `formatMoney` — which pins two decimals so invoice lines and unit
+ * prices line up column against column — these tiles carry period totals. A
+ * trailing `.00` on `16,805,000` only widens the figure and pushes the eye
+ * past the digits that matter, so decimals appear only when the backend
+ * actually sent a fractional amount.
  */
-export const formatDashboardAmount = formatMoney
+export const formatDashboardAmount = value => {
+  if (value === null || value === undefined || value === '') return '—'
+
+  const n = Number(value)
+
+  return Number.isNaN(n)
+    ? '—'
+    : n.toLocaleString(INTL_LOCALE, { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+}
 
 /** Integer count. 0 is valid data, so only null/undefined become '—'. */
 export const formatDashboardCount = value => {
@@ -49,28 +63,55 @@ export const formatDashboardCount = value => {
   return Number.isNaN(n) ? '—' : n.toLocaleString(INTL_LOCALE)
 }
 
-/** Percentage, one decimal. 0 % is valid data. */
+/**
+ * Percentage for display. 0 % is valid data.
+ *
+ * At most one decimal, and none when the figure is whole: a fill rate of
+ * exactly 100 reads as `100%`, not `100.0%`. The extra digit adds no
+ * precision the backend actually claimed.
+ */
 export const formatDashboardPercent = value => {
   if (value === null || value === undefined) return '—'
 
   const n = Number(value)
 
-  return Number.isNaN(n) ? '—' : `${n.toFixed(1)}%`
+  return Number.isNaN(n)
+    ? '—'
+    : `${n.toLocaleString(INTL_LOCALE, { minimumFractionDigits: 0, maximumFractionDigits: 1 })}%`
 }
 
 /**
- * A change percentage, carrying its own sign: `+12.4%`, `-3.0%`, `0.0%`.
+ * The size of a change, without its sign: `12.5%` for both +12.5 and -12.5.
  *
- * Rendered in an LTR-isolated element by the caller — an Arabic/RTL paragraph
- * would otherwise move the leading sign to the far side of the number.
+ * Direction is carried by the arrow and the semantic colour beside it, so a
+ * leading `-` would state it twice — and a bare sign is exactly the character
+ * an RTL paragraph reorders to the wrong end of the number. Callers still
+ * isolate the figure with `dir="ltr"`.
  */
-export const formatDashboardDeltaPercent = value => {
+export const formatDashboardChangeMagnitude = value => {
   if (value === null || value === undefined) return '—'
 
   const n = Number(value)
-  if (Number.isNaN(n)) return '—'
 
-  return `${n > 0 ? '+' : ''}${n.toFixed(1)}%`
+  return Number.isNaN(n) ? '—' : `${Math.abs(n).toFixed(1)}%`
+}
+
+/**
+ * A percentage reduced to something a 0–100 gauge can draw, or null when there
+ * is nothing to draw at all.
+ *
+ * null stays distinct from 0: an empty ring reads as "nothing was fulfilled
+ * this month", a far stronger claim than "the backend sent no figure". Values
+ * outside the range are clamped for the arc only — the figure printed in the
+ * middle of the ring is still whatever the API returned.
+ */
+export const clampDashboardPercent = value => {
+  if (value === null || value === undefined) return null
+
+  const n = Number(value)
+  if (Number.isNaN(n)) return null
+
+  return Math.min(100, Math.max(0, n))
 }
 
 /**

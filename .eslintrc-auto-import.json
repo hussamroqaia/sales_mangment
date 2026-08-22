@@ -483,7 +483,8 @@
     "REPORT_CELL_OVERRIDES": true,
     "formatReportRowCell": true,
     "dashboardDeltaState": true,
-    "formatDashboardDeltaPercent": true,
-    "formatDashboardName": true
+    "formatDashboardName": true,
+    "clampDashboardPercent": true,
+    "formatDashboardChangeMagnitude": true
   }
 }

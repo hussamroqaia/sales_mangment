@@ -25,9 +25,10 @@ import DashboardKpiOverview from '@/views/dashboards/DashboardKpiOverview.vue'
 </script>
 
 <template>
-  <VRow class="match-height">
-    <VCol cols="12">
-      <DashboardKpiOverview />
-    </VCol>
-  </VRow>
+  <!--
+    No grid wrapper here: the overview lays out its own sections, each with its
+    own heading and row, so wrapping it in a single full-width column would only
+    add a nesting level that flattens that hierarchy back out.
+  -->
+  <DashboardKpiOverview />
 </template>
