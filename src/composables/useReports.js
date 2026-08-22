@@ -20,6 +20,7 @@
  */
 
 import {
+  EMPTY_EXPORT_ERROR,
   REPORT_DEFINITIONS,
   REPORT_FILTERS,
   exportReport,
@@ -27,6 +28,7 @@ import {
   runReport,
 } from '@/services/report.service'
 import { resolveApiError } from '@/utils/apiErrors'
+import { toastSuccess } from '@/utils/swal'
 import { useAuth } from '@/composables/useAuth'
 import { INTL_LOCALE } from '@/utils/locale'
 
@@ -34,6 +36,7 @@ import { INTL_LOCALE } from '@/utils/locale'
 export const REPORT_CATEGORIES = {
   sales: { title: 'المبيعات',  icon: 'tabler-chart-line', roles: ['admin', 'sales_manager'] },
   customers: { title: 'العملاء',   icon: 'tabler-users-group', roles: ['admin', 'sales_manager'] },
+  territories: { title: 'المناطق',   icon: 'tabler-map-pins',   roles: ['admin', 'sales_manager'] },
   routes: { title: 'المسارات',  icon: 'tabler-route',      roles: ['admin', 'sales_manager'] },
   inventory: { title: 'المخزون',   icon: 'tabler-packages',   roles: ['admin', 'warehouse_manager'] },
 }
@@ -203,6 +206,48 @@ export const REPORT_FIELD_LABELS = {
 
   // customer purchases
   totalSpent: 'إجمالي المشتريات',
+
+  // territory reports (territories/sales, territories/customers)
+  customerCount: 'عدد العملاء',
+
+  // dormant customers
+  lastInvoiceDate: 'تاريخ آخر فاتورة',
+  neverPurchased: 'لم يشترِ مطلقًا',
+
+  // customer average order value
+  avgOrderValue: 'متوسط قيمة الطلب',
+
+  // representative productivity — the `%` itself is added by the cell
+  // formatter, so the header deliberately does not repeat it.
+  avgInvoiceValue: 'متوسط قيمة الفاتورة',
+  plannedStops: 'المحطات المخطّطة',
+  visitCompletionPercent: 'نسبة إنجاز الزيارات',
+}
+
+/**
+ * Cell renderers that need the WHOLE row, which `formatReportCell` cannot see.
+ *
+ * Kept to the few cases where one field's meaning depends on another: the
+ * dormant-customers report returns `lastInvoiceDate: null` for a customer who
+ * has never bought at all, and an em-dash there reads as "missing data" rather
+ * than the fact it actually is.
+ */
+export const REPORT_CELL_OVERRIDES = {
+  customerDormant: {
+    lastInvoiceDate: (value, row) =>
+      (row?.neverPurchased ? 'لم يشترِ مطلقًا' : formatReportCell('lastInvoiceDate', value)),
+
+    // `neverPurchased` itself keeps the project's generic نعم/لا boolean
+    // rendering: its column header already states the claim, and spelling the
+    // sentence out again here would just repeat the date cell beside it.
+  },
+}
+
+/** Row-aware cell text: an override when one exists, the generic formatter otherwise. */
+export const formatReportRowCell = (reportKey, key, row) => {
+  const override = REPORT_CELL_OVERRIDES[reportKey]?.[key]
+
+  return override ? override(row?.[key], row) : formatReportCell(key, row?.[key])
 }
 
 const ACRONYMS = /\b(sku|id)\b/gi
@@ -375,6 +420,9 @@ export const useReports = () => {
    * Download the current report as a file, reusing the on-screen filters.
    * The object URL is revoked immediately after the click hands the bytes to
    * the browser, so nothing is retained across the component's lifetime.
+   *
+   * A 204/zero-byte response is surfaced as a failure rather than saved: see
+   * the note on `exportReport`, which raises EMPTY_EXPORT_ERROR for it.
    */
   const exportAs = async format => {
     if (!selectedReportKey.value || !canRunReport(selectedReportKey.value)) return
@@ -399,9 +447,15 @@ export const useReports = () => {
       } finally {
         URL.revokeObjectURL(url)
       }
+
+      toastSuccess(`تم تنزيل التقرير بصيغة ${format.toUpperCase()}.`)
     } catch (error) {
-      exportError.value = await readReportBlobError(error)
-        || `تعذّر تصدير التقرير بصيغة ${format.toUpperCase()}.`
+      // The server answered, but with nothing to save — say so plainly instead
+      // of reporting a transport failure that did not happen.
+      exportError.value = error?.code === EMPTY_EXPORT_ERROR
+        ? `لم يُرجع الخادم أي ملف لهذا التقرير بصيغة ${format.toUpperCase()}.`
+        : await readReportBlobError(error)
+          || `تعذّر تصدير التقرير بصيغة ${format.toUpperCase()}.`
     } finally {
       exportingFormat.value = null
     }

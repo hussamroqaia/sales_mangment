@@ -4,7 +4,7 @@
  * Pure service layer — only Axios calls, no state, no composables.
  * The Axios instance (src/services/apiClient.js) auto-attaches the Bearer token.
  *
- * Covers the 11 non-dashboard report endpoints. The two dashboard KPI endpoints
+ * Covers the 17 non-dashboard report endpoints. The two dashboard KPI endpoints
  * live in dashboard.service.js and are deliberately NOT merged here: they take
  * no filters, have no export path, and are consumed by a different screen.
  *
@@ -19,6 +19,8 @@
  *   • `customerId` exists on /sales/invoices ONLY.
  *   • /customers/purchases takes from/to only — it has no customerId.
  *   • /inventory/stock-levels, /below-minimum and /aging take NO date range.
+ *   • /territories/customers and /customers/dormant take NO date range either —
+ *     both are point-in-time snapshots, so sending from/to would be ignored.
  * Sending an unsupported param would be silently ignored, but the UI must not
  * offer a filter the report cannot honour, so the `filters` list here is the
  * single source of truth the composable and UI both read.
@@ -52,6 +54,14 @@ export const REPORT_DEFINITIONS = {
     filenameSlug: 'rep-performance',
     filters: [REPORT_FILTERS.DATE_RANGE],
   },
+  salesRepProductivity: {
+    key: 'salesRepProductivity',
+    category: 'sales',
+    title: 'إنتاجية المندوبين',
+    path: `${BASE}/sales/rep-productivity`,
+    filenameSlug: 'rep-productivity',
+    filters: [REPORT_FILTERS.DATE_RANGE],
+  },
   salesInvoices: {
     key: 'salesInvoices',
     category: 'sales',
@@ -69,6 +79,43 @@ export const REPORT_DEFINITIONS = {
 
     // No customerId: the controller method declares from/to/format only.
     filters: [REPORT_FILTERS.DATE_RANGE],
+  },
+  customerAverageOrderValue: {
+    key: 'customerAverageOrderValue',
+    category: 'customers',
+    title: 'متوسط قيمة الطلب',
+    path: `${BASE}/customers/average-order-value`,
+    filenameSlug: 'customer-average-order-value',
+    filters: [REPORT_FILTERS.DATE_RANGE],
+  },
+  customerDormant: {
+    key: 'customerDormant',
+    category: 'customers',
+    title: 'العملاء الخاملون',
+    path: `${BASE}/customers/dormant`,
+    filenameSlug: 'dormant-customers',
+
+    // Snapshot of who has stopped (or never started) buying — the controller
+    // declares `format` only, so no date range is offered.
+    filters: [],
+  },
+  territorySales: {
+    key: 'territorySales',
+    category: 'territories',
+    title: 'مبيعات المناطق',
+    path: `${BASE}/territories/sales`,
+    filenameSlug: 'territory-sales',
+    filters: [REPORT_FILTERS.DATE_RANGE],
+  },
+  territoryCustomers: {
+    key: 'territoryCustomers',
+    category: 'territories',
+    title: 'عملاء المناطق',
+    path: `${BASE}/territories/customers`,
+    filenameSlug: 'territory-customers',
+
+    // Active-customer headcount per territory — a snapshot, no date range.
+    filters: [],
   },
   routePerformance: {
     key: 'routePerformance',
@@ -201,6 +248,9 @@ export const runReport = async (reportKey, filters = {}, signal = undefined) => 
 }
 
 // ─── Binary exports ───────────────────────────────────────────────────────────
+/** Marker for "the request succeeded but carried no file". See below. */
+export const EMPTY_EXPORT_ERROR = 'empty_export'
+
 /**
  * Export one report as a file.
  *
@@ -209,10 +259,19 @@ export const runReport = async (reportKey, filters = {}, signal = undefined) => 
  * `responseType: 'blob'` keeps Axios from parsing the bytes as JSON, so the
  * xlsx/pdf payload is never corrupted by envelope handling.
  *
+ * ─── Empty responses are a failure, not a download ──────────────────────────
+ * `format=pdf` currently answers 204 No Content with a zero-byte body on every
+ * report endpoint (xlsx returns a real workbook). Axios reports 204 as success,
+ * so without this guard the caller would hand the browser an empty Blob and the
+ * user would be left with a 0-byte `.pdf` that looks like a finished download.
+ * A response carrying no document is a failure to produce one and is raised as
+ * such — the same rule invoice.service.js applies to the invoice PDF endpoint.
+ *
  * @param {string} reportKey
  * @param {Object} filters   the SAME filters used for the on-screen run
  * @param {'xlsx'|'pdf'} format
  * @returns {Promise<{ blob: Blob, filename: string }>}
+ * @throws {Error} with `code === EMPTY_EXPORT_ERROR` when the body is empty
  */
 export const exportReport = async (reportKey, filters = {}, format = 'xlsx') => {
   const definition = definitionFor(reportKey)
@@ -222,8 +281,18 @@ export const exportReport = async (reportKey, filters = {}, format = 'xlsx') => 
     responseType: 'blob',
   })
 
+  const blob = response.data
+
+  if (response.status === 204 || !blob || blob.size === 0) {
+    const error = new Error(`Report export carried no content: ${reportKey} (${format})`)
+
+    error.code = EMPTY_EXPORT_ERROR
+
+    throw error
+  }
+
   return {
-    blob: response.data,
+    blob,
     filename: parseContentDispositionFilename(response.headers)
       ?? `${definition.filenameSlug}-${new Date().toISOString().slice(0, 10)}.${format}`,
   }

@@ -19,8 +19,11 @@
 
 import {
   useDashboard,
+  dashboardDeltaState,
   formatDashboardAmount,
   formatDashboardCount,
+  formatDashboardDeltaPercent,
+  formatDashboardName,
   formatDashboardPercent,
 } from '@/composables/useDashboard'
 
@@ -54,6 +57,47 @@ const salesTiles = computed(() => {
   ]
 })
 
+// The leaderboard half of the sales DTO: a name paired with the figure that
+// earned it. Rendered apart from the counters above because the primary value
+// is a name, not a number, and a null name is a real state (no sales to rank).
+const salesHighlightTiles = computed(() => {
+  const d = salesDashboard.value
+
+  return [
+    {
+      key: 'topTerritory',
+      title: 'أعلى منطقة مبيعًا',
+      icon: 'tabler-map-pin-star',
+      value: formatDashboardName(d?.topTerritoryName),
+      caption: formatDashboardAmount(d?.topTerritorySales),
+    },
+    {
+      key: 'topRep',
+      title: 'أعلى مندوب مبيعًا',
+      icon: 'tabler-user-star',
+      value: formatDashboardName(d?.topRepName),
+      caption: formatDashboardAmount(d?.topRepSales),
+    },
+  ]
+})
+
+// STATIC_UI_CONFIGURATION: colour/icon per direction of change.
+const DELTA_VISUALS = {
+  up: { color: 'success', icon: 'tabler-trending-up' },
+  down: { color: 'error', icon: 'tabler-trending-down' },
+  neutral: { color: 'secondary', icon: 'tabler-minus' },
+}
+
+/** Month-over-month change, with the visual state its sign calls for. */
+const monthOverMonth = computed(() => {
+  const raw = salesDashboard.value?.monthOverMonthPercent
+
+  return {
+    value: formatDashboardDeltaPercent(raw),
+    ...DELTA_VISUALS[dashboardDeltaState(raw)],
+  }
+})
+
 const inventoryTiles = computed(() => {
   const d = inventoryDashboard.value
 
@@ -62,6 +106,7 @@ const inventoryTiles = computed(() => {
     { title: 'مخزون راكد',         icon: 'tabler-clock-exclamation', value: formatDashboardCount(d?.agingCount) },
     { title: 'إجمالي الأصناف',     icon: 'tabler-packages',          value: formatDashboardCount(d?.totalSkus) },
     { title: 'نسبة التلبية للشهر', icon: 'tabler-progress-check',    value: formatDashboardPercent(d?.monthFillRatePercent) },
+    { title: 'قيمة المخزون',       icon: 'tabler-cash',              value: formatDashboardAmount(d?.totalStockValue) },
   ]
 })
 
@@ -131,29 +176,92 @@ onMounted(loadDashboards)
         </VAlert>
 
         <!-- Skeletons keep the layout stable instead of flashing placeholder numbers. -->
-        <VRow v-if="isSalesLoading && !salesDashboard">
-          <VCol
-            v-for="n in 5"
-            :key="n"
-            cols="12"
-            sm="6"
-            md="4"
-            lg="2"
-          >
-            <VSkeletonLoader type="list-item-two-line" />
-          </VCol>
-        </VRow>
-
-        <VRow v-else-if="salesDashboard">
-          <template
-            v-for="(tile, index) in salesTiles"
-            :key="tile.title"
-          >
+        <template v-if="isSalesLoading && !salesDashboard">
+          <VRow>
             <VCol
+              v-for="n in 5"
+              :key="n"
               cols="12"
               sm="6"
               md="4"
               lg="2"
+            >
+              <VSkeletonLoader type="list-item-two-line" />
+            </VCol>
+          </VRow>
+
+          <VRow>
+            <VCol
+              v-for="n in 3"
+              :key="n"
+              cols="12"
+              md="4"
+            >
+              <VSkeletonLoader type="list-item-two-line" />
+            </VCol>
+          </VRow>
+        </template>
+
+        <template v-else-if="salesDashboard">
+          <VRow>
+            <template
+              v-for="(tile, index) in salesTiles"
+              :key="tile.title"
+            >
+              <VCol
+                cols="12"
+                sm="6"
+                md="4"
+                lg="2"
+              >
+                <div class="d-flex justify-space-between align-center dashboard-kpi">
+                  <div class="d-flex flex-column dashboard-kpi__text">
+                    <h4
+                      class="dashboard-kpi__value"
+                      :class="valueClass(tile.value)"
+                    >
+                      {{ tile.value }}
+                    </h4>
+                    <span class="text-body-1">{{ tile.title }}</span>
+                  </div>
+
+                  <VAvatar
+                    class="dashboard-kpi__avatar"
+                    variant="tonal"
+                    rounded
+                    size="42"
+                  >
+                    <VIcon
+                      :icon="tile.icon"
+                      size="26"
+                      color="high-emphasis"
+                    />
+                  </VAvatar>
+                </div>
+              </VCol>
+
+              <VDivider
+                v-if="$vuetify.display.lgAndUp && index !== salesTiles.length - 1"
+                vertical
+                inset
+                length="60"
+              />
+            </template>
+          </VRow>
+
+          <VDivider class="my-4" />
+
+          <!--
+            Leaderboard + trend. Separated from the counter row above because
+            the primary value here is a name, and because the month-over-month
+            figure carries a colour state the plain counters do not.
+          -->
+          <VRow>
+            <VCol
+              v-for="tile in salesHighlightTiles"
+              :key="tile.key"
+              cols="12"
+              md="4"
             >
               <div class="d-flex justify-space-between align-center dashboard-kpi">
                 <div class="d-flex flex-column dashboard-kpi__text">
@@ -164,6 +272,9 @@ onMounted(loadDashboards)
                     {{ tile.value }}
                   </h4>
                   <span class="text-body-1">{{ tile.title }}</span>
+                  <span class="text-body-2 text-medium-emphasis">
+                    إجمالي المبيعات: {{ tile.caption }}
+                  </span>
                 </div>
 
                 <VAvatar
@@ -181,14 +292,46 @@ onMounted(loadDashboards)
               </div>
             </VCol>
 
-            <VDivider
-              v-if="$vuetify.display.lgAndUp && index !== salesTiles.length - 1"
-              vertical
-              inset
-              length="60"
-            />
-          </template>
-        </VRow>
+            <VCol
+              cols="12"
+              md="4"
+            >
+              <div class="d-flex justify-space-between align-center dashboard-kpi">
+                <div class="d-flex flex-column dashboard-kpi__text">
+                  <!--
+                    `dir="ltr"` keeps the leading +/- attached to the number:
+                    in the surrounding RTL paragraph the sign would otherwise be
+                    reordered to the opposite end of the figure.
+                  -->
+                  <h4
+                    class="dashboard-kpi__value text-h4"
+                    :class="`text-${monthOverMonth.color}`"
+                    dir="ltr"
+                  >
+                    {{ monthOverMonth.value }}
+                  </h4>
+                  <span class="text-body-1">التغيّر عن الشهر السابق</span>
+                  <span class="text-body-2 text-medium-emphasis">
+                    مقارنة بمبيعات الشهر الماضي
+                  </span>
+                </div>
+
+                <VAvatar
+                  class="dashboard-kpi__avatar"
+                  variant="tonal"
+                  rounded
+                  size="42"
+                  :color="monthOverMonth.color"
+                >
+                  <VIcon
+                    :icon="monthOverMonth.icon"
+                    size="26"
+                  />
+                </VAvatar>
+              </div>
+            </VCol>
+          </VRow>
+        </template>
       </VCardText>
 
       <VDivider v-if="canViewInventoryDashboard" />
@@ -217,11 +360,12 @@ onMounted(loadDashboards)
 
       <VRow v-if="isInventoryLoading && !inventoryDashboard">
         <VCol
-          v-for="n in 4"
+          v-for="n in 5"
           :key="n"
           cols="12"
           sm="6"
-          md="3"
+          md="4"
+          lg="2"
         >
           <VSkeletonLoader type="list-item-two-line" />
         </VCol>
@@ -235,7 +379,8 @@ onMounted(loadDashboards)
           <VCol
             cols="12"
             sm="6"
-            md="3"
+            md="4"
+            lg="2"
           >
             <div class="d-flex justify-space-between align-center dashboard-kpi">
               <div class="d-flex flex-column dashboard-kpi__text">
@@ -264,7 +409,7 @@ onMounted(loadDashboards)
           </VCol>
 
           <VDivider
-            v-if="$vuetify.display.mdAndUp && index !== inventoryTiles.length - 1"
+            v-if="$vuetify.display.lgAndUp && index !== inventoryTiles.length - 1"
             vertical
             inset
             length="60"

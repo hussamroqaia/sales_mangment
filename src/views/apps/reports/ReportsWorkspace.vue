@@ -2,8 +2,8 @@
 /**
  * ReportsWorkspace.vue
  *
- * One Reports area covering all 11 management report endpoints, rather than
- * eleven disconnected pages. The report picker lists only the categories the
+ * One Reports area covering all 17 management report endpoints, rather than
+ * seventeen disconnected pages. The report picker lists only the categories the
  * signed-in role may open, filters are rendered from the selected report's real
  * backend contract, and Run/Export share those same filters.
  *
@@ -20,6 +20,7 @@ import {
   useReports,
   REPORT_CATEGORIES,
   formatReportCell,
+  formatReportRowCell,
   humaniseKey,
 } from '@/composables/useReports'
 
@@ -114,6 +115,19 @@ const columns = computed(() => {
     title: humaniseKey(key),
     sortable: false,
   }))
+})
+
+// Stable row identity for VDataTable. Every report row carries exactly one
+// entity id (`territoryId`, `customerId`, `representativeId`, `productId`, …),
+// and it is the only value guaranteed unique across the rows; falling back to
+// the row index would re-key every row whenever the backend reorders them.
+const ID_FIELD = /^id$|[a-z\d](?:Id|ID)$/
+
+const rowKey = computed(() => {
+  const first = resultRows.value?.[0]
+  if (!first) return undefined
+
+  return Object.keys(first).find(key => ID_FIELD.test(key))
 })
 
 const isEmptyResult = computed(() =>
@@ -388,6 +402,7 @@ const canSubmit = computed(() => {
             v-if="resultRows?.length"
             :headers="columns"
             :items="resultRows"
+            :item-value="rowKey"
             class="text-no-wrap"
             :items-per-page="25"
           >
@@ -396,7 +411,7 @@ const canSubmit = computed(() => {
               :key="column.key"
               #[`item.${column.key}`]="{ item }"
             >
-              <span>{{ formatReportCell(column.key, item[column.key]) }}</span>
+              <span>{{ formatReportRowCell(selectedReportKey, column.key, item) }}</span>
             </template>
           </VDataTable>
         </template>

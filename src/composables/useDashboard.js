@@ -58,6 +58,50 @@ export const formatDashboardPercent = value => {
   return Number.isNaN(n) ? '—' : `${n.toFixed(1)}%`
 }
 
+/**
+ * A change percentage, carrying its own sign: `+12.4%`, `-3.0%`, `0.0%`.
+ *
+ * Rendered in an LTR-isolated element by the caller — an Arabic/RTL paragraph
+ * would otherwise move the leading sign to the far side of the number.
+ */
+export const formatDashboardDeltaPercent = value => {
+  if (value === null || value === undefined) return '—'
+
+  const n = Number(value)
+  if (Number.isNaN(n)) return '—'
+
+  return `${n > 0 ? '+' : ''}${n.toFixed(1)}%`
+}
+
+/**
+ * Direction of a change percentage, for the colour/icon state of a tile.
+ * A missing figure is 'neutral', not 'down' — no data is not a decline.
+ *
+ * @returns {'up' | 'down' | 'neutral'}
+ */
+export const dashboardDeltaState = value => {
+  const n = Number(value)
+
+  if (value === null || value === undefined || Number.isNaN(n)) return 'neutral'
+
+  if (n > 0) return 'up'
+
+  return n < 0 ? 'down' : 'neutral'
+}
+
+/**
+ * A nullable name coming back from the backend (`topTerritoryName`,
+ * `topRepName`): null when the period produced no sales to rank at all.
+ * An empty string counts as absent too.
+ */
+export const formatDashboardName = value => {
+  if (value === null || value === undefined) return '—'
+
+  const text = String(value).trim()
+
+  return text || '—'
+}
+
 // ─── Composable ───────────────────────────────────────────────────────────────
 export const useDashboard = () => {
   const { userData } = useAuth()

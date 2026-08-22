@@ -479,6 +479,11 @@
     "todayIsoDate": true,
     "useStockCounts": true,
     "LEAFLET_WORLD_BOUNDS": true,
-    "constrainMapToSingleWorld": true
+    "constrainMapToSingleWorld": true,
+    "REPORT_CELL_OVERRIDES": true,
+    "formatReportRowCell": true,
+    "dashboardDeltaState": true,
+    "formatDashboardDeltaPercent": true,
+    "formatDashboardName": true
   }
 }

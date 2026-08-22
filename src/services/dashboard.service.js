@@ -25,12 +25,20 @@ const BASE = '/reports/dashboard'
 /**
  * Sales KPI tiles. Requires ADMIN or SALES_MANAGER.
  *
+ * `topTerritoryName` / `topRepName` are nullable — the backend has nothing to
+ * name when the period produced no sales at all.
+ *
  * @returns {Promise<{
  *   todaySalesTotal: number,
  *   todayInvoiceCount: number,
  *   monthSalesTotal: number,
  *   monthInvoiceCount: number,
  *   activeRoutesToday: number,
+ *   topTerritoryName: string | null,
+ *   topTerritorySales: number,
+ *   topRepName: string | null,
+ *   topRepSales: number,
+ *   monthOverMonthPercent: number,
  * }>}
  */
 export const fetchSalesDashboard = async () => {
@@ -48,6 +56,7 @@ export const fetchSalesDashboard = async () => {
  *   agingCount: number,
  *   totalSkus: number,
  *   monthFillRatePercent: number,
+ *   totalStockValue: number,
  * }>}
  */
 export const fetchInventoryDashboard = async () => {
