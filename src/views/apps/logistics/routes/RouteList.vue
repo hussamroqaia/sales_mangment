@@ -142,6 +142,7 @@ onMounted(fetchAllRoutes)
           >
             <AppSelect
               v-model="selectedStatus"
+              label="الحالة"
               placeholder="تصفية حسب الحالة"
               :items="ROUTE_STATUSES"
               item-title="title"
@@ -167,6 +168,7 @@ onMounted(fetchAllRoutes)
           >
             <AppDateTimePicker
               v-model="selectedRouteDate"
+              label="التاريخ"
               placeholder="تصفية حسب التاريخ (سنة-شهر-يوم)"
               :config="{ dateFormat: 'Y-m-d' }"
               clearable

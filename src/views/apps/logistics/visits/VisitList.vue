@@ -170,7 +170,7 @@ onMounted(fetchAllVisits)
             md="3"
             sm="6"
           >
-            <VSelect
+            <AppSelect
               v-model="selectedStatus"
               label="الحالة"
               placeholder="تصفية حسب الحالة"

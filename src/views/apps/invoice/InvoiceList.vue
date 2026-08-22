@@ -114,7 +114,7 @@ onMounted(fetchAllInvoices)
             md="3"
             sm="6"
           >
-            <VSelect
+            <AppSelect
               v-model="selectedStatus"
               label="الحالة"
               placeholder="تصفية حسب الحالة"
@@ -133,7 +133,8 @@ onMounted(fetchAllInvoices)
           >
             <AppDateTimePicker
               v-model="selectedInvoiceDate"
-              placeholder="تاريخ الفاتورة (سنة-شهر-يوم)"
+              label="تاريخ الفاتورة"
+              placeholder="سنة-شهر-يوم"
               :config="{ dateFormat: 'Y-m-d' }"
               clearable
             />

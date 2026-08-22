@@ -141,6 +141,7 @@ onMounted(fetchAllSheets)
           >
             <AppSelect
               v-model="selectedStatus"
+              label="الحالة"
               placeholder="تصفية حسب الحالة"
               :items="RETURN_SHEET_STATUSES"
               item-title="title"
@@ -155,6 +156,7 @@ onMounted(fetchAllSheets)
           >
             <AppDateTimePicker
               v-model="returnDate"
+              label="تاريخ الإرجاع"
               placeholder="تصفية حسب تاريخ الإرجاع"
               :config="{ dateFormat: 'Y-m-d' }"
             />
@@ -165,8 +167,8 @@ onMounted(fetchAllSheets)
           >
             <RepresentativeSelect
               v-model="repIdFilter"
-              label="تصفية حسب المندوب"
-              placeholder="ابحث عن مندوب…"
+              label="المندوب"
+              placeholder="تصفية حسب المندوب"
               clearable
             />
           </VCol>

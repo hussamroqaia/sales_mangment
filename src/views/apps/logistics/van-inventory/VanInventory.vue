@@ -48,7 +48,7 @@ const headers = [
 
       <!-- Representative selector -->
       <VCardText>
-        <VRow class="align-center">
+        <VRow>
           <VCol
             cols="12"
             sm="6"
@@ -64,6 +64,7 @@ const headers = [
           <VCol
             cols="12"
             sm="auto"
+            class="mt-6"
           >
             <VBtn
               variant="tonal"

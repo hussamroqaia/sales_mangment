@@ -126,6 +126,7 @@ onMounted(fetchAllOrders)
           >
             <AppSelect
               v-model="selectedStatus"
+              label="الحالة"
               placeholder="تصفية حسب الحالة"
               :items="DEMAND_ORDER_STATUSES"
               item-title="title"
@@ -140,6 +141,7 @@ onMounted(fetchAllOrders)
           >
             <AppDateTimePicker
               v-model="orderDate"
+              label="تاريخ الطلب"
               placeholder="تصفية حسب تاريخ الطلب"
               :config="{ dateFormat: 'Y-m-d' }"
               clearable
@@ -151,8 +153,8 @@ onMounted(fetchAllOrders)
           >
             <RepresentativeSelect
               v-model="repIdFilter"
-              label="تصفية حسب المندوب"
-              placeholder="ابحث عن مندوب…"
+              label="المندوب"
+              placeholder="تصفية حسب المندوب"
               clearable
             />
           </VCol>

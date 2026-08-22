@@ -139,7 +139,7 @@ onMounted(() => loadPage(true))
 </script>
 
 <template>
-  <VAutocomplete
+  <AppAutocomplete
     :model-value="props.modelValue"
     :label="props.label"
     :placeholder="props.placeholder"
@@ -189,5 +189,5 @@ onMounted(() => loadPage(true))
         </VListItemTitle>
       </VListItem>
     </template>
-  </VAutocomplete>
+  </AppAutocomplete>
 </template>
