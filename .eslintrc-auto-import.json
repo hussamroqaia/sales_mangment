@@ -485,6 +485,16 @@
     "dashboardDeltaState": true,
     "formatDashboardName": true,
     "clampDashboardPercent": true,
-    "formatDashboardChangeMagnitude": true
+    "formatDashboardChangeMagnitude": true,
+    "useChartTheme": true,
+    "ANALYTICS_GRANULARITIES": true,
+    "ANALYTICS_TOP_OPTIONS": true,
+    "formatAnalyticsPeriod": true,
+    "formatAnalyticsPeriodLong": true,
+    "formatAnalyticsRange": true,
+    "shiftPlainDate": true,
+    "todayPlainDate": true,
+    "VueApexCharts": true,
+    "formatDashboardCompact": true
   }
 }

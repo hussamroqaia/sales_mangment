@@ -23,5 +23,6 @@ declare module 'vue' {
     TablePagination: typeof import('./src/@core/components/TablePagination.vue')['default']
     TheCustomizer: typeof import('./src/@core/components/TheCustomizer.vue')['default']
     ThemeSwitcher: typeof import('./src/@core/components/ThemeSwitcher.vue')['default']
+    VueApexCharts: typeof import('vue3-apexcharts')['default']
   }
 }

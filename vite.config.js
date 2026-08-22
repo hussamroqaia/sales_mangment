@@ -102,6 +102,22 @@ return {
         globSafePath('src/components'),
       ],
       dts: true,
+
+      // ℹ️ ApexCharts lives in node_modules, so `dirs` above can never find it.
+      // A resolver is the only place a component from a package can be made
+      // auto-importable: AutoImport below cannot do it, because its transform
+      // runs on the ALREADY-COMPILED SFC — by then the template has become
+      // `resolveComponent('VueApexCharts')` and a script-level import arrives
+      // too late to satisfy it.
+      //
+      // This is also what the `no-restricted-imports` rule in .eslintrc.cjs
+      // refers to when it rejects a manual `import ... from 'vue3-apexcharts'`
+      // with "apexcharts are auto imported".
+      resolvers: [
+        componentName => (componentName === 'VueApexCharts'
+          ? { name: 'default', from: 'vue3-apexcharts', as: 'VueApexCharts' }
+          : undefined),
+      ],
     }),
 
     // Docs: https://github.com/antfu/unplugin-auto-import#unplugin-auto-import
