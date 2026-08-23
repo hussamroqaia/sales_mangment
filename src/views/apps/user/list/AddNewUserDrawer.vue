@@ -19,8 +19,9 @@ const refForm = ref()
 const isPasswordVisible = ref(false)
 const isConfirmPasswordVisible = ref(false)
 
-// `phoneNumber` holds ONLY the 9-digit local part — the field renders +963 as
-// a fixed prefix and `toFullPhone` reassembles the wire format on submit.
+// `phoneNumber` holds ONLY the 9-digit local part — the field renders the
+// leading `0` as a fixed prefix and `toFullPhone` reassembles the wire format
+// on submit, so new users are stored in the same shape login matches on.
 const blankForm = () => ({
   name: '',
   phoneNumber: '',
@@ -128,7 +129,7 @@ const onSubmit = () => {
                   type="tel"
                   inputmode="numeric"
                   autocomplete="tel-national"
-                  :prefix="SYRIA_DIAL_CODE"
+                  :prefix="PHONE_TRUNK_PREFIX"
                   placeholder="981491713"
                   dir="ltr"
                   :disabled="props.isSubmitting"

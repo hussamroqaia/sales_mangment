@@ -499,6 +499,7 @@
     "COMPANY_LATITUDE": true,
     "COMPANY_LOCATION": true,
     "COMPANY_LONGITUDE": true,
-    "COMPANY_NAME": true
+    "COMPANY_NAME": true,
+    "PHONE_TRUNK_PREFIX": true
   }
 }

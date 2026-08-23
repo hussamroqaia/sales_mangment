@@ -161,6 +161,16 @@ return {
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
+
+        // The backend's CORS allow-list only contains http://localhost:4200 and
+        // http://localhost:8080 — every Vite port is rejected with a 403
+        // "Invalid CORS request", and `changeOrigin` does not help because it
+        // rewrites Host, not Origin. The proxy hop is server-to-server, so the
+        // browser's Origin header is meaningless here: drop it and Spring
+        // handles the request as a plain non-CORS call.
+        configure: proxy => {
+          proxy.on('proxyReq', proxyReq => proxyReq.removeHeader('origin'))
+        },
       },
     },
   },

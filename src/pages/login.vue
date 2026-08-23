@@ -21,15 +21,15 @@ const refVForm = ref()
 const isPasswordVisible = ref(false)
 
 // `phoneNumber` holds ONLY the 9-digit local part; the field renders the
-// +963 dial code as a fixed prefix and `toFullPhone` reassembles the wire
-// format on submit.
+// leading `0` as a fixed prefix and `toFullPhone` reassembles the wire format
+// (`0` + 9 digits — the only shape the backend matches) on submit.
 const credentials = ref({
   phoneNumber: '',
   password: '',
   remember: false,
 })
 
-// Keep whatever is typed or pasted (+963…, 00963…, 0…) reduced to the local
+// Keep whatever is typed or pasted (0…, +963…, 00963…) reduced to the local
 // 9 digits, so the prefix can never end up duplicated in the value. Writing the
 // cleaned value back through the same binding is what makes Vue patch the DOM
 // input, so an over-long paste or a stray letter cannot linger on screen — which
@@ -206,7 +206,7 @@ const onSubmit = () => {
                   type="tel"
                   inputmode="numeric"
                   autocomplete="tel-national"
-                  :prefix="SYRIA_DIAL_CODE"
+                  :prefix="PHONE_TRUNK_PREFIX"
                   placeholder="981491713"
                   dir="ltr"
                   :rules="[localPhoneValidator]"

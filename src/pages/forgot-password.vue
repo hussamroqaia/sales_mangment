@@ -101,7 +101,7 @@ definePage({
                   type="tel"
                   inputmode="numeric"
                   autocomplete="tel-national"
-                  :prefix="SYRIA_DIAL_CODE"
+                  :prefix="PHONE_TRUNK_PREFIX"
                   placeholder="981491713"
                   dir="ltr"
                   :rules="[localPhoneValidator]"

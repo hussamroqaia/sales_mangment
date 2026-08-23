@@ -234,7 +234,7 @@ export const useAuth = () => {
    *  - First-time login redirect
    *  - Normal dashboard redirect
    *
-   * @param {string} phoneNumber - E.164 wire format, e.g. "+963981491713"
+   * @param {string} phoneNumber - Local wire format, e.g. "0981491713"
    * @param {string} password
    * @param {string} [redirectTo] - Optional path to redirect to after login
    */

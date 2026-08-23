@@ -23,6 +23,7 @@ declare global {
   const KNOWN_CONFIG_KEYS: typeof import('./src/composables/useSystemConfig.js')['KNOWN_CONFIG_KEYS']
   const LEAFLET_WORLD_BOUNDS: typeof import('./src/utils/leafletWorldView.js')['LEAFLET_WORLD_BOUNDS']
   const MERCATOR_MAX_LATITUDE: typeof import('./src/composables/useTracking.js')['MERCATOR_MAX_LATITUDE']
+  const PHONE_TRUNK_PREFIX: typeof import('./src/utils/phone.js')['PHONE_TRUNK_PREFIX']
   const PRODUCT_STATUSES: typeof import('./src/composables/useProducts.js')['PRODUCT_STATUSES']
   const PRODUCT_UNITS: typeof import('./src/composables/useProducts.js')['PRODUCT_UNITS']
   const REJECTION_REASON_MAX_LENGTH: typeof import('./src/composables/useInvoices.js')['REJECTION_REASON_MAX_LENGTH']
@@ -510,6 +511,7 @@ declare module 'vue' {
     readonly KNOWN_CONFIG_KEYS: UnwrapRef<typeof import('./src/composables/useSystemConfig.js')['KNOWN_CONFIG_KEYS']>
     readonly LEAFLET_WORLD_BOUNDS: UnwrapRef<typeof import('./src/utils/leafletWorldView.js')['LEAFLET_WORLD_BOUNDS']>
     readonly MERCATOR_MAX_LATITUDE: UnwrapRef<typeof import('./src/composables/useTracking.js')['MERCATOR_MAX_LATITUDE']>
+    readonly PHONE_TRUNK_PREFIX: UnwrapRef<typeof import('./src/utils/phone.js')['PHONE_TRUNK_PREFIX']>
     readonly PRODUCT_STATUSES: UnwrapRef<typeof import('./src/composables/useProducts.js')['PRODUCT_STATUSES']>
     readonly PRODUCT_UNITS: UnwrapRef<typeof import('./src/composables/useProducts.js')['PRODUCT_UNITS']>
     readonly REJECTION_REASON_MAX_LENGTH: UnwrapRef<typeof import('./src/composables/useInvoices.js')['REJECTION_REASON_MAX_LENGTH']>
@@ -520,7 +522,6 @@ declare module 'vue' {
     readonly ROUTE_STATUSES: UnwrapRef<typeof import('./src/composables/useRoutes.js')['ROUTE_STATUSES']>
     readonly STOCK_COUNT_STATUSES: UnwrapRef<typeof import('./src/composables/useStockCounts.js')['STOCK_COUNT_STATUSES']>
     readonly STOCK_MODES: UnwrapRef<typeof import('./src/composables/useWarehouseStock.js')['STOCK_MODES']>
-    readonly SYRIA_DIAL_CODE: UnwrapRef<typeof import('./src/utils/phone.js')['SYRIA_DIAL_CODE']>
     readonly SYRIA_PHONE_LENGTH: UnwrapRef<typeof import('./src/utils/phone.js')['SYRIA_PHONE_LENGTH']>
     readonly TRACKING_MANAGER_ROLES: UnwrapRef<typeof import('./src/composables/useTracking.js')['TRACKING_MANAGER_ROLES']>
     readonly USER_ROLES: UnwrapRef<typeof import('./src/composables/useUsers.js')['USER_ROLES']>
