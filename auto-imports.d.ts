@@ -9,6 +9,10 @@ declare global {
   const ACTIVE_WINDOW_MS: typeof import('./src/composables/useTracking.js')['ACTIVE_WINDOW_MS']
   const ANALYTICS_GRANULARITIES: typeof import('./src/composables/useDashboard.js')['ANALYTICS_GRANULARITIES']
   const ANALYTICS_TOP_OPTIONS: typeof import('./src/composables/useDashboard.js')['ANALYTICS_TOP_OPTIONS']
+  const COMPANY_LATITUDE: typeof import('./src/utils/company.js')['COMPANY_LATITUDE']
+  const COMPANY_LOCATION: typeof import('./src/utils/company.js')['COMPANY_LOCATION']
+  const COMPANY_LONGITUDE: typeof import('./src/utils/company.js')['COMPANY_LONGITUDE']
+  const COMPANY_NAME: typeof import('./src/utils/company.js')['COMPANY_NAME']
   const CONFIG_VALUE_TYPE_INT: typeof import('./src/composables/useSystemConfig.js')['CONFIG_VALUE_TYPE_INT']
   const CUSTOMER_CATEGORIES: typeof import('./src/composables/useCustomers.js')['CUSTOMER_CATEGORIES']
   const CUSTOMER_STATUSES: typeof import('./src/composables/useCustomers.js')['CUSTOMER_STATUSES']
@@ -492,6 +496,10 @@ declare module 'vue' {
     readonly ACTIVE_WINDOW_MS: UnwrapRef<typeof import('./src/composables/useTracking.js')['ACTIVE_WINDOW_MS']>
     readonly ANALYTICS_GRANULARITIES: UnwrapRef<typeof import('./src/composables/useDashboard.js')['ANALYTICS_GRANULARITIES']>
     readonly ANALYTICS_TOP_OPTIONS: UnwrapRef<typeof import('./src/composables/useDashboard.js')['ANALYTICS_TOP_OPTIONS']>
+    readonly COMPANY_LATITUDE: UnwrapRef<typeof import('./src/utils/company.js')['COMPANY_LATITUDE']>
+    readonly COMPANY_LOCATION: UnwrapRef<typeof import('./src/utils/company.js')['COMPANY_LOCATION']>
+    readonly COMPANY_LONGITUDE: UnwrapRef<typeof import('./src/utils/company.js')['COMPANY_LONGITUDE']>
+    readonly COMPANY_NAME: UnwrapRef<typeof import('./src/utils/company.js')['COMPANY_NAME']>
     readonly CONFIG_VALUE_TYPE_INT: UnwrapRef<typeof import('./src/composables/useSystemConfig.js')['CONFIG_VALUE_TYPE_INT']>
     readonly CUSTOMER_CATEGORIES: UnwrapRef<typeof import('./src/composables/useCustomers.js')['CUSTOMER_CATEGORIES']>
     readonly CUSTOMER_STATUSES: UnwrapRef<typeof import('./src/composables/useCustomers.js')['CUSTOMER_STATUSES']>

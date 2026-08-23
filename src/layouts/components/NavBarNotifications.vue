@@ -83,6 +83,19 @@ const retry = () => {
   fetchFeed()
   fetchCount()
 }
+
+// ── Refresh the feed every time the dropdown opens ────────────────────────
+// The badge polls its own endpoint every 30s, but the feed used to be fetched
+// once at startup and never again — so the bell could read "1 جديد" over an
+// empty list. Opening the menu is the moment the list has to be true.
+const isMenuOpen = ref(false)
+
+watch(isMenuOpen, opened => {
+  if (!opened) return
+
+  fetchFeed()
+  fetchCount()
+})
 </script>
 
 <template>
@@ -139,6 +152,7 @@ const retry = () => {
     </VBadge>
 
     <VMenu
+      v-model="isMenuOpen"
       activator="parent"
       width="380px"
       location="bottom end"

@@ -35,6 +35,7 @@ import RouteEditDrawer from '@/views/apps/logistics/routes/RouteEditDrawer.vue'
 import { useAuth } from '@/composables/useAuth'
 import { confirmAction } from '@/utils/swal'
 import { INTL_LOCALE } from '@/utils/locale'
+import { COMPANY_LOCATION, COMPANY_NAME } from '@/utils/company'
 
 const { userData } = useAuth()
 const ROUTE_MANAGER_ROLES = ['admin', 'sales_manager']
@@ -120,23 +121,15 @@ const saveOrder = async () => {
 const displayStops = computed(() => isReordering.value ? localStops.value : sortedStops.value)
 
 // ── Computed: map center ──────────────────────────────────────────────────────
-const defaultCenter = [33.5117, 36.3067]
-
-const mapCenter = computed(() => {
-  if (sortedStops.value.length > 0) {
-    const first = sortedStops.value[0]
-    if (first.latitude && first.longitude) {
-      return [first.latitude, first.longitude]
-    }
-  }
-
-  return defaultCenter
-})
+// Every route starts at the company, so the company is also the map's center
+// until the OSRM route is drawn and the map is fitted to its bounds.
+const mapCenter = computed(() => COMPANY_LOCATION)
 
 // ── Leaflet map ref + routing ─────────────────────────────────────────────────
 let leafletMap = null          // raw L.Map instance
 let routePolyline = null       // the drawn route polyline
 let stopMarkers = []           // manually-added numbered markers
+let companyMarker = null       // static company marker — the route's start point
 
 /**
  * Creates a numbered circle DivIcon for each stop marker.
@@ -166,12 +159,42 @@ const createNumberedIcon = number => {
 }
 
 /**
+ * Creates the company (start point) marker icon — a distinct green building pin
+ * so it reads as the origin rather than as one of the numbered customer stops.
+ */
+const createCompanyIcon = () => {
+  return L.divIcon({
+    className: 'route-company-icon',
+    html: `<div style="
+      background: #28C76F;
+      color: #fff;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    ">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9v.01M9 12v.01M9 15v.01M9 18v.01" />
+      </svg>
+    </div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    popupAnchor: [0, -20],
+  })
+}
+
+/**
  * Calls the OSRM demo API directly to get the real driving route geometry.
+ * Takes an array of [lat, lng] pairs — the company origin first, then the stops.
  * Returns an array of [lat, lng] pairs, or null on failure.
  */
-const fetchOSRMRoute = async stops => {
+const fetchOSRMRoute = async points => {
   // OSRM expects coordinates as lng,lat pairs separated by semicolons
-  const coords = stops.map(s => `${s.longitude},${s.latitude}`).join(';')
+  const coords = points.map(([lat, lng]) => `${lng},${lat}`).join(';')
   const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`
 
   try {
@@ -207,9 +230,27 @@ const buildRoute = async () => {
   }
   stopMarkers.forEach(m => leafletMap.removeLayer(m))
   stopMarkers = []
+  if (companyMarker) {
+    leafletMap.removeLayer(companyMarker)
+    companyMarker = null
+  }
+
+  // ── The company is always on the map as the route's starting point ──
+  companyMarker = L.marker(COMPANY_LOCATION, { icon: createCompanyIcon(), zIndexOffset: 1000 })
+    .addTo(leafletMap)
+    .bindPopup(
+      `<div>
+        <strong>${COMPANY_NAME} — نقطة الانطلاق</strong><br>
+        <span>${COMPANY_LOCATION[0].toFixed(6)}, ${COMPANY_LOCATION[1].toFixed(6)}</span>
+      </div>`,
+    )
 
   const stops = sortedStops.value.filter(s => s.latitude && s.longitude)
-  if (stops.length === 0) return
+  if (stops.length === 0) {
+    leafletMap.setView(COMPANY_LOCATION, 14)
+
+    return
+  }
 
   // ── Add numbered markers with popups ──
   stops.forEach(stop => {
@@ -227,36 +268,31 @@ const buildRoute = async () => {
     stopMarkers.push(marker)
   })
 
-  // ── Draw the route (needs ≥ 2 points) ──
-  if (stops.length >= 2) {
-    // Try real street routing via OSRM
-    const osrmLatLngs = await fetchOSRMRoute(stops)
+  // ── Draw the route: company origin → stops in sequence ──
+  const routePoints = [COMPANY_LOCATION, ...stops.map(s => [s.latitude, s.longitude])]
 
-    if (osrmLatLngs) {
-      // Real street route from OSRM
-      routePolyline = L.polyline(osrmLatLngs, {
-        color: '#7367F0',
-        weight: 5,
-        opacity: 0.85,
-      }).addTo(leafletMap)
-    } else {
-      // Fallback: straight dashed lines between stops
-      const fallbackLatLngs = stops.map(s => [s.latitude, s.longitude])
+  // Try real street routing via OSRM
+  const osrmLatLngs = await fetchOSRMRoute(routePoints)
 
-      routePolyline = L.polyline(fallbackLatLngs, {
-        color: '#7367F0',
-        weight: 4,
-        opacity: 0.8,
-        dashArray: '10, 6',
-      }).addTo(leafletMap)
-    }
-
-    // Fit the map to show the entire route
-    leafletMap.fitBounds(routePolyline.getBounds(), { padding: [40, 40] })
+  if (osrmLatLngs) {
+    // Real street route from OSRM
+    routePolyline = L.polyline(osrmLatLngs, {
+      color: '#7367F0',
+      weight: 5,
+      opacity: 0.85,
+    }).addTo(leafletMap)
   } else {
-    // Single stop — just center on it
-    leafletMap.setView([stops[0].latitude, stops[0].longitude], 15)
+    // Fallback: straight dashed lines between the points
+    routePolyline = L.polyline(routePoints, {
+      color: '#7367F0',
+      weight: 4,
+      opacity: 0.8,
+      dashArray: '10, 6',
+    }).addTo(leafletMap)
   }
+
+  // Fit the map to show the whole route, company included
+  leafletMap.fitBounds(routePolyline.getBounds(), { padding: [40, 40] })
 }
 
 /**
@@ -779,6 +815,44 @@ const onRemoveCustomer = async customerId => {
                 side="end"
                 class="pa-4"
               >
+                <!-- Start point: the company, shown before the first stop -->
+                <VTimelineItem
+                  dot-color="success"
+                  size="small"
+                >
+                  <template #icon>
+                    <VIcon
+                      icon="tabler-building-store"
+                      size="14"
+                      color="white"
+                    />
+                  </template>
+
+                  <VCard
+                    variant="tonal"
+                    color="success"
+                    class="pa-3"
+                  >
+                    <div class="d-flex align-center gap-2 mb-1">
+                      <VChip
+                        color="success"
+                        size="x-small"
+                        label
+                      >
+                        نقطة الانطلاق
+                      </VChip>
+                      <span class="text-body-2 font-weight-medium">{{ COMPANY_NAME }}</span>
+                    </div>
+                    <div class="d-flex align-center gap-1 text-caption text-medium-emphasis">
+                      <VIcon
+                        icon="tabler-map-pin"
+                        size="14"
+                      />
+                      {{ COMPANY_LOCATION[0].toFixed(6) }}, {{ COMPANY_LOCATION[1].toFixed(6) }}
+                    </div>
+                  </VCard>
+                </VTimelineItem>
+
                 <VTimelineItem
                   v-for="(stop, idx) in displayStops"
                   :key="stop.assignmentId"

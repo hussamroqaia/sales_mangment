@@ -307,11 +307,21 @@ export const useNotifications = () => {
   }
 
   // ── Start polling ─────────────────────────────────────────────────────────
+  /**
+   * The badge and the feed come from two different endpoints. Polling only the
+   * count made the badge climb while the dropdown kept showing the feed exactly
+   * as it was at page load — a "1 جديد" badge over an empty list. So whenever
+   * the count moves, the feed is pulled with it.
+   */
   const startPolling = () => {
     if (_pollingInterval) return  // already running — singleton guard
 
-    _pollingInterval = setInterval(() => {
-      fetchCount()
+    _pollingInterval = setInterval(async () => {
+      const previousCount = unreadCount.value
+
+      await fetchCount()
+
+      if (unreadCount.value !== previousCount) await fetchFeed()
     }, POLL_INTERVAL_MS)
   }
 
